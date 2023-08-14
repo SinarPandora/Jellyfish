@@ -26,7 +26,7 @@ public class KookLoader
         Client.Log += Log;
 
         Client.MessageReceived += _eventMatcher.OnMessageReceived;
-        await Client.LoginAsync(TokenType.Bot, "1/MjE1Mzk=/emnzyeSQH8VafXbZMryrcw==");
+        await Client.LoginAsync(TokenType.Bot, "");
         await Client.StartAsync();
 
         return Client;
