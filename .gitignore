@@ -4,4 +4,6 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 .idea
-*.dev.conf
+*.Debug.config
+*.Release.config
+.DS_Store

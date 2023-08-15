@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+<!--        <AppConfig>App.$(Configuration).config</AppConfig>-->
     </PropertyGroup>
 
     <ItemGroup>
@@ -34,9 +35,22 @@
             <Link>\%(Filename)%(Extension)</Link>
         </None>
     </ItemGroup>
+
+    <ItemGroup>
+        <None Include="App.config" />
+        <None Include="App.Debug.config">
+            <DependentUpon>App.config</DependentUpon>
+        </None>
+        <None Include="App.Release.config">
+            <DependentUpon>App.config</DependentUpon>
+        </None>
+    </ItemGroup>
+    <Target Name="SetAppConfig" BeforeTargets="Compile">
+        <Copy SourceFiles="App.Debug.config" DestinationFiles="App.config" OverwriteReadOnlyFiles="true" Condition=" '$(Configuration)' == 'Debug' " />
+        <Copy SourceFiles="App.Release.config" DestinationFiles="App.config" OverwriteReadOnlyFiles="true" Condition=" '$(Configuration)' == 'Release' " />
+    </Target>
     
     <ItemGroup>
-      <Folder Include="src\Core\Command\" />
       <Folder Include="src\Data\" />
     </ItemGroup>
 
