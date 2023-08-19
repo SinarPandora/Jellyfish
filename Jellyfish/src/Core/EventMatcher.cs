@@ -1,11 +1,25 @@
-using Kook;
+using AutoDI;
+using Jellyfish.Command;
+using Jellyfish.Command.TeamPlay;
+using JetBrains.Annotations;
 using Kook.WebSocket;
 
 namespace Jellyfish.Core;
 
-// ReSharper disable once ClassNeverInstantiated.Global
+[UsedImplicitly]
 public class EventMatcher
 {
+    private readonly List<IMessageCommand> _commands = new();
+
+    public EventMatcher(
+        [Dependency] SimpleHelloCommand simpleHelloCommand = null!,
+        [Dependency] TeamPlayEntryCommand teamPlayEntryCommand = null!
+    )
+    {
+        _commands.Add(simpleHelloCommand);
+        _commands.Add(teamPlayEntryCommand);
+    }
+
     /// <summary>
     ///     Handle message received event
     /// </summary>
@@ -14,9 +28,10 @@ public class EventMatcher
     /// <param name="channel">Current channel</param>
     public async Task OnMessageReceived(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
     {
-        if (msg is { Type: MessageType.KMarkdown, Content: "Hello" })
+        foreach (var command in _commands)
         {
-            await channel.SendTextAsync("Hello world!");
+            var result = await command.Execute(msg, user, channel);
+            if (result == CommandResult.Done) break;
         }
     }
 }

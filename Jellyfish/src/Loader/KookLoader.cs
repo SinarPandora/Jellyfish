@@ -1,6 +1,8 @@
 using AutoDI;
+using Jellyfish.Config;
 using Jellyfish.Core;
 using Kook;
+using Kook.Rest;
 using Kook.WebSocket;
 using NLog;
 
@@ -11,25 +13,29 @@ public class KookLoader
     public static readonly KookLoader Instance = new();
 
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-    private static readonly KookSocketClient Client = new();
 
+    private readonly AppConfig _appConfig;
+    private readonly KookSocketClient _client;
     private readonly EventMatcher _eventMatcher;
 
-    private KookLoader([Dependency] EventMatcher matcher = null!)
+    private KookLoader(
+        [Dependency] EventMatcher? matcher = null,
+        [Dependency] AppConfig? appConfig = null,
+        [Dependency] KookSocketClient? client = null
+    )
     {
-        _eventMatcher = matcher;
-        if (matcher == null) throw new ArgumentNullException(nameof(matcher));
+        _eventMatcher = matcher ?? throw new ArgumentNullException(nameof(matcher));
+        _appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
+        _client = client ?? throw new ArgumentNullException(nameof(client));
     }
 
-    public async Task<KookSocketClient> Boot()
+    public async Task Boot()
     {
-        Client.Log += Log;
+        _client.Log += Log;
 
-        Client.MessageReceived += _eventMatcher.OnMessageReceived;
-        await Client.LoginAsync(TokenType.Bot, "");
-        await Client.StartAsync();
-
-        return Client;
+        _client.MessageReceived += _eventMatcher.OnMessageReceived;
+        await _client.LoginAsync(TokenType.Bot, _appConfig.KookToken);
+        await _client.StartAsync();
     }
 
     /// <summary>
@@ -41,5 +47,16 @@ public class KookLoader
     {
         Logger.Info(msg.ToString);
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Kook Restful API Client
+    /// </summary>
+    /// <returns>Logged-in API Client</returns>
+    public async Task<KookRestClient> CreateApiClient()
+    {
+        var apiClient = new KookRestClient();
+        await apiClient.LoginAsync(TokenType.Bot, _appConfig.KookToken);
+        return apiClient;
     }
 }

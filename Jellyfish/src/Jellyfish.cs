@@ -12,6 +12,4 @@ public static class JellyFish
         await KookLoader.Instance.Boot();
         await Task.Delay(Timeout.Infinite);
     }
-
 }
-
