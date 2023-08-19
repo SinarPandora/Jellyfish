@@ -16,18 +16,18 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="AutoDI.Build" Version="4.0.2"/>
-        <PackageReference Include="EntityFramework" Version="6.4.4"/>
-        <PackageReference Include="JetBrains.Annotations" Version="2023.2.0"/>
-        <PackageReference Include="Kook.Net" Version="0.5.1"/>
-        <PackageReference Include="LanguageExt.Core" Version="4.4.3"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.32"/>
-        <PackageReference Include="NLog" Version="5.2.3"/>
-        <PackageReference Include="System.Collections.Immutable" Version="7.0.0"/>
+        <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
+        <PackageReference Include="Kook.Net" Version="0.5.1" />
+        <PackageReference Include="LanguageExt.Core" Version="4.4.3" />
+        <PackageReference Include="Ninject" Version="3.3.6" />
+        <PackageReference Include="NLog" Version="5.2.3" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
+        <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
+        <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="nuget.config"/>
+        <None Remove="nuget.config" />
     </ItemGroup>
 
     <ItemGroup>
@@ -38,7 +38,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="App.config"/>
+        <None Include="App.config" />
         <None Include="App.Debug.config">
             <DependentUpon>App.config</DependentUpon>
         </None>
@@ -47,12 +47,12 @@
         </None>
     </ItemGroup>
     <Target Name="SetAppConfig" BeforeTargets="Compile">
-        <Copy SourceFiles="App.Debug.config" DestinationFiles="App.config" OverwriteReadOnlyFiles="true" Condition=" '$(Configuration)' == 'Debug' "/>
-        <Copy SourceFiles="App.Release.config" DestinationFiles="App.config" OverwriteReadOnlyFiles="true" Condition=" '$(Configuration)' == 'Release' "/>
+        <Copy SourceFiles="App.Debug.config" DestinationFiles="App.config" OverwriteReadOnlyFiles="true" Condition=" '$(Configuration)' == 'Debug' " />
+        <Copy SourceFiles="App.Release.config" DestinationFiles="App.config" OverwriteReadOnlyFiles="true" Condition=" '$(Configuration)' == 'Release' " />
     </Target>
 
     <ItemGroup>
-        <Folder Include="src\Data\"/>
+        <Folder Include="src\Data\" />
     </ItemGroup>
 
 </Project>

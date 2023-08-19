@@ -1,27 +1,24 @@
-using AutoDI;
 using Jellyfish.Core;
 using Jellyfish.Loader;
-using JetBrains.Annotations;
 using Kook;
 using Kook.WebSocket;
 
 namespace Jellyfish.Command;
 
-[UsedImplicitly]
 public class SimpleHelloCommand : IMessageCommand
 {
-    private readonly KookLoader _kookLoader;
+    private readonly KookApiFactory _apiFactory;
 
-    public SimpleHelloCommand([Dependency] KookLoader kookLoader = null!)
+    public SimpleHelloCommand(KookApiFactory apiFactory = null!)
     {
-        _kookLoader = kookLoader ?? throw new ArgumentNullException(nameof(kookLoader));
+        _apiFactory = apiFactory ?? throw new ArgumentNullException(nameof(apiFactory));
     }
 
     public async Task<CommandResult> Execute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
     {
         if (msg is not { Type: MessageType.KMarkdown, Content: "Hello" }) return CommandResult.Done;
 
-        using (var api = await _kookLoader.CreateApiClient())
+        using (var api = await _apiFactory.CreateApiClient())
         {
             Console.WriteLine(api.CurrentUser.Username);
         }

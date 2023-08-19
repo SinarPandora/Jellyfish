@@ -1,19 +1,16 @@
-using AutoDI;
 using Jellyfish.Command;
 using Jellyfish.Command.TeamPlay;
-using JetBrains.Annotations;
 using Kook.WebSocket;
 
 namespace Jellyfish.Core;
 
-[UsedImplicitly]
 public class EventMatcher
 {
     private readonly List<IMessageCommand> _commands = new();
 
     public EventMatcher(
-        [Dependency] SimpleHelloCommand simpleHelloCommand = null!,
-        [Dependency] TeamPlayEntryCommand teamPlayEntryCommand = null!
+        SimpleHelloCommand simpleHelloCommand = null!,
+        TeamPlayEntryCommand teamPlayEntryCommand = null!
     )
     {
         _commands.Add(simpleHelloCommand);

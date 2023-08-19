@@ -1,13 +1,11 @@
 using Jellyfish.Core;
-using JetBrains.Annotations;
 using Kook.WebSocket;
 
 namespace Jellyfish.Command.TeamPlay;
 
-[UsedImplicitly]
 public class TeamPlayManagerAction
 {
-    public static async Task<CommandResult> Help(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
+    public static async Task<CommandResult> Help(SocketTextChannel channel)
     {
         await channel.SendTextAsync(
             """
@@ -25,6 +23,7 @@ public class TeamPlayManagerAction
     public async Task<CommandResult> BindingParentChannel(SocketMessage raw, SocketGuildUser user,
         SocketTextChannel channel)
     {
+        // user.VoiceChannel
         throw new NotImplementedException();
     }
 

@@ -1,4 +1,6 @@
 ﻿using Jellyfish.Loader;
+using Ninject;
+using AppContext = Jellyfish.Loader.AppContext;
 
 namespace Jellyfish;
 
@@ -9,7 +11,7 @@ public static class JellyFish
     /// </summary>
     public static async Task Main()
     {
-        await KookLoader.Instance.Boot();
+        await AppContext.Instance.Get<KookLoader>().Boot();
         await Task.Delay(Timeout.Infinite);
     }
 }

@@ -1,6 +1,4 @@
-using AutoDI;
 using Jellyfish.Core;
-using JetBrains.Annotations;
 using Kook.WebSocket;
 
 namespace Jellyfish.Command.TeamPlay;
@@ -8,15 +6,14 @@ namespace Jellyfish.Command.TeamPlay;
 /// <summary>
 ///     Team play entry command
 /// </summary>
-[UsedImplicitly]
 public class TeamPlayEntryCommand : IMessageCommand
 {
     private readonly TeamPlayUserAction _userAction;
     private readonly TeamPlayManagerAction _managerAction;
 
-    private TeamPlayEntryCommand(
-        [Dependency] TeamPlayUserAction userAction,
-        [Dependency] TeamPlayManagerAction managerAction
+    public TeamPlayEntryCommand(
+        TeamPlayUserAction? userAction = null,
+        TeamPlayManagerAction? managerAction = null
     )
     {
         _userAction = userAction ?? throw new ArgumentNullException(nameof(userAction));
@@ -65,7 +62,7 @@ public class TeamPlayEntryCommand : IMessageCommand
 
         if (content.StartsWith("帮助"))
         {
-            return await TeamPlayManagerAction.Help(raw, user, channel);
+            return await TeamPlayManagerAction.Help(channel);
         }
 
         if (content.StartsWith("绑定父频道"))

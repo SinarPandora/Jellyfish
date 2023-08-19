@@ -1,10 +1,8 @@
 using Jellyfish.Core;
-using JetBrains.Annotations;
 using Kook.WebSocket;
 
 namespace Jellyfish.Command.TeamPlay;
 
-[UsedImplicitly]
 public class TeamPlayUserAction
 {
     public async Task<CommandResult> Help(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)

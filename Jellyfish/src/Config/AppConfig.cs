@@ -1,9 +1,7 @@
 using System.Configuration;
-using JetBrains.Annotations;
 
 namespace Jellyfish.Config;
 
-[UsedImplicitly]
 public class AppConfig
 {
     public AppConfig()
