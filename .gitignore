@@ -7,3 +7,4 @@ riderModule.iml
 *.Debug.config
 *.Release.config
 .DS_Store
+App.config
