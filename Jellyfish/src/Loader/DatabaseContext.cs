@@ -1,0 +1,71 @@
+using System.Configuration;
+using Jellyfish.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace Jellyfish.Loader;
+
+public class DatabaseContext : DbContext
+{
+    public DbSet<TpConfig> TpRoomConfigs { get; set; } = null!;
+    public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder
+            .UseNpgsql(ConfigurationManager.ConnectionStrings["DbConnectionStr"].ConnectionString)
+            .UseSnakeCaseNamingConvention();
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<TpConfig>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .Property(e => e.UpdateTime)
+                .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .HasMany(e => e.RoomInstances)
+                .WithOne(e => e.TpConfig)
+                .HasForeignKey(e => e.TpConfigId)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<TpRoomInstance>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .Property(e => e.UpdateTime)
+                .HasDefaultValueSql("current_timestamp");
+        });
+    }
+
+    public override int SaveChanges()
+    {
+        var entities = ChangeTracker.Entries().ToList();
+
+        foreach (var entry in entities)
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    Entry(entry.Entity).Property(nameof(TrackableEntity.CreateTime)).CurrentValue = DateTime.Now;
+                    break;
+                case EntityState.Modified:
+                    Entry(entry.Entity).Property(nameof(TrackableEntity.UpdateTime)).CurrentValue = DateTime.Now;
+                    break;
+            }
+        }
+
+        return base.SaveChanges();
+    }
+}

@@ -12,12 +12,12 @@ public class TeamPlayEntryCommand : IMessageCommand
     private readonly TeamPlayManagerAction _managerAction;
 
     public TeamPlayEntryCommand(
-        TeamPlayUserAction? userAction = null,
-        TeamPlayManagerAction? managerAction = null
+        TeamPlayUserAction userAction,
+        TeamPlayManagerAction managerAction
     )
     {
-        _userAction = userAction ?? throw new ArgumentNullException(nameof(userAction));
-        _managerAction = managerAction ?? throw new ArgumentNullException(nameof(managerAction));
+        _userAction = userAction;
+        _managerAction = managerAction;
     }
 
     public async Task<CommandResult> Execute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)

@@ -22,3 +22,11 @@
 39.102.47.15    www.kookapp.cn
 203.107.54.174  kookapp.cn
 ```
+
+## 部署指南
+
+1. 安装 dotnet 7 环境
+2. 安装 postgres 15 数据库
+3. 重命名 Demo.config 到 App.config，并更新配置
+4. 创建数据库 jellyfish_kook
+

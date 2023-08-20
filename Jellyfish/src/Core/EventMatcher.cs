@@ -9,8 +9,8 @@ public class EventMatcher
     private readonly List<IMessageCommand> _commands = new();
 
     public EventMatcher(
-        SimpleHelloCommand simpleHelloCommand = null!,
-        TeamPlayEntryCommand teamPlayEntryCommand = null!
+        SimpleHelloCommand simpleHelloCommand,
+        TeamPlayEntryCommand teamPlayEntryCommand
     )
     {
         _commands.Add(simpleHelloCommand);

@@ -14,11 +14,11 @@ public class KookLoader
     private readonly KookSocketClient _client;
     private readonly EventMatcher _eventMatcher;
 
-    public KookLoader(EventMatcher? matcher = null, AppConfig? appConfig = null, KookSocketClient? client = null)
+    public KookLoader(EventMatcher matcher, AppConfig appConfig, KookSocketClient client)
     {
-        _eventMatcher = matcher ?? throw new ArgumentNullException(nameof(matcher));
-        _appConfig = appConfig ?? throw new ArgumentNullException(nameof(appConfig));
-        _client = client ?? throw new ArgumentNullException(nameof(client));
+        _eventMatcher = matcher;
+        _appConfig = appConfig;
+        _client = client;
     }
 
     public async Task Boot()

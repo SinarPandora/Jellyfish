@@ -9,9 +9,9 @@ public class SimpleHelloCommand : IMessageCommand
 {
     private readonly KookApiFactory _apiFactory;
 
-    public SimpleHelloCommand(KookApiFactory apiFactory = null!)
+    public SimpleHelloCommand(KookApiFactory apiFactory)
     {
-        _apiFactory = apiFactory ?? throw new ArgumentNullException(nameof(apiFactory));
+        _apiFactory = apiFactory;
     }
 
     public async Task<CommandResult> Execute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
