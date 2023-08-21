@@ -1,7 +1,7 @@
 using Jellyfish.Command;
 using Jellyfish.Command.TeamPlay;
 using Jellyfish.Config;
-using Jellyfish.Core;
+using Jellyfish.Core.Command;
 using Kook.WebSocket;
 using Ninject;
 using Ninject.Modules;

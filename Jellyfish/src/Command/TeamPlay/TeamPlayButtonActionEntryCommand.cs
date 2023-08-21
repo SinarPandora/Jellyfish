@@ -1,4 +1,4 @@
-using Jellyfish.Core;
+using Jellyfish.Core.Command;
 using Kook;
 using Kook.WebSocket;
 
@@ -26,7 +26,7 @@ public class TeamPlayButtonActionEntryCommand : IButtonActionCommand
     {
         if (value.StartsWith("tp_binding_"))
         {
-            await _managerAction.DoBindingParentChannel(value[11..], user, message, channel);
+            await TeamPlayManagerAction.DoBindingParentChannel(value[11..], user, message, channel);
             return CommandResult.Done;
         }
 

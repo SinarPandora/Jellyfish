@@ -1,4 +1,4 @@
-namespace Jellyfish.Core;
+namespace Jellyfish.Core.Command;
 
 public enum CommandResult
 {

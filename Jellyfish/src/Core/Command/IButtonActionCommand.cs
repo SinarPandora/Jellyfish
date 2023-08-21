@@ -1,7 +1,7 @@
 using Kook;
 using Kook.WebSocket;
 
-namespace Jellyfish.Core;
+namespace Jellyfish.Core.Command;
 
 /// <summary>
 ///     Card action command interface

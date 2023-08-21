@@ -2,7 +2,7 @@ using Kook;
 using Kook.WebSocket;
 using NLog;
 
-namespace Jellyfish.Core;
+namespace Jellyfish.Core.Command;
 
 public class EventMatcher
 {

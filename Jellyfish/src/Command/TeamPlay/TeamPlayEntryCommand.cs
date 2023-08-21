@@ -1,4 +1,4 @@
-using Jellyfish.Core;
+using Jellyfish.Core.Command;
 using Kook.WebSocket;
 
 namespace Jellyfish.Command.TeamPlay;
@@ -58,7 +58,7 @@ public class TeamPlayEntryCommand : IMessageCommand
         if (content.StartsWith("帮助"))
             await TeamPlayManagerAction.Help(channel);
         else if (content.StartsWith("绑定父频道"))
-            await _managerAction.StartBindingParentChannel(raw, user, channel, content[5..].TrimStart());
+            await TeamPlayManagerAction.StartBindingParentChannel(raw, user, channel, content[5..].TrimStart());
 
         else if (content.StartsWith("默认语音质量"))
             await _managerAction.SetDefaultQuality(raw, user, channel, content[6..].Trim());

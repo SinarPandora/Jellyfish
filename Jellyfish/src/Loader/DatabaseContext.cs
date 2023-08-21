@@ -1,4 +1,6 @@
 using System.Configuration;
+using Jellyfish.Command.TeamPlay.Data;
+using Jellyfish.Core.Protocol;
 using Jellyfish.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,6 +35,10 @@ public class DatabaseContext : DbContext
             entity
                 .Property(e => e.Enabled)
                 .HasDefaultValue(true);
+
+            entity
+                .Property(e => e.VoiceQuality)
+                .HasDefaultValue(VoiceQuality.MEDIUM);
 
             entity
                 .HasMany(e => e.RoomInstances)

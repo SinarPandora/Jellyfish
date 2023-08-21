@@ -1,5 +1,5 @@
 using Jellyfish.Config;
-using Jellyfish.Core;
+using Jellyfish.Core.Command;
 using Kook;
 using Kook.WebSocket;
 using NLog;

@@ -1,4 +1,4 @@
-using Jellyfish.Data;
+using Jellyfish.Command.TeamPlay.Data;
 using Jellyfish.Loader;
 using Kook;
 using Kook.WebSocket;
@@ -27,7 +27,7 @@ public class TeamPlayManagerAction
             """);
     }
 
-    public async Task StartBindingParentChannel(SocketMessage raw, SocketGuildUser user,
+    public static async Task StartBindingParentChannel(SocketMessage raw, SocketGuildUser user,
         SocketTextChannel channel, string name)
     {
         await using var dbCtx = new DatabaseContext();
@@ -85,7 +85,7 @@ public class TeamPlayManagerAction
         }
     }
 
-    public async Task DoBindingParentChannel(string name, Cacheable<SocketGuildUser, ulong> user,
+    public static async Task DoBindingParentChannel(string name, Cacheable<SocketGuildUser, ulong> user,
         Cacheable<IMessage, Guid> message, SocketTextChannel channel)
     {
         Log.Info($"已收到名为 {name} 的绑定请求，执行进一步操作");

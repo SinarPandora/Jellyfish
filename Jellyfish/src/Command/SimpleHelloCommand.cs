@@ -1,4 +1,4 @@
-using Jellyfish.Core;
+using Jellyfish.Core.Command;
 using Jellyfish.Loader;
 using Kook;
 using Kook.WebSocket;
@@ -30,9 +30,7 @@ public class SimpleHelloCommand : IMessageCommand
 
         await channel.SendTextAsync("Simple hello world!");
 
-        using var api = _apiFactory.CreateApiClient().Result;
-        Console.WriteLine(api.CurrentUser.Username);
-        Log.Info("Finished!");
+        Log.Info($"Current Boot Level is {channel.Guild.BoostLevel}");
 
         return CommandResult.Done;
     }

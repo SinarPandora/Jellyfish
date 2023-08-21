@@ -1,6 +1,6 @@
 using Kook.WebSocket;
 
-namespace Jellyfish.Core;
+namespace Jellyfish.Core.Command;
 
 /// <summary>
 ///     Message command interface
