@@ -9,7 +9,7 @@ public class TpRoomInstance : TrackableEntity
     public long TpConfigId { get; set; }
     public ulong VoiceChannelId { get; set; }
     public ulong CreatorId { get; set; }
-    public uint MemberLimit { get; set; }
+    public uint MemberLimit { get; set; } = 10;
 
     // References
     public TpConfig TpConfig { get; set; } = null!;

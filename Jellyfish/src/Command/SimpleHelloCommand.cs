@@ -16,14 +16,12 @@ public class SimpleHelloCommand : IMessageCommand
 
     public async Task<CommandResult> Execute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
     {
-        if (msg is not { Type: MessageType.KMarkdown, Content: "Hello" }) return CommandResult.Done;
-
-        using (var api = await _apiFactory.CreateApiClient())
-        {
-            Console.WriteLine(api.CurrentUser.Username);
-        }
+        if (msg is not { Type: MessageType.KMarkdown, Content: "Hello" }) return CommandResult.Continue;
 
         await channel.SendTextAsync("Simple hello world!");
+
+        using var api = _apiFactory.CreateApiClient().Result;
+        Console.WriteLine(api.CurrentUser.Username);
 
         return CommandResult.Done;
     }

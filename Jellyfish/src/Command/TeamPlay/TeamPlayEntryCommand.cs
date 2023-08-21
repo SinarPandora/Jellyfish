@@ -26,11 +26,11 @@ public class TeamPlayEntryCommand : IMessageCommand
 
         // User commands
         if (content.StartsWith("/组队"))
-            return await HandleUserCommand(msg, user, channel, content);
+            return await HandleUserCommand(msg, user, channel, content[3..].TrimStart());
 
         // Manager commands
         if (content.StartsWith("！组队") || content.StartsWith("!组队"))
-            return await HandleManagerCommand(msg, user, channel, content);
+            return await HandleManagerCommand(msg, user, channel, content[3..].TrimStart());
 
         return CommandResult.Continue;
     }
@@ -38,43 +38,37 @@ public class TeamPlayEntryCommand : IMessageCommand
     private async Task<CommandResult> HandleUserCommand(SocketMessage raw, SocketGuildUser user,
         SocketTextChannel channel, string content)
     {
-        // content remove prefix
-        content = content[3..];
-
         if (content.StartsWith("帮助"))
         {
-            return await _userAction.Help(raw, user, channel);
+            await _userAction.Help(raw, user, channel);
         }
-
-        if (content.StartsWith("人数"))
+        else if (content.StartsWith("人数"))
         {
-            return await _userAction.SetMemberLimit(raw, user, channel, content[2..]);
+            await _userAction.SetMemberLimit(raw, user, channel, content[2..].Trim());
         }
+        else await _userAction.CreateRoom(raw, user, channel, content);
 
-        return await _userAction.CreateRoom(raw, user, channel, content);
+        return CommandResult.Done;
     }
 
     private async Task<CommandResult> HandleManagerCommand(SocketMessage raw, SocketGuildUser user,
         SocketTextChannel channel, string content)
     {
-        // content remove prefix
-        content = content[3..];
-
         if (content.StartsWith("帮助"))
         {
-            return await TeamPlayManagerAction.Help(channel);
+            await TeamPlayManagerAction.Help(channel);
         }
-
-        if (content.StartsWith("绑定父频道"))
+        else if (content.StartsWith("绑定父频道"))
         {
-            return await _managerAction.BindingParentChannel(raw, user, channel);
+            await _managerAction.StartBindingParentChannel(raw, user, channel, content[5..].TrimStart());
         }
 
-        if (content.StartsWith("默认语音质量"))
+        else if (content.StartsWith("默认语音质量"))
         {
-            return await _managerAction.SetDefaultQuality(raw, user, channel, content[6..]);
+            await _managerAction.SetDefaultQuality(raw, user, channel, content[6..].Trim());
         }
+        else await TeamPlayManagerAction.Help(channel);
 
-        return CommandResult.Continue;
+        return CommandResult.Done;
     }
 }
