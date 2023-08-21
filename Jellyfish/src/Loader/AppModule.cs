@@ -3,7 +3,6 @@ using Jellyfish.Command.TeamPlay;
 using Jellyfish.Config;
 using Jellyfish.Core;
 using Kook.WebSocket;
-using Microsoft.EntityFrameworkCore;
 using Ninject;
 using Ninject.Modules;
 
@@ -21,7 +20,6 @@ public class AppModule : NinjectModule
     {
         // ------------------------------------------------ System -----------------------------------------------------
         Bind<AppConfig>().To<AppConfig>().InSingletonScope();
-        Bind<DbContext>().To<DatabaseContext>().InThreadScope();
         Bind<KookSocketClient>()
             .ToMethod(ctx => KookLoader.CreateSocketClient(ctx.Kernel.Get<AppConfig>()))
             .InSingletonScope();
@@ -37,6 +35,6 @@ public class AppModule : NinjectModule
         Bind<IMessageCommand>().To<TeamPlayEntryCommand>().InSingletonScope();
         Bind<TeamPlayUserAction>().To<TeamPlayUserAction>().InSingletonScope();
         Bind<TeamPlayManagerAction>().To<TeamPlayManagerAction>().InSingletonScope();
-        Bind<ICardActionCommand>().To<TeamPlayCardActionEntryCommand>().InSingletonScope();
+        Bind<IButtonActionCommand>().To<TeamPlayButtonActionEntryCommand>().InSingletonScope();
     }
 }

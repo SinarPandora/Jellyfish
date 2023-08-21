@@ -2,16 +2,26 @@ using Jellyfish.Core;
 using Jellyfish.Loader;
 using Kook;
 using Kook.WebSocket;
+using NLog;
 
 namespace Jellyfish.Command;
 
+/// <summary>
+///     Simple testing command
+/// </summary>
 public class SimpleHelloCommand : IMessageCommand
 {
+    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly KookApiFactory _apiFactory;
 
     public SimpleHelloCommand(KookApiFactory apiFactory)
     {
         _apiFactory = apiFactory;
+    }
+
+    public string Name()
+    {
+        return "简单测试指令";
     }
 
     public async Task<CommandResult> Execute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
@@ -22,6 +32,7 @@ public class SimpleHelloCommand : IMessageCommand
 
         using var api = _apiFactory.CreateApiClient().Result;
         Console.WriteLine(api.CurrentUser.Username);
+        Log.Info("Finished!");
 
         return CommandResult.Done;
     }

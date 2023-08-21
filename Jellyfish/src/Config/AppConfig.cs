@@ -4,9 +4,9 @@ namespace Jellyfish.Config;
 
 public class AppConfig
 {
-    public readonly string KookToken;
-    public readonly bool KookEnableDebug;
     public readonly int KookConnectTimeout;
+    public readonly bool KookEnableDebug;
+    public readonly string KookToken;
 
     public AppConfig()
     {

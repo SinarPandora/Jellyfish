@@ -7,13 +7,18 @@ namespace Jellyfish.Command.TeamPlay;
 /// <summary>
 ///     Team play card action
 /// </summary>
-public class TeamPlayCardActionEntryCommand : ICardActionCommand
+public class TeamPlayButtonActionEntryCommand : IButtonActionCommand
 {
     private readonly TeamPlayManagerAction _managerAction;
 
-    public TeamPlayCardActionEntryCommand(TeamPlayManagerAction managerAction)
+    public TeamPlayButtonActionEntryCommand(TeamPlayManagerAction managerAction)
     {
         _managerAction = managerAction;
+    }
+
+    public string Name()
+    {
+        return "组队游戏卡片操作";
     }
 
     public async Task<CommandResult> Execute(string value, Cacheable<SocketGuildUser, ulong> user,

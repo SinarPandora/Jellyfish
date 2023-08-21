@@ -8,6 +8,12 @@ namespace Jellyfish.Core;
 public interface IMessageCommand
 {
     /// <summary>
+    ///     Name of command
+    /// </summary>
+    /// <returns>Command name</returns>
+    string Name();
+
+    /// <summary>
     ///     Execute command
     /// </summary>
     /// <param name="msg">User message object</param>

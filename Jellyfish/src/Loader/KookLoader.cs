@@ -54,8 +54,9 @@ public class KookLoader
     /// </summary>
     /// <param name="config">App Configuration</param>
     /// <returns>Configured socket client</returns>
-    public static KookSocketClient CreateSocketClient(AppConfig config) =>
-        new(new KookSocketConfig
+    public static KookSocketClient CreateSocketClient(AppConfig config)
+    {
+        return new KookSocketClient(new KookSocketConfig
         {
             AlwaysDownloadUsers = true,
             AlwaysDownloadVoiceStates = true,
@@ -63,6 +64,7 @@ public class KookLoader
             MessageCacheSize = 100,
             LogLevel = config.KookEnableDebug ? LogSeverity.Debug : LogSeverity.Info,
             ConnectionTimeout = config.KookConnectTimeout,
-            HandlerTimeout = 10_000
+            HandlerTimeout = 5_000
         });
+    }
 }

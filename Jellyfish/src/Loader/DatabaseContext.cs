@@ -6,7 +6,7 @@ namespace Jellyfish.Loader;
 
 public class DatabaseContext : DbContext
 {
-    public DbSet<TpConfig> TpRoomConfigs { get; set; } = null!;
+    public DbSet<TpConfig> TpConfigs { get; set; } = null!;
     public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -62,7 +62,6 @@ public class DatabaseContext : DbContext
         var entities = ChangeTracker.Entries().ToList();
 
         foreach (var entry in entities)
-        {
             switch (entry.State)
             {
                 case EntityState.Added:
@@ -72,7 +71,6 @@ public class DatabaseContext : DbContext
                     Entry(entry.Entity).Property(nameof(TrackableEntity.UpdateTime)).CurrentValue = DateTime.Now;
                     break;
             }
-        }
 
         return base.SaveChanges();
     }

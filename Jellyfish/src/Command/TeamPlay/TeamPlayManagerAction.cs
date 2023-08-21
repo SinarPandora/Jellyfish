@@ -1,22 +1,16 @@
+using Jellyfish.Data;
 using Jellyfish.Loader;
 using Kook;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using NLog;
+using AppCtx = Jellyfish.Loader.AppContext;
 
 namespace Jellyfish.Command.TeamPlay;
 
 public class TeamPlayManagerAction
 {
-    private readonly KookApiFactory _apiFactory;
-    private readonly DatabaseContext _databaseContext;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
-    public TeamPlayManagerAction(KookApiFactory apiFactory, DatabaseContext databaseContext)
-    {
-        _apiFactory = apiFactory;
-        _databaseContext = databaseContext;
-    }
 
     public static async Task Help(SocketTextChannel channel)
     {
@@ -36,7 +30,9 @@ public class TeamPlayManagerAction
     public async Task StartBindingParentChannel(SocketMessage raw, SocketGuildUser user,
         SocketTextChannel channel, string name)
     {
-        var names = _databaseContext.TpRoomConfigs.AsNoTracking()
+        await using var dbCtx = new DatabaseContext();
+
+        var names = dbCtx.TpConfigs.AsNoTracking()
             .Select(c => c.Name)
             .OrderBy(c => c)
             .ToArray();
@@ -45,19 +41,17 @@ public class TeamPlayManagerAction
         {
             var message = "请设置父频道类型";
             if (!names.Any())
-            {
                 message += $"""
                             ------------------
                             当前已设置的父频道类型：
                             {string.Join("\n", names)}
                             """;
-            }
 
             await channel.SendTextAsync(message);
         }
         else if (names.Contains(name))
         {
-            Log.Info("检测到名称重复，将启动重新绑定流程");
+            Log.Info($"检测到名称重复，将启动重新绑定流程，目标类型：{name}");
         }
         else
         {
@@ -104,7 +98,34 @@ public class TeamPlayManagerAction
         }
         else
         {
-            Log.Info($"已检测到语音频道：{voiceChannel.Id}:{voiceChannel.Id}");
+            Log.Info($"已检测到语音频道：{voiceChannel.Name}：{voiceChannel.Id}");
+            await channel.SendCardAsync(new CardBuilder()
+                .AddModule<SectionModuleBuilder>(s => { s.WithText($"✅检测到您加入了频道：{voiceChannel.Name}，正在绑定..."); })
+                .Build());
+
+
+            await using var dbCtx = new DatabaseContext();
+            var record = dbCtx.TpConfigs
+                .FirstOrDefault(e => e.Name == name);
+
+            // Update or Insert
+            if (record != null)
+            {
+                record.ChannelId = voiceChannel.Id;
+            }
+            else
+            {
+                record = new TpConfig(name, voiceChannel.Id);
+                dbCtx.TpConfigs.Add(record);
+            }
+
+            await dbCtx.SaveChangesAsync();
+
+            await channel.SendCardAsync(new CardBuilder()
+                .AddModule<SectionModuleBuilder>(s => { s.WithText("✅绑定成功！"); })
+                .Build());
+
+            Log.Info($"成功绑定 {name} 到 {voiceChannel.Name}：{voiceChannel.Id}，ID：{record.Id}");
         }
     }
 

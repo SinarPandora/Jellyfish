@@ -8,8 +8,8 @@ namespace Jellyfish.Command.TeamPlay;
 /// </summary>
 public class TeamPlayEntryCommand : IMessageCommand
 {
-    private readonly TeamPlayUserAction _userAction;
     private readonly TeamPlayManagerAction _managerAction;
+    private readonly TeamPlayUserAction _userAction;
 
     public TeamPlayEntryCommand(
         TeamPlayUserAction userAction,
@@ -18,6 +18,11 @@ public class TeamPlayEntryCommand : IMessageCommand
     {
         _userAction = userAction;
         _managerAction = managerAction;
+    }
+
+    public string Name()
+    {
+        return "组队游戏指令";
     }
 
     public async Task<CommandResult> Execute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
@@ -39,13 +44,9 @@ public class TeamPlayEntryCommand : IMessageCommand
         SocketTextChannel channel, string content)
     {
         if (content.StartsWith("帮助"))
-        {
             await _userAction.Help(raw, user, channel);
-        }
         else if (content.StartsWith("人数"))
-        {
             await _userAction.SetMemberLimit(raw, user, channel, content[2..].Trim());
-        }
         else await _userAction.CreateRoom(raw, user, channel, content);
 
         return CommandResult.Done;
@@ -55,18 +56,12 @@ public class TeamPlayEntryCommand : IMessageCommand
         SocketTextChannel channel, string content)
     {
         if (content.StartsWith("帮助"))
-        {
             await TeamPlayManagerAction.Help(channel);
-        }
         else if (content.StartsWith("绑定父频道"))
-        {
             await _managerAction.StartBindingParentChannel(raw, user, channel, content[5..].TrimStart());
-        }
 
         else if (content.StartsWith("默认语音质量"))
-        {
             await _managerAction.SetDefaultQuality(raw, user, channel, content[6..].Trim());
-        }
         else await TeamPlayManagerAction.Help(channel);
 
         return CommandResult.Done;
