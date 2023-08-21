@@ -16,6 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="CacheManager.Core" Version="1.2.0"/>
         <PackageReference Include="EFCore.NamingConventions" Version="7.0.2" />
         <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
         <PackageReference Include="Kook.Net" Version="0.5.1" />

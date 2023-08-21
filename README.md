@@ -11,8 +11,10 @@
 * [HOCON](https://github.com/akkadotnet/HOCON)
 * [易有云](https://doc.linkease.com/)
 * [language-ext](https://github.com/louthy/language-ext)
-* [AutoDI](https://github.com/Keboo/AutoDI/wiki/Quick-Start)
+* [Ninject](https://github.com/ninject/Ninject/wiki)
+* [CacheManager](https://cachemanager.michaco.net/)
 * [KookAPI](https://developer.kookapp.cn/doc/reference)
+* [KMarkdown Preview](https://www.kookapp.cn/tools/message-builder.html#/kmarkdown)
 
 ## API Hosts
 
