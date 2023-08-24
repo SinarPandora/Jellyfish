@@ -29,12 +29,11 @@ public class AppModule : NinjectModule
 
         // ------------------------------------------------ Commands ---------------------------------------------------
         // Simple Command
-        Bind<IMessageCommand>().To<SimpleHelloCommand>().InSingletonScope();
+        Bind<IMessageCommand>().To<SimpleTestCommand>().InSingletonScope();
 
         // TeamPlay Command
         Bind<IMessageCommand>().To<TeamPlayEntryCommand>().InSingletonScope();
         Bind<TeamPlayUserAction>().To<TeamPlayUserAction>().InSingletonScope();
-        Bind<TeamPlayManagerAction>().To<TeamPlayManagerAction>().InSingletonScope();
-        Bind<IButtonActionCommand>().To<TeamPlayButtonActionEntryCommand>().InSingletonScope();
+        Bind<IButtonActionCommand>().To<TeamPlayButtonActionEntry>().InSingletonScope();
     }
 }

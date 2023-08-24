@@ -38,7 +38,7 @@ public class DatabaseContext : DbContext
 
             entity
                 .Property(e => e.VoiceQuality)
-                .HasDefaultValue(VoiceQuality.MEDIUM);
+                .HasDefaultValue(VoiceQuality.Medium);
 
             entity
                 .HasMany(e => e.RoomInstances)

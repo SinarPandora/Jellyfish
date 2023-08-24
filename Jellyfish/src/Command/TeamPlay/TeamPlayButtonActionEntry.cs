@@ -7,15 +7,8 @@ namespace Jellyfish.Command.TeamPlay;
 /// <summary>
 ///     Team play card action
 /// </summary>
-public class TeamPlayButtonActionEntryCommand : IButtonActionCommand
+public class TeamPlayButtonActionEntry : IButtonActionCommand
 {
-    private readonly TeamPlayManagerAction _managerAction;
-
-    public TeamPlayButtonActionEntryCommand(TeamPlayManagerAction managerAction)
-    {
-        _managerAction = managerAction;
-    }
-
     public string Name()
     {
         return "组队游戏卡片操作";
@@ -26,7 +19,7 @@ public class TeamPlayButtonActionEntryCommand : IButtonActionCommand
     {
         if (value.StartsWith("tp_binding_"))
         {
-            await TeamPlayManagerAction.DoBindingParentChannel(value[11..], user, message, channel);
+            await TeamPlayManagerAction.DoBindingParentChannel(value[11..], user, channel);
             return CommandResult.Done;
         }
 

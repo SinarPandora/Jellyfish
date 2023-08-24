@@ -8,16 +8,11 @@ namespace Jellyfish.Command.TeamPlay;
 /// </summary>
 public class TeamPlayEntryCommand : IMessageCommand
 {
-    private readonly TeamPlayManagerAction _managerAction;
     private readonly TeamPlayUserAction _userAction;
 
-    public TeamPlayEntryCommand(
-        TeamPlayUserAction userAction,
-        TeamPlayManagerAction managerAction
-    )
+    public TeamPlayEntryCommand(TeamPlayUserAction userAction)
     {
         _userAction = userAction;
-        _managerAction = managerAction;
     }
 
     public string Name()
@@ -57,11 +52,12 @@ public class TeamPlayEntryCommand : IMessageCommand
     {
         if (content.StartsWith("帮助"))
             await TeamPlayManagerAction.Help(channel);
-        else if (content.StartsWith("绑定父频道"))
-            await TeamPlayManagerAction.StartBindingParentChannel(raw, user, channel, content[5..].TrimStart());
-
-        else if (content.StartsWith("默认语音质量"))
-            await _managerAction.SetDefaultQuality(raw, user, channel, content[6..].Trim());
+        else if (content.StartsWith("父频道"))
+            await TeamPlayManagerAction.StartBindingParentChannel(channel, content[5..].TrimStart());
+        else if (content.StartsWith("语音质量"))
+            await TeamPlayManagerAction.SetDefaultQuality(channel, content[6..].Trim());
+        else if (content.StartsWith("列表"))
+            await TeamPlayManagerAction.ListConfigs(channel);
         else await TeamPlayManagerAction.Help(channel);
 
         return CommandResult.Done;

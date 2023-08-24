@@ -5,7 +5,7 @@ namespace Jellyfish.Core.Protocol;
 /// </summary>
 public enum VoiceQuality
 {
-    LOW = 1,
-    MEDIUM = 2,
-    HIGH = 3
+    Low = 1,
+    Medium = 2,
+    High = 3
 }
