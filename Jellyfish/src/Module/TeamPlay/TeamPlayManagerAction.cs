@@ -1,6 +1,6 @@
-using Jellyfish.Command.TeamPlay.Data;
 using Jellyfish.Core.Protocol;
 using Jellyfish.Loader;
+using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
@@ -9,7 +9,7 @@ using NLog;
 using AppCtx = Jellyfish.Loader.AppContext;
 using VoiceQuality = Jellyfish.Core.Protocol.VoiceQuality;
 
-namespace Jellyfish.Command.TeamPlay;
+namespace Jellyfish.Module.TeamPlay;
 
 public static class TeamPlayManagerAction
 {
@@ -25,7 +25,8 @@ public static class TeamPlayManagerAction
             参数：
             帮助：显示此消息
             列表：列出全部的组队频道配置
-            父频道 [父频道类型]：设定组队频道所在的父频道
+            绑定 [名称]：开始组队功能绑定
+            绑定文字频道 [名称]：在目标频道中使用，设置后，该频道发送的组队质量会使用该配置创建语音频道
             语音质量 [配置 ID] [低|中|高]：设定临时语音频道的质量，配置 ID 可以通过“列表”指令获取
             """);
     }
@@ -41,11 +42,10 @@ public static class TeamPlayManagerAction
 
         if (string.IsNullOrEmpty(name))
         {
-            await channel.SendWarningCardAsync("请设置父频道类型，举例：！组队 父频道 真格上分");
+            await channel.SendWarningCardAsync("请设置绑定名称，举例：！组队 绑定 真格上分");
         }
         else
         {
-            Log.Info($"检测到新类型绑定，启动绑定流程，目标类型：{name}");
             var cardBuilder = new CardBuilder();
             // Header element
             cardBuilder.AddModule<SectionModuleBuilder>(s =>
@@ -100,7 +100,7 @@ public static class TeamPlayManagerAction
                 record.VoiceQuality = channel.Guild.BoostLevel > BoostLevel.None
                     ? VoiceQuality.High
                     : VoiceQuality.Medium;
-                record.ChannelId = voiceChannel.Id;
+                record.VoiceChannelId = voiceChannel.Id;
             }
             else
             {
@@ -166,11 +166,30 @@ public static class TeamPlayManagerAction
         {
             var configs = configRecords
                 .Select(e =>
-                    $"ID：{e.Id}，名称：{e.Name}，频道：{MentionUtils.KMarkdownMentionChannel(e.ChannelId)}，" +
+                    $"ID：{e.Id}，名称：{e.Name}，频道：{MentionUtils.KMarkdownMentionChannel(e.VoiceChannelId)}，" +
                     $"语音质量：{VoiceQualityNames.Get(e.VoiceQuality)}，当前语音房间数：{e.RoomInstances.Count}"
                 )
                 .ToArray();
             await channel.SendTextAsync(string.Join("\n", configs));
+        }
+    }
+
+    public static async Task BindingTextChannel(SocketTextChannel channel, string name)
+    {
+        await using var dbCtx = new DatabaseContext();
+        var config = dbCtx.TpConfigs.FirstOrDefault(e => e.Name == name);
+        if (config == null)
+        {
+            await channel.SendWarningCardAsync("指定配置不存在");
+        }
+        else
+        {
+            config.TextChannelId = channel.Id;
+            dbCtx.SaveChanges();
+            await channel.SendSuccessCardAsync(
+                $"绑定成功！在该频道使用组队指令将" +
+                $"自动在 {MentionUtils.KMarkdownMentionChannel(config.VoiceChannelId)} 下创建语音频道"
+            );
         }
     }
 }

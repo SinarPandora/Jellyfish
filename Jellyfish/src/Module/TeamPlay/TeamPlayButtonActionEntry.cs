@@ -2,7 +2,7 @@ using Jellyfish.Core.Command;
 using Kook;
 using Kook.WebSocket;
 
-namespace Jellyfish.Command.TeamPlay;
+namespace Jellyfish.Module.TeamPlay;
 
 /// <summary>
 ///     Team play card action

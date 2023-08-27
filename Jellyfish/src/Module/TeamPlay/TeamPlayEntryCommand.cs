@@ -1,7 +1,7 @@
 using Jellyfish.Core.Command;
 using Kook.WebSocket;
 
-namespace Jellyfish.Command.TeamPlay;
+namespace Jellyfish.Module.TeamPlay;
 
 /// <summary>
 ///     Team play entry command
@@ -30,7 +30,7 @@ public class TeamPlayEntryCommand : IMessageCommand
 
         // Manager commands
         if (content.StartsWith("！组队") || content.StartsWith("!组队"))
-            return await HandleManagerCommand(msg, user, channel, content[3..].TrimStart());
+            return await HandleManagerCommand(channel, content[3..].TrimStart());
 
         return CommandResult.Continue;
     }
@@ -47,15 +47,16 @@ public class TeamPlayEntryCommand : IMessageCommand
         return CommandResult.Done;
     }
 
-    private async Task<CommandResult> HandleManagerCommand(SocketMessage raw, SocketGuildUser user,
-        SocketTextChannel channel, string content)
+    private async Task<CommandResult> HandleManagerCommand(SocketTextChannel channel, string content)
     {
         if (content.StartsWith("帮助"))
             await TeamPlayManagerAction.Help(channel);
-        else if (content.StartsWith("父频道"))
-            await TeamPlayManagerAction.StartBindingParentChannel(channel, content[5..].TrimStart());
+        else if (content.StartsWith("绑定"))
+            await TeamPlayManagerAction.StartBindingParentChannel(channel, content[2..].TrimStart());
+        else if (content.StartsWith("绑定文字频道"))
+            await TeamPlayManagerAction.StartBindingParentChannel(channel, content[6..].TrimStart());
         else if (content.StartsWith("语音质量"))
-            await TeamPlayManagerAction.SetDefaultQuality(channel, content[6..].Trim());
+            await TeamPlayManagerAction.BindingTextChannel(channel, content[6..].Trim());
         else if (content.StartsWith("列表"))
             await TeamPlayManagerAction.ListConfigs(channel);
         else await TeamPlayManagerAction.Help(channel);
