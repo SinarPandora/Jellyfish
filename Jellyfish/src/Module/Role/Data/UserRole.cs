@@ -5,7 +5,7 @@ namespace Jellyfish.Module.Role.Data;
 /// </summary>
 public class UserRole
 {
-    public UserRole(string name, ulong kookId, ulong guildId)
+    public UserRole(string name, uint kookId, ulong guildId)
     {
         Name = name;
         KookId = kookId;
@@ -14,7 +14,7 @@ public class UserRole
 
     public long Id { get; set; }
     public string Name { get; set; }
-    public ulong KookId { get; set; }
+    public uint KookId { get; set; }
     public ulong GuildId { get; set; }
     public bool? Enabled { get; set; } = true;
 

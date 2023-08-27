@@ -15,7 +15,6 @@ public abstract class CacheLoader
     {
         Log.Info("开始加载应用缓存");
         await LoadPermissions();
-
         Log.Info("应用缓存加载完成！");
     }
 
@@ -35,10 +34,10 @@ public abstract class CacheLoader
             foreach (var permission in role.CommandPermissions)
             {
                 AppCaches.Permissions.AddOrUpdate($"{role.GuildId}_{permission.CommandName}",
-                    new HashSet<string> { role.Name },
+                    new HashSet<uint> { role.KookId },
                     v =>
                     {
-                        v.Add(role.Name);
+                        v.Add(role.KookId);
                         return v;
                     });
             }
