@@ -1,4 +1,4 @@
-namespace Jellyfish.Command.Role.Data;
+namespace Jellyfish.Module.Role.Data;
 
 /// <summary>
 ///     Record which role of user can run what command

@@ -1,8 +1,8 @@
 using System.Configuration;
-using Jellyfish.Command.Role.Data;
-using Jellyfish.Command.TeamPlay.Data;
 using Jellyfish.Core.Protocol;
 using Jellyfish.Data;
+using Jellyfish.Module.Role.Data;
+using Jellyfish.Module.TeamPlay.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jellyfish.Loader;

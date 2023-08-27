@@ -1,4 +1,4 @@
-namespace Jellyfish.Command.Role.Data;
+namespace Jellyfish.Module.Role.Data;
 
 /// <summary>
 ///     Kook user role

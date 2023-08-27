@@ -14,6 +14,16 @@ public abstract class CacheLoader
     public static async Task Load()
     {
         Log.Info("开始加载应用缓存");
+        await LoadPermissions();
+
+        Log.Info("应用缓存加载完成！");
+    }
+
+    /// <summary>
+    ///     Load permissions
+    /// </summary>
+    public static async Task LoadPermissions()
+    {
         await using var dbCtx = new DatabaseContext();
         var roles = await dbCtx.UserRoles
             .Include(e => e.CommandPermissions)
@@ -24,7 +34,7 @@ public abstract class CacheLoader
         {
             foreach (var permission in role.CommandPermissions)
             {
-                Caches.Permissions.AddOrUpdate($"{role.GuildId}_{permission.CommandName}",
+                AppCaches.Permissions.AddOrUpdate($"{role.GuildId}_{permission.CommandName}",
                     new HashSet<string> { role.Name },
                     v =>
                     {
@@ -33,7 +43,5 @@ public abstract class CacheLoader
                     });
             }
         }
-
-        Log.Info("应用缓存加载完成！");
     }
 }

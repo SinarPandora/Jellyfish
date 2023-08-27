@@ -1,9 +1,10 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using Jellyfish.Data;
 
-namespace Jellyfish.Command.TeamPlay.Data;
+namespace Jellyfish.Module.TeamPlay.Data;
 
-[Table("team_play_room_instance")]
+/// <summary>
+///     Team play room instance
+/// </summary>
 public class TpRoomInstance : TrackableEntity
 {
     public long Id { get; set; }
