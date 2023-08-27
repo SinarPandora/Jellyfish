@@ -6,7 +6,7 @@ namespace Jellyfish.Core.Command;
 /// <summary>
 ///     Card action command interface
 /// </summary>
-public interface IButtonActionCommand : ICommand
+public abstract class ButtonActionCommand : Command
 {
     /// <summary>
     ///     Execute command
@@ -16,6 +16,6 @@ public interface IButtonActionCommand : ICommand
     /// <param name="message">Cached message object</param>
     /// <param name="channel">Current channel</param>
     /// <returns>Command result, Done will finished the execution chains</returns>
-    Task<CommandResult> Execute(string value, Cacheable<SocketGuildUser, ulong> user, Cacheable<IMessage, Guid> message,
-        SocketTextChannel channel);
+    public abstract Task<CommandResult> Execute(string value, Cacheable<SocketGuildUser, ulong> user,
+        Cacheable<IMessage, Guid> message, SocketTextChannel channel);
 }
