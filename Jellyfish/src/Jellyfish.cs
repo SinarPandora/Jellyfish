@@ -11,6 +11,7 @@ public static class JellyFish
     /// </summary>
     public static async Task Main()
     {
+        await CacheLoader.Load();
         await AppContext.Instance.Get<KookLoader>().Boot();
         await Task.Delay(Timeout.Infinite);
     }

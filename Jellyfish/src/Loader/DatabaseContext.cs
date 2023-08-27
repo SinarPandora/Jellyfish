@@ -1,4 +1,5 @@
 using System.Configuration;
+using Jellyfish.Command.Role.Data;
 using Jellyfish.Command.TeamPlay.Data;
 using Jellyfish.Core.Protocol;
 using Jellyfish.Data;
@@ -10,6 +11,8 @@ public class DatabaseContext : DbContext
 {
     public DbSet<TpConfig> TpConfigs { get; set; } = null!;
     public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
+    public DbSet<UserRole> UserRoles { get; set; } = null!;
+    public DbSet<UserCommandPermission> UserCommandPermissions { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -60,6 +63,19 @@ public class DatabaseContext : DbContext
             entity
                 .Property(e => e.UpdateTime)
                 .HasDefaultValueSql("current_timestamp");
+        });
+
+        modelBuilder.Entity<UserRole>(entity =>
+        {
+            entity
+                .Property(e => e.Enabled)
+                .HasDefaultValue(true);
+
+            entity
+                .HasMany(e => e.CommandPermissions)
+                .WithOne(e => e.UserRole)
+                .HasForeignKey(e => e.UserRoleId)
+                .IsRequired();
         });
     }
 
