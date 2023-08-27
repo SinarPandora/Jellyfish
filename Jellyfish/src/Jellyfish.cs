@@ -1,4 +1,5 @@
 ﻿using Jellyfish.Core.Cache;
+using Jellyfish.Core.Job;
 using Jellyfish.Core.Kook;
 using Ninject;
 using AppContext = Jellyfish.Core.Container.AppContext;
@@ -13,7 +14,8 @@ public static class JellyFish
     public static async Task Main()
     {
         await CacheLoader.Load();
-        await AppContext.Instance.Get<KookLoader>().Boot();
+        await AppContext.Instance.Get<KookLoader>().Load();
+        JobLoader.Load();
         await Task.Delay(Timeout.Infinite);
     }
 }
