@@ -6,14 +6,8 @@ namespace Jellyfish.Core.Command;
 /// <summary>
 ///     Card action command interface
 /// </summary>
-public interface IButtonActionCommand
+public interface IButtonActionCommand : ICommand
 {
-    /// <summary>
-    ///     Name of command
-    /// </summary>
-    /// <returns>Command name</returns>
-    string Name();
-
     /// <summary>
     ///     Execute command
     /// </summary>

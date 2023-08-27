@@ -1,3 +1,4 @@
+using Jellyfish.Core.Cache;
 using Kook;
 using Kook.WebSocket;
 using NLog;
@@ -35,6 +36,8 @@ public class EventMatcher
         _ = Task.Run(async () =>
         {
             foreach (var command in _messageCommands)
+            {
+                if (!CheckIfUserHasPermission(user, command.Name())) continue;
                 try
                 {
                     var result = await command.Execute(msg, user, channel);
@@ -44,6 +47,7 @@ public class EventMatcher
                 {
                     Log.Info(e, $"指令 {command.Name()} 执行失败！");
                 }
+            }
         });
         return Task.CompletedTask;
     }
@@ -63,6 +67,8 @@ public class EventMatcher
         _ = Task.Run(async () =>
         {
             foreach (var command in _buttonActionCommands)
+            {
+                if (!CheckIfUserHasPermission(user.Value, command.Name())) continue;
                 try
                 {
                     var result = await command.Execute(value, user, message, channel);
@@ -72,7 +78,20 @@ public class EventMatcher
                 {
                     Log.Info(e, $"卡片操作 {command.Name()} 执行失败！");
                 }
+            }
         });
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Check if current user has permission to perform command
+    /// </summary>
+    /// <param name="user">Kook user</param>
+    /// <param name="commandName">Command name</param>
+    /// <returns>Does user has permission or not</returns>
+    private static bool CheckIfUserHasPermission(SocketGuildUser user, string commandName)
+    {
+        var permissions = Caches.Permissions.Get($"{user.Guild.Id}_{commandName}");
+        return permissions == null || permissions.ContainsAny(user.Roles.Select(it => it.Name).ToArray());
     }
 }

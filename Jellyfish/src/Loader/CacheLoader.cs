@@ -1,4 +1,3 @@
-using Jellyfish.Command.Role.Data;
 using Jellyfish.Core.Cache;
 using Microsoft.EntityFrameworkCore;
 using NLog;
@@ -25,10 +24,11 @@ public abstract class CacheLoader
         {
             foreach (var permission in role.CommandPermissions)
             {
-                Caches.Roles.AddOrUpdate($"{role.GuildId}_{permission.CommandName}", new List<UserRole> { role },
+                Caches.Permissions.AddOrUpdate($"{role.GuildId}_{permission.CommandName}",
+                    new HashSet<string> { role.Name },
                     v =>
                     {
-                        v.Add(role);
+                        v.Add(role.Name);
                         return v;
                     });
             }

@@ -5,14 +5,8 @@ namespace Jellyfish.Core.Command;
 /// <summary>
 ///     Message command interface
 /// </summary>
-public interface IMessageCommand
+public interface IMessageCommand : ICommand
 {
-    /// <summary>
-    ///     Name of command
-    /// </summary>
-    /// <returns>Command name</returns>
-    string Name();
-
     /// <summary>
     ///     Execute command
     /// </summary>

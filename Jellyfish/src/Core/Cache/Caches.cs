@@ -1,5 +1,4 @@
 using CacheManager.Core;
-using Jellyfish.Command.Role.Data;
 
 namespace Jellyfish.Core.Cache;
 
@@ -11,6 +10,6 @@ public abstract class Caches
     /// <summary>
     ///     User Role Cache, GuildId as Key
     /// </summary>
-    public static readonly ICacheManager<List<UserRole>> Roles = CacheFactory.Build<List<UserRole>>(p =>
+    public static readonly ICacheManager<HashSet<string>> Permissions = CacheFactory.Build<HashSet<string>>(p =>
         p.WithDictionaryHandle());
 }
