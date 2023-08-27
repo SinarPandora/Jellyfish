@@ -9,18 +9,19 @@ namespace Jellyfish.Core.Kook;
 public class EventMatcher
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private readonly IButtonActionCommand[] _buttonActionCommands;
+    private readonly ButtonActionCommand[] _buttonActionCommands;
     private readonly KookSocketClient _client;
 
-    private readonly IMessageCommand[] _messageCommands;
+    private readonly MessageCommand[] _messageCommands;
 
     public EventMatcher(
-        IMessageCommand[] messageCommand,
-        IButtonActionCommand[] buttonActionCommands,
+        MessageCommand[] messageCommand,
+        ButtonActionCommand[] buttonActionCommands,
         KookSocketClient client)
     {
-        _messageCommands = messageCommand;
-        _buttonActionCommands = buttonActionCommands;
+        _messageCommands = messageCommand.FindAll(c => c.Enabled).ToArray();
+        _buttonActionCommands = buttonActionCommands.FindAll(c => c.Enabled).ToArray();
+        ;
         _client = client;
     }
 
