@@ -1,4 +1,3 @@
-using Jellyfish.Core.Command;
 using Jellyfish.Core.Config;
 using Kook;
 using Kook.WebSocket;
@@ -21,7 +20,7 @@ public class KookLoader
         _client = client;
     }
 
-    public async Task Boot()
+    public async Task Load()
     {
         _client.Log += KookLog;
         _client.Ready += KookReady;

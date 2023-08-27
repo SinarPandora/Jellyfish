@@ -1,9 +1,10 @@
 using Jellyfish.Core.Cache;
+using Jellyfish.Core.Command;
 using Kook;
 using Kook.WebSocket;
 using NLog;
 
-namespace Jellyfish.Core.Command;
+namespace Jellyfish.Core.Kook;
 
 public class EventMatcher
 {
@@ -92,6 +93,6 @@ public class EventMatcher
     private static bool CheckIfUserHasPermission(SocketGuildUser user, string commandName)
     {
         var permissions = AppCaches.Permissions.Get($"{user.Guild.Id}_{commandName}");
-        return permissions == null || permissions.ContainsAny(user.Roles.Select(it => it.Name).ToArray());
+        return permissions == null || permissions.ContainsAny(user.Roles.Select(it => it.Id).ToArray());
     }
 }
