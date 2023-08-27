@@ -23,20 +23,14 @@ public class SimpleTestCommand : MessageCommand
 
     public override string Name() => "简单测试指令";
 
-    public override string[] Keywords() => new[] { "!Test" };
+    public override string[] Keywords() => new[] { "!Test", "！Test" };
 
     public override string Help() => throw new NotSupportedException("测试指令不包含帮助信息也不应该对用户开放");
 
-    public override async Task<CommandResult> Execute(SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    public override async Task Execute(string args, SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
     {
-        if (msg.Content != "!Test" && msg.Content != "！Test") return CommandResult.Continue;
-
         await channel.SendTextAsync("Simple hello world!");
-
         Log.Info($"Current Boot Level is {channel.Guild.BoostLevel}");
-
-        return CommandResult.Done;
     }
 
     /// <summary>

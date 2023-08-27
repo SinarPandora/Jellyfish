@@ -20,11 +20,14 @@ public class TeamPlayManageCommand : MessageCommand
 
     public override string Name() => "管理组队配置指令";
 
-    public override string[] Keywords() => new[] { "!组队" };
+    public override IEnumerable<string> Keywords() => new[] { "!组队", "！组队" };
 
     public override string Help() =>
         """
-        组队系统：管理员指令
+        管理组队配置指令
+        ———
+        > 管理组队配置，该指令已为斯普拉遁专项优化
+        ———
         指令名称：！组队
 
         参数：
@@ -35,12 +38,8 @@ public class TeamPlayManageCommand : MessageCommand
         语音质量 [配置 ID] [低|中|高]：设定临时语音频道的质量，配置 ID 可以通过“列表”指令获取
         """;
 
-    public override async Task<CommandResult> Execute(SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    public override async Task Execute(string args, SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
     {
-        if (!msg.Content.StartsWith("！组队") && !msg.Content.StartsWith("!组队")) return CommandResult.Continue;
-
-        var args = msg.Content[3..].TrimStart();
         if (args.StartsWith("帮助"))
             await channel.SendTextAsync(Help());
         else if (args.StartsWith("绑定"))
@@ -53,8 +52,6 @@ public class TeamPlayManageCommand : MessageCommand
             await ListConfigs(channel);
         else
             await channel.SendTextAsync(Help());
-
-        return CommandResult.Done;
     }
 
     private static async Task StartBindingParentChannel(SocketTextChannel channel, string name)
