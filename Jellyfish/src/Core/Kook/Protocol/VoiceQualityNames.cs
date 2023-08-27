@@ -1,4 +1,4 @@
-namespace Jellyfish.Core.Protocol;
+namespace Jellyfish.Core.Kook.Protocol;
 
 /// <summary>
 ///     Voice quality enum names

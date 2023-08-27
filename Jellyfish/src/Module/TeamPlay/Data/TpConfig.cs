@@ -1,5 +1,5 @@
-using Jellyfish.Core.Protocol;
-using Jellyfish.Data;
+using Jellyfish.Core.Data;
+using Jellyfish.Core.Kook.Protocol;
 
 namespace Jellyfish.Module.TeamPlay.Data;
 

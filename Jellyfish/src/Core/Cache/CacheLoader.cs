@@ -1,8 +1,8 @@
-using Jellyfish.Core.Cache;
+using Jellyfish.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using NLog;
 
-namespace Jellyfish.Loader;
+namespace Jellyfish.Core.Cache;
 
 /// <summary>
 ///     Global cache loader, init cache once before bot login

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Jellyfish.Data;
+namespace Jellyfish.Core.Data;
 
 public abstract class TrackableEntity
 {

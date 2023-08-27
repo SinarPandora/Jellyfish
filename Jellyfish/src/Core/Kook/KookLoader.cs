@@ -1,10 +1,10 @@
-using Jellyfish.Config;
 using Jellyfish.Core.Command;
+using Jellyfish.Core.Config;
 using Kook;
 using Kook.WebSocket;
 using NLog;
 
-namespace Jellyfish.Loader;
+namespace Jellyfish.Core.Kook;
 
 public class KookLoader
 {

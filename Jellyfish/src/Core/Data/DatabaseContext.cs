@@ -1,11 +1,10 @@
 using System.Configuration;
-using Jellyfish.Core.Protocol;
-using Jellyfish.Data;
+using Jellyfish.Core.Kook.Protocol;
 using Jellyfish.Module.Role.Data;
 using Jellyfish.Module.TeamPlay.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Jellyfish.Loader;
+namespace Jellyfish.Core.Data;
 
 public class DatabaseContext : DbContext
 {

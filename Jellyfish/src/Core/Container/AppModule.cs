@@ -1,12 +1,13 @@
-using Jellyfish.Config;
 using Jellyfish.Core.Command;
+using Jellyfish.Core.Config;
+using Jellyfish.Core.Kook;
 using Jellyfish.Module;
 using Jellyfish.Module.TeamPlay;
 using Kook.WebSocket;
 using Ninject;
 using Ninject.Modules;
 
-namespace Jellyfish.Loader;
+namespace Jellyfish.Core.Container;
 
 /// <summary>
 ///     Contains all singleton instances in the application

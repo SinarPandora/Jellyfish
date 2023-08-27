@@ -1,6 +1,6 @@
 using Ninject;
 
-namespace Jellyfish.Loader;
+namespace Jellyfish.Core.Container;
 
 /// <summary>
 ///     The instance of application context

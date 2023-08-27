@@ -1,4 +1,4 @@
-using Jellyfish.Data;
+using Jellyfish.Core.Data;
 
 namespace Jellyfish.Module.TeamPlay.Data;
 

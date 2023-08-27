@@ -1,13 +1,13 @@
-using Jellyfish.Core.Protocol;
-using Jellyfish.Loader;
+using Jellyfish.Core.Data;
+using Jellyfish.Core.Kook.Protocol;
 using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using NLog;
-using AppCtx = Jellyfish.Loader.AppContext;
-using VoiceQuality = Jellyfish.Core.Protocol.VoiceQuality;
+using AppCtx = Jellyfish.Core.Container.AppContext;
+using VoiceQuality = Jellyfish.Core.Kook.Protocol.VoiceQuality;
 
 namespace Jellyfish.Module.TeamPlay;
 

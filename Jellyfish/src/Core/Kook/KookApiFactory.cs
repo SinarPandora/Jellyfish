@@ -1,8 +1,8 @@
-using Jellyfish.Config;
+using Jellyfish.Core.Config;
 using Kook;
 using Kook.Rest;
 
-namespace Jellyfish.Loader;
+namespace Jellyfish.Core.Kook;
 
 public class KookApiFactory
 {

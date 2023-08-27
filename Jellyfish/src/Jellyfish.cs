@@ -1,6 +1,7 @@
-﻿using Jellyfish.Loader;
+﻿using Jellyfish.Core.Cache;
+using Jellyfish.Core.Kook;
 using Ninject;
-using AppContext = Jellyfish.Loader.AppContext;
+using AppContext = Jellyfish.Core.Container.AppContext;
 
 namespace Jellyfish;
 

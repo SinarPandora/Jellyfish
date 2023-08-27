@@ -1,6 +1,6 @@
 using System.Configuration;
 
-namespace Jellyfish.Config;
+namespace Jellyfish.Core.Config;
 
 public class AppConfig
 {
