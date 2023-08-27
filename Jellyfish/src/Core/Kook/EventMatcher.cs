@@ -42,7 +42,7 @@ public class EventMatcher
                 if (!CheckIfUserHasPermission(user, command.Name())) continue;
                 try
                 {
-                    var result = await command.Execute(msg, user, channel);
+                    var result = await command.MatchAndExecute(msg, user, channel);
                     if (result == CommandResult.Done) break;
                 }
                 catch (Exception e)
