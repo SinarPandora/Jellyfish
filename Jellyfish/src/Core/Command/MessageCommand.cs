@@ -8,19 +8,34 @@ namespace Jellyfish.Core.Command;
 public abstract class MessageCommand : Command, IHelpCommand
 {
     /// <summary>
-    ///     Execute command
+    ///     Command keywords, usually what start of each command
+    /// </summary>
+    /// <returns>Command keywords</returns>
+    public abstract IEnumerable<string> Keywords();
+
+    /// <summary>
+    ///     Match and then execute command
     /// </summary>
     /// <param name="msg">User message object</param>
     /// <param name="user">Sender</param>
     /// <param name="channel">Current Channel</param>
     /// <returns>Command result, Done will finished the execution chains</returns>
-    public abstract Task<CommandResult> Execute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel);
+    public async Task<CommandResult> MatchAndExecute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
+    {
+        var keyword = Keywords().FirstOrDefault(k => msg.Content.StartsWith(k));
+        if (keyword == null) return CommandResult.Continue;
+        await Execute(msg.Content[keyword.Length..], msg, user, channel);
+        return CommandResult.Done;
+    }
 
     /// <summary>
-    ///     Command keywords, usually what start of each command
+    ///     Execute command
     /// </summary>
-    /// <returns>Command keywords</returns>
-    public abstract string[] Keywords();
+    /// <param name="args">Command args</param>
+    /// <param name="msg">User message object</param>
+    /// <param name="user">Sender</param>
+    /// <param name="channel">Current Channel</param>
+    public abstract Task Execute(string args, SocketMessage msg, SocketGuildUser user, SocketTextChannel channel);
 
     /// <inheritdoc cref="IHelpCommand.Help"/>
     public abstract string Help();
