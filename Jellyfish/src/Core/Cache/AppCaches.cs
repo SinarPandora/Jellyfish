@@ -5,7 +5,7 @@ namespace Jellyfish.Core.Cache;
 /// <summary>
 ///     Application Caches
 /// </summary>
-public abstract class Caches
+public abstract class AppCaches
 {
     /// <summary>
     ///     User Role Cache, GuildId as Key

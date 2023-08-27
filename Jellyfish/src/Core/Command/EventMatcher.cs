@@ -91,7 +91,7 @@ public class EventMatcher
     /// <returns>Does user has permission or not</returns>
     private static bool CheckIfUserHasPermission(SocketGuildUser user, string commandName)
     {
-        var permissions = Caches.Permissions.Get($"{user.Guild.Id}_{commandName}");
+        var permissions = AppCaches.Permissions.Get($"{user.Guild.Id}_{commandName}");
         return permissions == null || permissions.ContainsAny(user.Roles.Select(it => it.Name).ToArray());
     }
 }
