@@ -3,6 +3,7 @@ using System;
 using Jellyfish.Loader;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jellyfish.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20230826104442_AddTextChannelIdColumn")]
+    partial class AddTextChannelIdColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,67 +24,6 @@ namespace Jellyfish.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Jellyfish.Command.Role.Data.UserCommandPermission", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("CommandName")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("command_name");
-
-                    b.Property<long>("UserRoleId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_role_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_user_command_permissions");
-
-                    b.HasIndex("UserRoleId")
-                        .HasDatabaseName("ix_user_command_permissions_user_role_id");
-
-                    b.ToTable("user_command_permissions", (string)null);
-                });
-
-            modelBuilder.Entity("Jellyfish.Command.Role.Data.UserRole", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<bool?>("Enabled")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("enabled");
-
-                    b.Property<decimal>("GuildId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("guild_id");
-
-                    b.Property<decimal>("KookId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("kook_id");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id")
-                        .HasName("pk_user_roles");
-
-                    b.ToTable("user_roles", (string)null);
-                });
 
             modelBuilder.Entity("Jellyfish.Command.TeamPlay.Data.TpConfig", b =>
                 {
@@ -134,9 +76,9 @@ namespace Jellyfish.Migrations
                         .HasColumnName("voice_quality");
 
                     b.HasKey("Id")
-                        .HasName("pk_tp_configs");
+                        .HasName("pk_team_play_config");
 
-                    b.ToTable("tp_configs", (string)null);
+                    b.ToTable("team_play_config", (string)null);
                 });
 
             modelBuilder.Entity("Jellyfish.Command.TeamPlay.Data.TpRoomInstance", b =>
@@ -179,24 +121,12 @@ namespace Jellyfish.Migrations
                         .HasColumnName("voice_channel_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_tp_room_instances");
+                        .HasName("pk_team_play_room_instance");
 
                     b.HasIndex("TpConfigId")
-                        .HasDatabaseName("ix_tp_room_instances_tp_config_id");
+                        .HasDatabaseName("ix_team_play_room_instance_tp_config_id");
 
-                    b.ToTable("tp_room_instances", (string)null);
-                });
-
-            modelBuilder.Entity("Jellyfish.Command.Role.Data.UserCommandPermission", b =>
-                {
-                    b.HasOne("Jellyfish.Command.Role.Data.UserRole", "UserRole")
-                        .WithMany("CommandPermissions")
-                        .HasForeignKey("UserRoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_command_permissions_user_roles_user_role_id");
-
-                    b.Navigation("UserRole");
+                    b.ToTable("team_play_room_instance", (string)null);
                 });
 
             modelBuilder.Entity("Jellyfish.Command.TeamPlay.Data.TpRoomInstance", b =>
@@ -206,14 +136,9 @@ namespace Jellyfish.Migrations
                         .HasForeignKey("TpConfigId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_tp_room_instances_tp_configs_tp_config_id");
+                        .HasConstraintName("fk_team_play_room_instance_team_play_config_tp_config_id");
 
                     b.Navigation("TpConfig");
-                });
-
-            modelBuilder.Entity("Jellyfish.Command.Role.Data.UserRole", b =>
-                {
-                    b.Navigation("CommandPermissions");
                 });
 
             modelBuilder.Entity("Jellyfish.Command.TeamPlay.Data.TpConfig", b =>
