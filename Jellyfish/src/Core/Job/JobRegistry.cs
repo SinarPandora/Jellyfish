@@ -1,5 +1,4 @@
 using FluentScheduler;
-using Jellyfish.Module.Role.Job;
 
 namespace Jellyfish.Core.Job;
 
@@ -10,6 +9,6 @@ public class JobRegistry : Registry
 {
     public JobRegistry()
     {
-        Schedule<RefreshRoleCacheJob>().ToRunEvery(1).Days().At(4, 0);
+        // Placeholder
     }
 }
