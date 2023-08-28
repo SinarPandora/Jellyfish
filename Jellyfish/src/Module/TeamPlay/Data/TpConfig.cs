@@ -8,16 +8,15 @@ namespace Jellyfish.Module.TeamPlay.Data;
 /// </summary>
 public class TpConfig : TrackableEntity
 {
-    public TpConfig(string name, ulong voiceChannelId, ulong guildId)
+    public TpConfig(string name, ulong guildId)
     {
         Name = name;
-        VoiceChannelId = voiceChannelId;
         GuildId = guildId;
     }
 
     public long Id { get; set; }
     public string Name { get; set; }
-    public ulong VoiceChannelId { get; set; }
+    public ulong? VoiceChannelId { get; set; }
     public ulong? TextChannelId { get; set; }
     public ulong GuildId { get; set; }
     public VoiceQuality VoiceQuality { get; set; } = VoiceQuality.Medium;
