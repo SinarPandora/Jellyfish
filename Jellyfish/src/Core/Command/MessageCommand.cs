@@ -5,8 +5,10 @@ namespace Jellyfish.Core.Command;
 /// <summary>
 ///     Message command interface
 /// </summary>
-public abstract class MessageCommand : Command, IHelpCommand
+public abstract class MessageCommand : Command
 {
+    public string HelpMessage { get; protected init; } = "该指令不包含帮助信息";
+
     /// <summary>
     ///     Command keywords, usually what start of each command
     /// </summary>
@@ -36,7 +38,4 @@ public abstract class MessageCommand : Command, IHelpCommand
     /// <param name="user">Sender</param>
     /// <param name="channel">Current Channel</param>
     public abstract Task Execute(string args, SocketMessage msg, SocketGuildUser user, SocketTextChannel channel);
-
-    /// <inheritdoc cref="IHelpCommand.Help"/>
-    public abstract string Help();
 }
