@@ -4,15 +4,19 @@
 
 ## 依赖库及文档
 
+### Nuget 依赖
+
 * [Kook.Net](https://kooknet.dev/index.html)
 * [NLog](https://nlog-project.org/)
 * [EntityFrameworkCore](https://docs.microsoft.com/zh-cn/ef/core/)
 * [Newtonsoft.Json](https://www.newtonsoft.com/json)
-* [HOCON](https://github.com/akkadotnet/HOCON)
 * [易有云](https://doc.linkease.com/)
-* [language-ext](https://github.com/louthy/language-ext)
+* [Z.ExtensionMethods](https://csharp-extension.com/)
 * [Ninject](https://github.com/ninject/Ninject/wiki)
 * [CacheManager](https://cachemanager.michaco.net/)
+
+### Kook 开发者文档
+
 * [KookAPI](https://developer.kookapp.cn/doc/reference)
 * [KMarkdown Preview](https://www.kookapp.cn/tools/message-builder.html#/kmarkdown)
 

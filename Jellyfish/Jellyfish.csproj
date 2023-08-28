@@ -21,7 +21,6 @@
         <PackageReference Include="FluentScheduler" Version="5.5.1"/>
         <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
         <PackageReference Include="Kook.Net" Version="0.5.1" />
-        <PackageReference Include="LanguageExt.Core" Version="4.4.3" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.10">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
