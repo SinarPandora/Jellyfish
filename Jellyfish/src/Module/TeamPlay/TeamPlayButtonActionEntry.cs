@@ -59,7 +59,10 @@ public class TeamPlayButtonActionEntry : ButtonActionCommand
             }
             else
             {
-                record = new TpConfig(name, voiceChannel.Id, channel.Guild.Id);
+                record = new TpConfig(name, channel.Guild.Id)
+                {
+                    VoiceChannelId = voiceChannel.Id
+                };
                 dbCtx.TpConfigs.Add(record);
             }
 
