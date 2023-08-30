@@ -2,6 +2,7 @@ using Jellyfish.Core.Command;
 using Jellyfish.Core.Config;
 using Jellyfish.Core.Kook;
 using Jellyfish.Module;
+using Jellyfish.Module.Help;
 using Jellyfish.Module.Role;
 using Jellyfish.Module.TeamPlay;
 using Kook.WebSocket;
@@ -40,5 +41,8 @@ public class AppModule : NinjectModule
 
         // Role Command
         Bind<MessageCommand>().To<RoleSettingCommand>().InSingletonScope();
+
+        // Help Command
+        Bind<MessageCommand>().To<GlobalHelpCommand>().InSingletonScope();
     }
 }
