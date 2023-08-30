@@ -78,9 +78,11 @@ public class RoleSettingCommand : MessageCommand
     /// <param name="channel">Current channel</param>
     private static async Task ListGuildRoles(SocketTextChannel channel)
     {
-        var rolenames = string.Join("\n", from role in channel.Guild.Roles
+        var rolenames = string.Join("\n",
+            from role in channel.Guild.Roles
             orderby role.Name
-            select role.Name);
+            select role.Name
+        );
         await channel.SendInfoCardAsync($"当前服务器角色：\n{rolenames}");
     }
 

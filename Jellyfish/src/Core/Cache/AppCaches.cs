@@ -8,7 +8,7 @@ namespace Jellyfish.Core.Cache;
 public abstract class AppCaches
 {
     /// <summary>
-    ///     User Role Cache, GuildId as Key
+    ///     User Role Cache, GuildId_CommandName as Key, a set of user role as value
     /// </summary>
     public static readonly ICacheManager<HashSet<uint>> Permissions = CacheFactory.Build<HashSet<uint>>(p =>
         p.WithDictionaryHandle());
