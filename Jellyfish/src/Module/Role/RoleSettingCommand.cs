@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.Role.Data;
@@ -161,6 +162,15 @@ public class RoleSettingCommand : MessageCommand
 
             await transaction.CommitAsync();
 
+            // Update cache
+            AppCaches.Permissions.AddOrUpdate($"{channel.Guild.Id}_{commandName}",
+                new HashSet<uint> { guildRoleId },
+                v =>
+                {
+                    v.Add(role.KookId);
+                    return v;
+                });
+
             await channel.SendSuccessCardAsync($"权限绑定成功！角色 {guildRoleName} 可以执行 {commandName}");
         }
     }
@@ -178,7 +188,7 @@ public class RoleSettingCommand : MessageCommand
 
         if (parameters == null) return;
 
-        var (commandName, guildRoleName, _, record) = parameters.Value;
+        var (commandName, guildRoleName, guildRoleId, record) = parameters.Value;
 
         if (record == null)
         {
@@ -188,6 +198,14 @@ public class RoleSettingCommand : MessageCommand
         {
             dbCtx.UserCommandPermissions.Remove(record);
             dbCtx.SaveChanges();
+
+            // Update cache
+            var cacheKey = $"{channel.Guild.Id}_{commandName}";
+            if (AppCaches.Permissions.Exists(cacheKey))
+            {
+                AppCaches.Permissions.Get(cacheKey).Remove(guildRoleId);
+            }
+
             await channel.SendSuccessCardAsync($"权限解绑成功！角色 {guildRoleName} 已无法使用 {commandName}");
         }
     }
