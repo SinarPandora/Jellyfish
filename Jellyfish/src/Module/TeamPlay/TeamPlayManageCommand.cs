@@ -21,13 +21,21 @@ public class TeamPlayManageCommand : MessageCommand
 
     public TeamPlayManageCommand()
     {
-        HelpMessage = HelpMessageTemplate.ForMessageCommand(this, "管理组队配置，该指令已为斯普拉遁专项优化",
+        HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
+            """
+            管理组队配置
+
+            您可以绑定语音入口频道，该频道将成为后续自动创建语音频道的入口
+            您也可以绑定任意文字频道为入口频道，在目标频道发送由 /组队 开头的消息将自动创建对应房间
+            当绑定了一个语音入口频道或文字入口频道后，配置就可以使用啦
+            """,
             """
             帮助：显示此消息
             列表：列出全部的组队配置
             配置 [配置名称]：调整指定组队配置
             绑定文字频道 [配置名称]：在目标频道中使用，设置后，该频道发送的组队质量会使用该配置创建语音频道
             设置语音质量 [配置名称] [低|中|高]：设定临时语音频道的质量
+            删除 [配置名称]：删除指定配置
             """);
     }
 
@@ -44,7 +52,9 @@ public class TeamPlayManageCommand : MessageCommand
         else if (args.StartsWith("绑定文字频道"))
             await BindingTextChannel(channel, args[6..].TrimStart());
         else if (args.StartsWith("设置语音质量"))
-            await SetDefaultQuality(channel, args[6..].Trim());
+            await SetDefaultQuality(channel, args[6..].TrimStart());
+        else if (args.StartsWith("删除"))
+            await RemoveConfig(channel, args[2..].TrimStart());
         else if (args.StartsWith("列表"))
             await ListConfigs(channel);
         else
@@ -128,7 +138,10 @@ public class TeamPlayManageCommand : MessageCommand
     private static async Task ListConfigs(SocketTextChannel channel)
     {
         await using var dbCtx = new DatabaseContext();
-        var configRecords = dbCtx.TpConfigs.OrderByDescending(e => e.Name).ToArray();
+        var configRecords = dbCtx.TpConfigs
+            .Where(e => e.Enabled)
+            .OrderByDescending(e => e.Name)
+            .ToArray();
         if (!configRecords.Any())
         {
             await channel.SendTextAsync("您还没有任何组队配置");
@@ -187,10 +200,10 @@ public class TeamPlayManageCommand : MessageCommand
     /// <param name="msg">Message that contains args</param>
     private static async Task SetDefaultQuality(IMessageChannel channel, string msg)
     {
-        var args = msg.Split(" ");
+        var args = Regexs.MatchWhiteChars().Split(msg);
         if (args.Length < 2)
         {
-            await channel.SendWarningCardAsync("参数不足！举例：语音质量 名称 高");
+            await channel.SendWarningCardAsync("参数不足！举例：!组队 语音质量 休闲 高");
             return;
         }
 
@@ -202,10 +215,10 @@ public class TeamPlayManageCommand : MessageCommand
         else
         {
             await using var dbCtx = new DatabaseContext();
-            var config = dbCtx.TpConfigs.FirstOrDefault(e => e.Name == args[1]);
+            var config = dbCtx.TpConfigs.FirstOrDefault(e => e.Name == args[0]);
             if (config == null)
             {
-                await channel.SendWarningCardAsync("配置不存在，请使用：“!组队 列表”指令查看现有配置");
+                await channel.SendWarningCardAsync("配置不存在，您可以发送：“!组队 列表” 查看现有配置");
             }
             else
             {
@@ -213,6 +226,31 @@ public class TeamPlayManageCommand : MessageCommand
                 dbCtx.SaveChanges();
                 await channel.SendSuccessCardAsync("设置成功！");
             }
+        }
+    }
+
+    /// <summary>
+    ///     Remove specified configuration
+    /// </summary>
+    /// <param name="channel">Current channel</param>
+    /// <param name="name">Config name to remove</param>
+    private static async Task RemoveConfig(IMessageChannel channel, string name)
+    {
+        await using var dbCtx = new DatabaseContext();
+        var record = (
+            from config in dbCtx.TpConfigs
+            where config.Name == name && config.Enabled
+            select config
+        ).FirstOrDefault();
+        if (record == null)
+        {
+            await channel.SendWarningCardAsync($"规则 {name} 未找到或已被删除");
+        }
+        else
+        {
+            record.Enabled = false;
+            dbCtx.SaveChanges();
+            await channel.SendErrorCardAsync($"规则 {name} 删除成功！已创建的房间将保留直到无人使用");
         }
     }
 }
