@@ -27,10 +27,10 @@ public class RoleSettingCommand : MessageCommand
             授权和解绑可以重复用在一个指令上，来为指令绑定/解绑多个角色权限
             """,
             """
-            列表：列出全部配置的权限关系
-            服务器角色：列出当前服务器的全部角色
-            授权 [指令名称] [服务器角色名称]：设置该角色可以使用该指令
-            解绑 [指令名称] [服务器角色名称]：将该指令中的该角色权限移除
+            - 列表：列出全部配置的权限关系
+            - 服务器角色：列出当前服务器的全部角色
+            - 授权 [指令名称] [服务器角色名称]：设置该角色可以使用该指令
+            - 解绑 [指令名称] [服务器角色名称]：将该指令中的该角色权限移除
             """);
     }
 
@@ -47,9 +47,9 @@ public class RoleSettingCommand : MessageCommand
         else if (args.StartsWith("服务器角色"))
             await ListGuildRoles(channel);
         else if (args.StartsWith("授权"))
-            await BindingPermission(args[2..].Trim(), channel);
+            await BindingPermission(args[2..].TrimStart(), channel);
         else if (args.StartsWith("解绑"))
-            await UnBindingPermission(args[2..].Trim(), channel);
+            await UnBindingPermission(args[2..].TrimStart(), channel);
         else await channel.SendTextAsync(HelpMessage);
     }
 
@@ -97,17 +97,17 @@ public class RoleSettingCommand : MessageCommand
     private async Task<(string commandName, string guildRoleName, uint guildRoleId, UserCommandPermission? record)?>
         ExtractPermissionBindingParameters(string rawArgs, SocketTextChannel channel, DatabaseContext dbCtx)
     {
-        var args = Regexs.MatchWhiteChars().Split(rawArgs);
+        var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
         if (args.Length < 2)
         {
-            await channel.SendWarningCardAsync("参数不足！举例：授权 权限配置指令 管理员");
+            await channel.SendErrorCardAsync("参数不足！举例：`!权限 授权 权限配置指令 管理员`");
             return null;
         }
 
         var commandName = args[0];
         if (_commandNames.All(it => it != commandName))
         {
-            await channel.SendWarningCardAsync("指令不存在，您可以发送 “/帮助” 查看全部指令名称");
+            await channel.SendErrorCardAsync("指令不存在，您可以发送 `/帮助` 查看全部指令名称");
             return null;
         }
 
@@ -115,7 +115,7 @@ public class RoleSettingCommand : MessageCommand
         var guildRoleId = channel.Guild.GetRoleIdByName(guildRoleName);
         if (guildRoleId == null)
         {
-            await channel.SendWarningCardAsync("角色不存在，您可以发送 “!权限 服务器角色” 列出全部角色名称（或查看当前服务器配置）");
+            await channel.SendErrorCardAsync("角色不存在，您可以发送 `!权限 服务器角色` 列出全部角色名称（或查看当前服务器配置）");
             return null;
         }
 
