@@ -1,3 +1,4 @@
+using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Jellyfish.Core.Data;
 using Jellyfish.Core.Kook.Protocol;
@@ -7,10 +8,9 @@ using Kook;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using NLog;
-using AppCtx = Jellyfish.Core.Container.AppContext;
 using VoiceQuality = Jellyfish.Core.Kook.Protocol.VoiceQuality;
 
-namespace Jellyfish.Module.TeamPlay;
+namespace Jellyfish.Module.TeamPlay.Manage;
 
 /// <summary>
 ///     Team play config manage command
@@ -51,7 +51,7 @@ public class TeamPlayManageCommand : MessageCommand
         if (args.StartsWith("帮助"))
             await channel.SendTextAsync(HelpMessage);
         else if (args.StartsWith("配置"))
-            await SendBindingWizard(channel, args[2..].TrimStart());
+            await SendBindingWizard(user, channel, args[2..].TrimStart());
         else if (args.StartsWith("绑定文字频道"))
             await BindingTextChannel(channel, args[6..].TrimStart());
         else if (args.StartsWith("语音质量"))
@@ -71,16 +71,16 @@ public class TeamPlayManageCommand : MessageCommand
     /// <summary>
     ///     Send binding wizard card message to the current channel
     /// </summary>
+    /// <param name="user">Action user</param>
     /// <param name="channel">Current channel</param>
     /// <param name="name">Config name</param>
-    private static async Task SendBindingWizard(SocketTextChannel channel, string name)
+    private static async Task SendBindingWizard(SocketUser user, SocketTextChannel channel, string name)
     {
         await using var dbCtx = new DatabaseContext();
 
-        var names = dbCtx.TpConfigs.AsNoTracking()
+        var names = dbCtx.TpConfigs.EnabledInGuild(channel.Guild).AsNoTracking()
             .Select(c => c.Name)
-            .OrderBy(c => c)
-            .ToArray();
+            .ToHashSet();
 
         if (string.IsNullOrEmpty(name))
         {
@@ -113,7 +113,7 @@ public class TeamPlayManageCommand : MessageCommand
                     // Click this button will run DoBindingParentChannel with the name which user input
                     b.WithText("我已加入语音频道")
                         .WithClick(ButtonClickEventType.ReturnValue)
-                        .WithValue($"tp_v_bind_{name}")
+                        .WithValue($"tp_bind_{user.Id}_{name}")
                         .WithTheme(ButtonTheme.Primary);
                 });
             });
@@ -145,8 +145,7 @@ public class TeamPlayManageCommand : MessageCommand
     private static async Task ListConfigs(SocketTextChannel channel)
     {
         await using var dbCtx = new DatabaseContext();
-        var configRecords = dbCtx.TpConfigs
-            .Where(e => e.Enabled)
+        var configRecords = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
             .OrderByDescending(e => e.Name)
             .ToArray();
         if (!configRecords.Any())
@@ -173,6 +172,57 @@ public class TeamPlayManageCommand : MessageCommand
     }
 
     /// <summary>
+    ///     Binding voice channel to config
+    /// </summary>
+    /// <param name="name">Config name</param>
+    /// <param name="user">Action user</param>
+    /// <param name="channel">Current channel</param>
+    public static async Task BindingVoiceChannel(string name, Cacheable<SocketGuildUser, ulong> user,
+        SocketTextChannel channel)
+    {
+        Log.Info($"已收到名为 {name} 的语音频道绑定请求，执行进一步操作");
+        var voiceChannel = user.Value.VoiceChannel;
+        if (voiceChannel == null)
+        {
+            await channel.SendErrorCardAsync("未检测到您加入的语音频道");
+        }
+        else
+        {
+            Log.Info($"已检测到语音频道：{voiceChannel.Name}：{voiceChannel.Id}");
+            await channel.SendInfoCardAsync($"检测到您加入了频道：{voiceChannel.Name}，正在绑定...");
+
+
+            await using var dbCtx = new DatabaseContext();
+            var config = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
+                .FirstOrDefault(e => e.Name == name);
+
+            // Update or Insert
+            if (config != null)
+            {
+                config.VoiceChannelId = voiceChannel.Id;
+            }
+            else
+            {
+                config = new TpConfig(name, channel.Guild.Id)
+                {
+                    VoiceChannelId = voiceChannel.Id
+                };
+                dbCtx.TpConfigs.Add(config);
+            }
+
+            // Refresh voice quality when updating
+            config.VoiceQuality = channel.Guild.GetHighestVoiceQuality();
+            dbCtx.SaveChanges();
+            AppCaches.TeamPlayConfigs.Put($"{channel.Guild.Id}_{name}", config);
+            await channel.SendSuccessCardAsync(
+                $"绑定成功！加入 {MentionUtils.KMarkdownMentionChannel(voiceChannel.Id)} 将自动创建 {name} 类型的房间");
+            await SendFurtherConfigIntroMessage(channel, config);
+
+            Log.Info($"成功绑定 {name} 到 {voiceChannel.Name}：{voiceChannel.Id}，ID：{config.Id}");
+        }
+    }
+
+    /// <summary>
     ///     Binding text channel to config
     /// </summary>
     /// <param name="channel">Channel to binding</param>
@@ -181,7 +231,8 @@ public class TeamPlayManageCommand : MessageCommand
     {
         Log.Info($"已收到名为 {name} 的文字频道绑定请求，执行进一步操作");
         await using var dbCtx = new DatabaseContext();
-        var config = dbCtx.TpConfigs.FirstOrDefault(e => e.Name == name);
+        var config = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
+            .FirstOrDefault(e => e.Name == name);
         if (config == null)
         {
             config = new TpConfig(name, channel.Guild.Id)
@@ -198,6 +249,7 @@ public class TeamPlayManageCommand : MessageCommand
         // Refresh voice quality when updating
         config.VoiceQuality = channel.Guild.GetHighestVoiceQuality();
         dbCtx.SaveChanges();
+        AppCaches.TeamPlayConfigs.Put($"{channel.Guild.Id}_{name}", config);
         await channel.SendSuccessCardAsync(
             $"""
              绑定成功！当前频道已与组队配置 {name} 绑定
@@ -214,7 +266,7 @@ public class TeamPlayManageCommand : MessageCommand
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="msg">Message that contains args</param>
-    private static async Task SetDefaultQuality(IMessageChannel channel, string msg)
+    private static async Task SetDefaultQuality(SocketTextChannel channel, string msg)
     {
         var args = Regexs.MatchWhiteChars().Split(msg, 2);
         if (args.Length < 2)
@@ -231,7 +283,8 @@ public class TeamPlayManageCommand : MessageCommand
         else
         {
             await using var dbCtx = new DatabaseContext();
-            var config = dbCtx.TpConfigs.FirstOrDefault(e => e.Name == args[0]);
+            var config = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
+                .FirstOrDefault(e => e.Name == args[0]);
             if (config == null)
             {
                 await channel.SendErrorCardAsync("配置不存在，您可以发送：`!组队 列表` 查看现有配置");
@@ -240,6 +293,11 @@ public class TeamPlayManageCommand : MessageCommand
             {
                 config.VoiceQuality = (VoiceQuality)quality;
                 dbCtx.SaveChanges();
+                AppCaches.TeamPlayConfigs.Update($"{channel.Guild.Id}_{args[0]}", c =>
+                {
+                    c.VoiceQuality = config.VoiceQuality;
+                    return c;
+                });
                 await channel.SendSuccessCardAsync("设置成功！");
             }
         }
@@ -250,12 +308,12 @@ public class TeamPlayManageCommand : MessageCommand
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="name">Config name to remove</param>
-    private static async Task RemoveConfig(IMessageChannel channel, string name)
+    private static async Task RemoveConfig(SocketTextChannel channel, string name)
     {
         await using var dbCtx = new DatabaseContext();
         var record = (
-            from config in dbCtx.TpConfigs
-            where config.Name == name && config.Enabled
+            from config in dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
+            where config.Name == name
             select config
         ).FirstOrDefault();
         if (record == null)
@@ -266,6 +324,11 @@ public class TeamPlayManageCommand : MessageCommand
         {
             record.Enabled = false;
             dbCtx.SaveChanges();
+            if (!AppCaches.TeamPlayConfigs.Remove($"{channel.Guild.Id}_{name}"))
+            {
+                Log.Warn($"组队配置缓存缺失，可能是一个 bug。配置键：{channel.Guild.Id}_{name}");
+            }
+
             await channel.SendErrorCardAsync($"规则 {name} 删除成功！已创建的房间将保留直到无人使用");
         }
     }
@@ -275,7 +338,7 @@ public class TeamPlayManageCommand : MessageCommand
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="config">Team play config</param>
-    public static async Task SendFurtherConfigIntroMessage(IMessageChannel channel, TpConfig config)
+    private static async Task SendFurtherConfigIntroMessage(IMessageChannel channel, TpConfig config)
     {
         await channel.SendCardAsync(new CardBuilder()
             .AddModule<SectionModuleBuilder>(s =>
@@ -314,7 +377,7 @@ public class TeamPlayManageCommand : MessageCommand
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="msg">Message that contains args</param>
-    private static async Task SetRoomPattern(IMessageChannel channel, string msg)
+    private static async Task SetRoomPattern(SocketTextChannel channel, string msg)
     {
         var args = Regexs.MatchWhiteChars().Split(msg, 2);
         if (args.Length < 2)
@@ -335,8 +398,8 @@ public class TeamPlayManageCommand : MessageCommand
 
         await using var dbCtx = new DatabaseContext();
         var config = (
-            from record in dbCtx.TpConfigs
-            where record.Enabled && record.Name == configName
+            from record in dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
+            where record.Name == configName
             select record
         ).FirstOrDefault();
 
@@ -348,6 +411,11 @@ public class TeamPlayManageCommand : MessageCommand
         {
             config.RoomNamePattern = pattern;
             dbCtx.SaveChanges();
+            AppCaches.TeamPlayConfigs.Update($"{channel.Guild.Id}_{configName}", c =>
+            {
+                c.RoomNamePattern = pattern;
+                return c;
+            });
             await channel.SendSuccessCardAsync($"更改房间名格式成功，新房间名称格式为：{pattern}{UserInjectKeyword}");
         }
     }
@@ -357,7 +425,7 @@ public class TeamPlayManageCommand : MessageCommand
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="msg">Message that contains args</param>
-    private static async Task SetDefaultMemberCount(IMessageChannel channel, string msg)
+    private static async Task SetDefaultMemberCount(SocketTextChannel channel, string msg)
     {
         var args = Regexs.MatchWhiteChars().Split(msg, 2);
         if (args.Length < 2)
@@ -368,22 +436,16 @@ public class TeamPlayManageCommand : MessageCommand
 
         var configName = args[0];
 
-        if (!int.TryParse(args[1], out var memberCount))
+        if (!uint.TryParse(args[1], out var memberCount))
         {
-            await channel.SendErrorCardAsync("指令格式错误！人数请使用阿拉伯数字，举例：`!组队 默认人数 上分 4`");
-            return;
-        }
-
-        if (memberCount < 0)
-        {
-            await channel.SendErrorCardAsync("指令格式错误！人数不能为负数，若要设置无限人数房间，请使用 0，举例：`!组队 默认人数 上分 4`");
+            await channel.SendErrorCardAsync("指令格式错误！人数请使用阿拉伯数字正数，若要设置无限人数房间，请使用 0，举例：`!组队 默认人数 上分 4`");
             return;
         }
 
         await using var dbCtx = new DatabaseContext();
         var config = (
-            from record in dbCtx.TpConfigs
-            where record.Enabled && record.Name == configName
+            from record in dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
+            where record.Name == configName
             select record
         ).FirstOrDefault();
 
@@ -393,8 +455,13 @@ public class TeamPlayManageCommand : MessageCommand
         }
         else
         {
-            config.DefaultMemberCount = (uint)memberCount;
+            config.DefaultMemberCount = memberCount;
             dbCtx.SaveChanges();
+            AppCaches.TeamPlayConfigs.Update($"{channel.Guild.Id}_{configName}", c =>
+            {
+                c.DefaultMemberCount = memberCount;
+                return c;
+            });
             await channel.SendSuccessCardAsync(
                 $"更改默认人数成功，当前默认人数为：{(memberCount == 0 ? "无限制" : memberCount.ToString())}"
             );

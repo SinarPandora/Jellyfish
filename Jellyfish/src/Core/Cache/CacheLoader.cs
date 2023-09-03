@@ -15,13 +15,14 @@ public abstract class CacheLoader
     {
         Log.Info("开始加载应用缓存");
         await LoadPermissions();
+        await LoadTeamPlayConfigs();
         Log.Info("应用缓存加载完成！");
     }
 
     /// <summary>
     ///     Load permissions
     /// </summary>
-    public static async Task LoadPermissions()
+    private static async Task LoadPermissions()
     {
         await using var dbCtx = new DatabaseContext();
         var roles = await dbCtx.UserRoles
@@ -42,5 +43,18 @@ public abstract class CacheLoader
                     });
             }
         }
+    }
+
+    /// <summary>
+    ///     Load team play configs
+    /// </summary>
+    private static async Task LoadTeamPlayConfigs()
+    {
+        await using var dbCtx = new DatabaseContext();
+        dbCtx.TpConfigs
+            .Where(e => e.Enabled)
+            .AsNoTracking()
+            .AsEnumerable()
+            .ForEach(c => AppCaches.TeamPlayConfigs.Add($"{c.GuildId}_{c.Name}", c));
     }
 }
