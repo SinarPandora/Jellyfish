@@ -7,6 +7,6 @@ namespace Jellyfish.Util;
 /// </summary>
 public abstract partial class Regexs
 {
-    [GeneratedRegex(@"\s")]
+    [GeneratedRegex(@"\s+")]
     public static partial Regex MatchWhiteChars();
 }

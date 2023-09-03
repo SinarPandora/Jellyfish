@@ -1,5 +1,4 @@
 using System.Configuration;
-using Jellyfish.Core.Kook.Protocol;
 using Jellyfish.Module.Role.Data;
 using Jellyfish.Module.TeamPlay.Data;
 using Microsoft.EntityFrameworkCore;
@@ -39,8 +38,8 @@ public class DatabaseContext : DbContext
                 .HasDefaultValue(true);
 
             entity
-                .Property(e => e.VoiceQuality)
-                .HasDefaultValue(VoiceQuality.Medium);
+                .Property(e => e.DefaultMemberCount)
+                .HasDefaultValue(0);
 
             entity
                 .HasMany(e => e.RoomInstances)

@@ -39,7 +39,7 @@ public class TeamPlayButtonActionEntry : ButtonActionCommand
     private static async Task BindingVoiceChannel(string name, Cacheable<SocketGuildUser, ulong> user,
         SocketTextChannel channel)
     {
-        Log.Info($"已收到名为 {name} 的绑定请求，执行进一步操作");
+        Log.Info($"已收到名为 {name} 的语音频道绑定请求，执行进一步操作");
         var voiceChannel = user.Value.VoiceChannel;
         if (voiceChannel == null)
         {
@@ -52,30 +52,32 @@ public class TeamPlayButtonActionEntry : ButtonActionCommand
 
 
             await using var dbCtx = new DatabaseContext();
-            var record = dbCtx.TpConfigs
+            var config = dbCtx.TpConfigs
                 .FirstOrDefault(e => e.Name == name);
 
             // Update or Insert
-            if (record != null)
+            if (config != null)
             {
-                record.VoiceChannelId = voiceChannel.Id;
+                config.VoiceChannelId = voiceChannel.Id;
             }
             else
             {
-                record = new TpConfig(name, channel.Guild.Id)
+                config = new TpConfig(name, channel.Guild.Id)
                 {
                     VoiceChannelId = voiceChannel.Id
                 };
-                dbCtx.TpConfigs.Add(record);
+                dbCtx.TpConfigs.Add(config);
             }
 
             // Refresh voice quality when updating
-            record.VoiceQuality = VoiceQualityHelper.GetHighestInGuild(channel.Guild);
+            config.VoiceQuality = channel.Guild.GetHighestVoiceQuality();
             dbCtx.SaveChanges();
 
-            await channel.SendSuccessCardAsync("绑定成功！");
+            await channel.SendSuccessCardAsync(
+                $"绑定成功！加入 {MentionUtils.KMarkdownMentionChannel(voiceChannel.Id)} 将自动创建 {name} 类型的房间");
+            await TeamPlayManageCommand.SendFurtherConfigIntroMessage(channel, config);
 
-            Log.Info($"成功绑定 {name} 到 {voiceChannel.Name}：{voiceChannel.Id}，ID：{record.Id}");
+            Log.Info($"成功绑定 {name} 到 {voiceChannel.Name}：{voiceChannel.Id}，ID：{config.Id}");
         }
     }
 }

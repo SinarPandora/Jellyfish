@@ -19,8 +19,10 @@ public class TpConfig : TrackableEntity
     public ulong? VoiceChannelId { get; set; }
     public ulong? TextChannelId { get; set; }
     public ulong GuildId { get; set; }
-    public VoiceQuality VoiceQuality { get; set; } = VoiceQuality.Medium;
-    public bool? Enabled { get; set; } = true;
+    public VoiceQuality? VoiceQuality { get; set; }
+    public string? RoomNamePattern { get; set; }
+    public uint DefaultMemberCount { get; set; }
+    public bool Enabled { get; set; } = true;
 
     // References
     public ICollection<TpRoomInstance> RoomInstances { get; set; } = new List<TpRoomInstance>();

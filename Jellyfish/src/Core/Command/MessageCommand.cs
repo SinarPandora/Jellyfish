@@ -26,7 +26,7 @@ public abstract class MessageCommand : Command
     {
         var keyword = Keywords().FirstOrDefault(k => msg.Content.StartsWith(k));
         if (keyword == null) return CommandResult.Continue;
-        await Execute(msg.Content[keyword.Length..], msg, user, channel);
+        await Execute(msg.Content[keyword.Length..].Trim(), msg, user, channel);
         return CommandResult.Done;
     }
 

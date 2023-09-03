@@ -40,6 +40,6 @@ public static class SimpleCard
 
     private static Card MarkdownMessage(string markdown) =>
         new CardBuilder()
-            .AddModule<SectionModuleBuilder>(s => { s.WithText(markdown); })
+            .AddModule<SectionModuleBuilder>(s => { s.WithText(markdown, true); })
             .Build();
 }

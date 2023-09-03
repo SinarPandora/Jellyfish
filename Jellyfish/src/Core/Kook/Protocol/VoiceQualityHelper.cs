@@ -6,7 +6,7 @@ namespace Jellyfish.Core.Kook.Protocol;
 /// <summary>
 ///     Voice quality enum helper
 /// </summary>
-public abstract class VoiceQualityHelper
+public static class VoiceQualityHelper
 {
     /// <summary>
     ///     Get name of VoiceQuality enum value
@@ -14,7 +14,7 @@ public abstract class VoiceQualityHelper
     /// <param name="quality">Enum value</param>
     /// <returns>Voice quality name</returns>
     /// <exception cref="ArgumentOutOfRangeException">Throws when input that is not a valid enum value</exception>
-    public static string GetName(VoiceQuality quality)
+    public static string GetName(this VoiceQuality quality)
     {
         return quality switch
         {
@@ -46,6 +46,6 @@ public abstract class VoiceQualityHelper
     /// </summary>
     /// <param name="guild">Current guild</param>
     /// <returns>VoiceQuality value</returns>
-    public static VoiceQuality GetHighestInGuild(SocketGuild guild) =>
+    public static VoiceQuality GetHighestVoiceQuality(this SocketGuild guild) =>
         guild.BoostLevel > BoostLevel.None ? VoiceQuality.High : VoiceQuality.Medium;
 }
