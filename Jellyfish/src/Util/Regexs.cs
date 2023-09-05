@@ -9,4 +9,7 @@ public abstract partial class Regexs
 {
     [GeneratedRegex(@"\s+")]
     public static partial Regex MatchWhiteChars();
+
+    [GeneratedRegex("_")]
+    public static partial Regex MatchSingleDash();
 }

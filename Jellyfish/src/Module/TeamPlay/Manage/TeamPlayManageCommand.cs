@@ -211,7 +211,7 @@ public class TeamPlayManageCommand : MessageCommand
             }
 
             // Refresh voice quality when updating
-            config.VoiceQuality = channel.Guild.GetHighestVoiceQuality();
+            config.VoiceQuality = VoiceQualityHelper.GetHighestVoiceQuality(channel.Guild);
             dbCtx.SaveChanges();
             AppCaches.TeamPlayConfigs.Put($"{channel.Guild.Id}_{name}", config);
             await channel.SendSuccessCardAsync(
@@ -247,7 +247,7 @@ public class TeamPlayManageCommand : MessageCommand
         }
 
         // Refresh voice quality when updating
-        config.VoiceQuality = channel.Guild.GetHighestVoiceQuality();
+        config.VoiceQuality = VoiceQualityHelper.GetHighestVoiceQuality(channel.Guild);
         dbCtx.SaveChanges();
         AppCaches.TeamPlayConfigs.Put($"{channel.Guild.Id}_{name}", config);
         await channel.SendSuccessCardAsync(
@@ -348,7 +348,7 @@ public class TeamPlayManageCommand : MessageCommand
                      您可以进一步配置 {config.Name}
                      ---
                      房间格式：{config.RoomNamePattern ?? $"{UserInjectKeyword}的房间"}
-                     默认人数：{(config.DefaultMemberCount == 0 ? "无限制" : config.DefaultMemberCount.ToString())}
+                     默认人数：{(config.DefaultMemberLimit == 0 ? "无限制" : config.DefaultMemberLimit.ToString())}
                      语音质量：{config.VoiceQuality?.GetName() ?? "频道当前最高"}
                      ---
                      设置房间名格式：`!组队 {config.Name} 房间名格式`
@@ -436,7 +436,7 @@ public class TeamPlayManageCommand : MessageCommand
 
         var configName = args[0];
 
-        if (!uint.TryParse(args[1], out var memberCount))
+        if (!int.TryParse(args[1], out var memberLimit) || memberLimit < 0)
         {
             await channel.SendErrorCardAsync("指令格式错误！人数请使用阿拉伯数字正数，若要设置无限人数房间，请使用 0，举例：`!组队 默认人数 上分 4`");
             return;
@@ -455,15 +455,15 @@ public class TeamPlayManageCommand : MessageCommand
         }
         else
         {
-            config.DefaultMemberCount = memberCount;
+            config.DefaultMemberLimit = memberLimit;
             dbCtx.SaveChanges();
             AppCaches.TeamPlayConfigs.Update($"{channel.Guild.Id}_{configName}", c =>
             {
-                c.DefaultMemberCount = memberCount;
+                c.DefaultMemberLimit = memberLimit;
                 return c;
             });
             await channel.SendSuccessCardAsync(
-                $"更改默认人数成功，当前默认人数为：{(memberCount == 0 ? "无限制" : memberCount.ToString())}"
+                $"更改默认人数成功，当前默认人数为：{(memberLimit == 0 ? "无限制" : memberLimit.ToString())}"
             );
         }
     }

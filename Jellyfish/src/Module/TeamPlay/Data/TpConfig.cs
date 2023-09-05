@@ -21,7 +21,7 @@ public class TpConfig : TrackableEntity
     public ulong GuildId { get; set; }
     public VoiceQuality? VoiceQuality { get; set; }
     public string? RoomNamePattern { get; set; }
-    public uint DefaultMemberCount { get; set; }
+    public int DefaultMemberLimit { get; set; }
     public bool Enabled { get; set; } = true;
 
     // References
