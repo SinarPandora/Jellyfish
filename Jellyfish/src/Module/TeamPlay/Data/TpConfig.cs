@@ -12,6 +12,7 @@ public class TpConfig : TrackableEntity
     {
         Name = name;
         GuildId = guildId;
+        Enabled = true;
     }
 
     public long Id { get; set; }
@@ -22,7 +23,7 @@ public class TpConfig : TrackableEntity
     public VoiceQuality? VoiceQuality { get; set; }
     public string? RoomNamePattern { get; set; }
     public int DefaultMemberLimit { get; set; }
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; }
 
     // References
     public ICollection<TpRoomInstance> RoomInstances { get; set; } = new List<TpRoomInstance>();
