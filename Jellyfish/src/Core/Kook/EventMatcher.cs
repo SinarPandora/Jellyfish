@@ -69,7 +69,6 @@ public class EventMatcher
         {
             foreach (var command in _buttonActionCommands)
             {
-                if (!CheckIfUserHasPermission(user.Value, command.Name())) continue;
                 try
                 {
                     var result = await command.Execute(value, user, message, channel);
