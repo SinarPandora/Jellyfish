@@ -26,6 +26,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// </summary>
     public async Task ExecuteAsync()
     {
+        var now = DateTime.Now;
         await using var dbCtx = new DatabaseContext();
         var configs = dbCtx.TpConfigs.Include(e => e.RoomInstances)
             .GroupBy(e => e.GuildId)
@@ -39,9 +40,15 @@ public class TeamPlayRoomScanJob : IAsyncJob
             var guild = _client.GetGuild(guildId);
             foreach (var room in rooms)
             {
-                await CheckAndDeleteRoom(guild, room, dbCtx);
+                // 5 minutes as timeout in order not to clean up room just created
+                if (room.UpdateTime.AddMinutes(5) < now)
+                {
+                    await CheckAndDeleteRoom(guild, room, dbCtx);
+                }
             }
         }
+
+        dbCtx.SaveChanges();
     }
 
     /// <summary>
@@ -64,8 +71,6 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 dbCtx.TpRoomInstances.Remove(room);
                 Log.Info($"已删除房间：{room.RoomName}");
             }
-
-            dbCtx.SaveChanges();
         }
         catch (Exception e)
         {
