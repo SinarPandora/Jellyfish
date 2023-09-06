@@ -1,11 +1,14 @@
+using FluentScheduler;
 using Jellyfish.Core.Command;
 using Jellyfish.Core.Config;
+using Jellyfish.Core.Job;
 using Jellyfish.Core.Kook;
 using Jellyfish.Module;
 using Jellyfish.Module.Help;
 using Jellyfish.Module.Role;
 using Jellyfish.Module.TeamPlay;
 using Jellyfish.Module.TeamPlay.Core;
+using Jellyfish.Module.TeamPlay.Job;
 using Jellyfish.Module.TeamPlay.Manage;
 using Kook.WebSocket;
 using Ninject;
@@ -31,6 +34,8 @@ public class AppModule : NinjectModule
         Bind<KookLoader>().To<KookLoader>().InSingletonScope();
         Bind<KookApiFactory>().To<KookApiFactory>().InSingletonScope();
         Bind<EventMatcher>().To<EventMatcher>().InSingletonScope();
+        Bind<Registry>().To<JobRegistry>().InSingletonScope();
+        Bind<JobLoader>().To<JobLoader>().InSingletonScope();
 
         // ------------------------------------------------ Commands ---------------------------------------------------
         // Simple Command
@@ -41,6 +46,7 @@ public class AppModule : NinjectModule
         Bind<MessageCommand>().To<TeamPlayUserCommand>().InSingletonScope();
         Bind<ButtonActionCommand>().To<TeamPlayButtonActionEntry>().InSingletonScope();
         Bind<TeamPlayRoomService>().To<TeamPlayRoomService>().InSingletonScope();
+        Bind<TeamPlayRoomScanJob>().To<TeamPlayRoomScanJob>().InSingletonScope();
 
         // Role Command
         Bind<MessageCommand>().To<RoleSettingCommand>().InSingletonScope();

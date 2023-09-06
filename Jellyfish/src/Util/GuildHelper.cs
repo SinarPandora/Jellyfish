@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Kook;
 using Kook.WebSocket;
 
@@ -31,7 +32,7 @@ public static class GuildHelper
             case BoostLevel.Level6:
                 return VoiceQuality._320kbps;
             default:
-                throw new ArgumentOutOfRangeException(nameof(guild.BoostLevel), $"不支持的助力等级{guild.BoostLevel}");
+                throw new InvalidEnumArgumentException($"不支持的助力等级{guild.BoostLevel}");
         }
     }
 }

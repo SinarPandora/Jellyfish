@@ -1,4 +1,5 @@
 using FluentScheduler;
+using Jellyfish.Module.TeamPlay.Job;
 
 namespace Jellyfish.Core.Job;
 
@@ -7,8 +8,9 @@ namespace Jellyfish.Core.Job;
 /// </summary>
 public class JobRegistry : Registry
 {
-    public JobRegistry()
+    // ReSharper disable once SuggestBaseTypeForParameterInConstructor
+    public JobRegistry(TeamPlayRoomScanJob teamPlayRoomScanJob)
     {
-        // Placeholder
+        Schedule(teamPlayRoomScanJob).ToRunEvery(3).Minutes();
     }
 }

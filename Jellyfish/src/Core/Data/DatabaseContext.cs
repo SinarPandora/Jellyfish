@@ -34,11 +34,7 @@ public class DatabaseContext : DbContext
                 .HasDefaultValueSql("current_timestamp");
 
             entity
-                .Property(e => e.Enabled)
-                .HasDefaultValue(true);
-
-            entity
-                .Property(e => e.DefaultMemberCount)
+                .Property(e => e.DefaultMemberLimit)
                 .HasDefaultValue(0);
 
             entity
@@ -50,10 +46,6 @@ public class DatabaseContext : DbContext
 
         modelBuilder.Entity<TpRoomInstance>(entity =>
         {
-            entity
-                .Property(e => e.MemberLimit)
-                .HasDefaultValue(10);
-
             entity
                 .Property(e => e.CreateTime)
                 .HasDefaultValueSql("current_timestamp");
