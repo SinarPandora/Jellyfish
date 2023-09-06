@@ -7,9 +7,9 @@ using Jellyfish.Module;
 using Jellyfish.Module.Help;
 using Jellyfish.Module.Role;
 using Jellyfish.Module.TeamPlay;
-using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Module.TeamPlay.Job;
 using Jellyfish.Module.TeamPlay.Manage;
+using Jellyfish.Module.TeamPlay.User;
 using Kook.WebSocket;
 using Ninject;
 using Ninject.Modules;
@@ -44,8 +44,10 @@ public class AppModule : NinjectModule
         // TeamPlay Command
         Bind<MessageCommand>().To<TeamPlayManageCommand>().InSingletonScope();
         Bind<MessageCommand>().To<TeamPlayUserCommand>().InSingletonScope();
+        Bind<MessageCommand>().To<TeamPlayPrivateUserCommand>().InSingletonScope();
+        Bind<MessageCommand>().To<TeamPlayerRoomUpdateCommand>().InSingletonScope();
+        Bind<MessageCommand>().To<TeamPlayerPrivateRoomUpdateCommand>().InSingletonScope();
         Bind<ButtonActionCommand>().To<TeamPlayButtonActionEntry>().InSingletonScope();
-        Bind<TeamPlayRoomService>().To<TeamPlayRoomService>().InSingletonScope();
         Bind<TeamPlayRoomScanJob>().To<TeamPlayRoomScanJob>().InSingletonScope();
 
         // Role Command

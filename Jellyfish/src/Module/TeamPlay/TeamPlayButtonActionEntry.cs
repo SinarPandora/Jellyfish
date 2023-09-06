@@ -1,5 +1,5 @@
 using Jellyfish.Core.Command;
-using Jellyfish.Module.TeamPlay.Manage;
+using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
@@ -28,7 +28,7 @@ public class TeamPlayButtonActionEntry : ButtonActionCommand
                 return CommandResult.Done;
             }
 
-            await TeamPlayManageCommand.BindingVoiceChannel(args[1], user, channel);
+            await TeamPlayManageService.BindingVoiceChannel(args[1], user, channel);
             return CommandResult.Done;
         }
 

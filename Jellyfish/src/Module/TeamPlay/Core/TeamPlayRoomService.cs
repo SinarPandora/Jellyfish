@@ -11,7 +11,7 @@ namespace Jellyfish.Module.TeamPlay.Core;
 /// <summary>
 ///     Team play room service to handle room create or update actions
 /// </summary>
-public class TeamPlayRoomService
+public static class TeamPlayRoomService
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
