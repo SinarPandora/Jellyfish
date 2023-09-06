@@ -1,5 +1,6 @@
 using FluentScheduler;
 using Jellyfish.Core.Data;
+using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Util;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,9 @@ public class TeamPlayRoomScanJob : IAsyncJob
         _client = client;
     }
 
+    /// <summary>
+    ///     Entrypoint for AsyncJob
+    /// </summary>
     public async Task ExecuteAsync()
     {
         await using var dbCtx = new DatabaseContext();
@@ -35,26 +39,37 @@ public class TeamPlayRoomScanJob : IAsyncJob
             var guild = _client.GetGuild(guildId);
             foreach (var room in rooms)
             {
-                var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
-                try
-                {
-                    var users = await voiceChannel.GetConnectedUsersAsync();
-                    if (users.Count < 2 &&
-                        (users.FirstOrDefault() == null || users.First().Id == _client.CurrentUser.Id))
-                    {
-                        Log.Info($"检测到房间 {room.RoomName} 只剩 bot 自己，开始清理房间");
-                        await guild.DeleteVoiceChannelAsync(room.VoiceChannelId);
-                        dbCtx.TpRoomInstances.Remove(room);
-                        Log.Info($"已删除房间：{room.RoomName}");
-                    }
-
-                    dbCtx.SaveChanges();
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, $"尝试清理房间失败，房间名：{room.RoomName}");
-                }
+                await CheckAndDeleteRoom(guild, room, dbCtx);
             }
+        }
+    }
+
+    /// <summary>
+    ///     Check and delete room
+    /// </summary>
+    /// <param name="guild">Current guild</param>
+    /// <param name="room">Room instance</param>
+    /// <param name="dbCtx">Database context</param>
+    private async Task CheckAndDeleteRoom(SocketGuild guild, TpRoomInstance room, DatabaseContext dbCtx)
+    {
+        var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
+        try
+        {
+            var users = await voiceChannel.GetConnectedUsersAsync();
+            if (users.Count < 2 &&
+                (users.FirstOrDefault() == null || users.First().Id == _client.CurrentUser.Id))
+            {
+                Log.Info($"检测到房间 {room.RoomName} 只剩 bot 自己，开始清理房间");
+                await guild.DeleteVoiceChannelAsync(room.VoiceChannelId);
+                dbCtx.TpRoomInstances.Remove(room);
+                Log.Info($"已删除房间：{room.RoomName}");
+            }
+
+            dbCtx.SaveChanges();
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, $"尝试清理房间失败，房间名：{room.RoomName}");
         }
     }
 }
