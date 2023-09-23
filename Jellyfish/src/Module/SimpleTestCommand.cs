@@ -18,14 +18,13 @@ public class SimpleTestCommand : MessageCommand
     {
         _apiFactory = apiFactory;
         Enabled = false;
+        HelpMessage = "无";
         EnableOnlyOnDebug();
     }
 
     public override string Name() => "简单测试指令";
 
     public override string[] Keywords() => new[] { "!Test", "！Test" };
-
-    public override string Help() => throw new NotSupportedException("测试指令不包含帮助信息也不应该对用户开放");
 
     public override async Task Execute(string args, SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
     {

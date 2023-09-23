@@ -4,6 +4,7 @@ using Jellyfish.Util;
 using Kook;
 using Kook.Rest;
 using Kook.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using NLog;
 
 namespace Jellyfish.Module.TeamPlay.Core;
@@ -42,7 +43,7 @@ public static class TeamPlayRoomService
         Func<(TpRoomInstance, RestVoiceChannel), Task> onSuccess)
     {
         if (args.Config.VoiceChannelId == null) return;
-        var roomName = args.RoomName ?? $"{user.DisplayName}的房间";
+        var roomName = (args.Config.RoomNamePattern ?? "") + (args.RoomName ?? $"{user.DisplayName}的房间");
 
         await using var dbCtx = new DatabaseContext();
 
@@ -184,6 +185,7 @@ public static class TeamPlayRoomService
     {
         await using var dbCtx = new DatabaseContext();
         var room = dbCtx.TpRoomInstances
+            .Include(e => e.TpConfig)
             .FirstOrDefault(e => e.OwnerId == user.Id);
 
         if (room == null)
@@ -204,7 +206,7 @@ public static class TeamPlayRoomService
         try
         {
             Log.Info($"开始修改语音房间 {room.RoomName} 名称为 {roomName}");
-            await voiceChannel.ModifyAsync(v => { v.Name = roomName; });
+            await voiceChannel.ModifyAsync(v => { v.Name = (room.TpConfig.RoomNamePattern ?? "") + roomName; });
             Log.Info($"修改房间 API 调用成功，房间名： {room.RoomName}");
 
             dbCtx.SaveChanges();

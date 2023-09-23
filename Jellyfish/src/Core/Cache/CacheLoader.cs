@@ -36,7 +36,7 @@ public abstract class CacheLoader
             {
                 AppCaches.Permissions.AddOrUpdate($"{role.GuildId}_{permission.CommandName}",
                     new HashSet<uint> { role.KookId },
-                    v =>
+                    (_, v) =>
                     {
                         v.Add(role.KookId);
                         return v;
@@ -55,6 +55,6 @@ public abstract class CacheLoader
             .Where(e => e.Enabled)
             .AsNoTracking()
             .AsEnumerable()
-            .ForEach(c => AppCaches.TeamPlayConfigs.Add($"{c.GuildId}_{c.Name}", c));
+            .ForEach(c => AppCaches.TeamPlayConfigs.AddOrUpdate($"{c.GuildId}_{c.Name}", c));
     }
 }

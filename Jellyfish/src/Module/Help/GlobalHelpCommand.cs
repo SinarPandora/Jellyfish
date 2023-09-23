@@ -30,7 +30,7 @@ public class GlobalHelpCommand : MessageCommand
             string.Join("\n",
                 from command in _commands
                 let cacheKey = $"{user.Guild.Id}_{command.Name()}"
-                where !cache.Exists(cacheKey) || cache.Get(cacheKey).ContainsAny(userGuildRoles)
+                where !cache.ContainsKey(cacheKey) || cache.GetValueOrDefault(cacheKey).ContainsAny(userGuildRoles)
                 orderby command.Name()
                 select $"{command.Name()}：{command.Keywords().First()}"
             );

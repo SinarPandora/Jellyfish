@@ -165,7 +165,7 @@ public class RoleSettingCommand : MessageCommand
             // Update cache
             AppCaches.Permissions.AddOrUpdate($"{channel.Guild.Id}_{commandName}",
                 new HashSet<uint> { guildRoleId },
-                v =>
+                (_, v) =>
                 {
                     v.Add(role.KookId);
                     return v;
@@ -201,9 +201,9 @@ public class RoleSettingCommand : MessageCommand
 
             // Update cache
             var cacheKey = $"{channel.Guild.Id}_{commandName}";
-            if (AppCaches.Permissions.Exists(cacheKey))
+            if (AppCaches.Permissions.ContainsKey(cacheKey))
             {
-                AppCaches.Permissions.Get(cacheKey).Remove(guildRoleId);
+                AppCaches.Permissions.GetValueOrDefault(cacheKey)?.Remove(guildRoleId);
             }
 
             await channel.SendSuccessCardAsync($"权限解绑成功！角色 {guildRoleName} 已无法使用 {commandName}");

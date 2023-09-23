@@ -164,7 +164,7 @@ public static class TeamPlayManageService
             // Refresh voice quality when updating
             config.VoiceQuality = VoiceQualityHelper.GetHighestVoiceQuality(channel.Guild);
             dbCtx.SaveChanges();
-            AppCaches.TeamPlayConfigs.Put($"{channel.Guild.Id}_{name}", config);
+            AppCaches.TeamPlayConfigs.AddOrUpdate($"{channel.Guild.Id}_{name}", config);
             await channel.SendSuccessCardAsync(
                 $"绑定成功！加入 {MentionUtils.KMarkdownMentionChannel(voiceChannel.Id)} 将自动创建 {name} 类型的房间");
             await SendFurtherConfigIntroMessage(channel, config);
@@ -200,7 +200,7 @@ public static class TeamPlayManageService
         // Refresh voice quality when updating
         config.VoiceQuality = VoiceQualityHelper.GetHighestVoiceQuality(channel.Guild);
         dbCtx.SaveChanges();
-        AppCaches.TeamPlayConfigs.Put($"{channel.Guild.Id}_{name}", config);
+        AppCaches.TeamPlayConfigs.AddOrUpdate($"{channel.Guild.Id}_{name}", config);
         await channel.SendSuccessCardAsync(
             $"""
              绑定成功！当前频道已与组队配置 {name} 绑定
@@ -244,11 +244,7 @@ public static class TeamPlayManageService
             {
                 config.VoiceQuality = (VoiceQuality)quality;
                 dbCtx.SaveChanges();
-                AppCaches.TeamPlayConfigs.Update($"{channel.Guild.Id}_{args[0]}", c =>
-                {
-                    c.VoiceQuality = config.VoiceQuality;
-                    return c;
-                });
+                AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{args[0]}"].VoiceQuality = config.VoiceQuality;
                 await channel.SendSuccessCardAsync("设置成功！");
             }
         }
@@ -275,7 +271,7 @@ public static class TeamPlayManageService
         {
             record.Enabled = false;
             dbCtx.SaveChanges();
-            if (!AppCaches.TeamPlayConfigs.Remove($"{channel.Guild.Id}_{name}"))
+            if (!AppCaches.TeamPlayConfigs.Remove($"{channel.Guild.Id}_{name}", out _))
             {
                 Log.Warn($"组队配置缓存缺失，可能是一个 bug。配置键：{channel.Guild.Id}_{name}");
             }
@@ -362,11 +358,7 @@ public static class TeamPlayManageService
         {
             config.RoomNamePattern = pattern;
             dbCtx.SaveChanges();
-            AppCaches.TeamPlayConfigs.Update($"{channel.Guild.Id}_{configName}", c =>
-            {
-                c.RoomNamePattern = pattern;
-                return c;
-            });
+            AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{args[0]}"].RoomNamePattern = pattern;
             await channel.SendSuccessCardAsync($"更改房间名格式成功，新房间名称格式为：{pattern}{UserInjectKeyword}");
         }
     }
@@ -408,11 +400,7 @@ public static class TeamPlayManageService
         {
             config.DefaultMemberLimit = memberLimit;
             dbCtx.SaveChanges();
-            AppCaches.TeamPlayConfigs.Update($"{channel.Guild.Id}_{configName}", c =>
-            {
-                c.DefaultMemberLimit = memberLimit;
-                return c;
-            });
+            AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{args[0]}"].DefaultMemberLimit = memberLimit;
             await channel.SendSuccessCardAsync(
                 $"更改默认人数成功，当前默认人数为：{(memberLimit == 0 ? "无限制" : memberLimit.ToString())}"
             );
