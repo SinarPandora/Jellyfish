@@ -26,7 +26,7 @@ public class SimpleTestCommand : GuildMessageCommand
 
     public override string[] Keywords() => new[] { "!Test", "！Test" };
 
-    protected override async Task Execute(string args, SocketMessage msg, SocketGuildUser user,
+    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
         await channel.SendTextAsync("Simple hello world!");

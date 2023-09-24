@@ -24,7 +24,7 @@ public abstract class DmcCommand : Command
     {
         var keyword = Keywords().FirstOrDefault(k => msg.Content.StartsWith(k));
         if (keyword == null) return CommandResult.Continue;
-        await Execute(msg.Content[keyword.Length..].Trim(), msg, user, channel);
+        await Execute(msg.Content[keyword.Length..].Trim(), keyword, msg, user, channel);
         return CommandResult.Done;
     }
 
@@ -32,8 +32,10 @@ public abstract class DmcCommand : Command
     ///     Execute command
     /// </summary>
     /// <param name="args">Command args</param>
+    /// <param name="keyword">Matched keyword</param>
     /// <param name="msg">User message object</param>
     /// <param name="user">Sender</param>
     /// <param name="channel">Current Channel</param>
-    protected abstract Task Execute(string args, SocketMessage msg, SocketUser user, SocketDMChannel channel);
+    protected abstract Task Execute(string args, string keyword, SocketMessage msg, SocketUser user,
+        SocketDMChannel channel);
 }

@@ -35,7 +35,7 @@ public class TeamPlayManageCommand : GuildMessageCommand
 
     public override IEnumerable<string> Keywords() => new[] { "!组队", "！组队" };
 
-    protected override async Task Execute(string args, SocketMessage msg, SocketGuildUser user,
+    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
         if (args.StartsWith("帮助"))

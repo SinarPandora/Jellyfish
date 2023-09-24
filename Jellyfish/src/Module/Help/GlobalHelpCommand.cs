@@ -22,7 +22,7 @@ public class GlobalHelpCommand : GuildMessageCommand
 
     public override string[] Keywords() => new[] { "/帮助" };
 
-    protected override async Task Execute(string args, SocketMessage msg, SocketGuildUser user,
+    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
         var cache = AppCaches.Permissions;

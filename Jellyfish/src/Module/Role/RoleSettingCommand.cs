@@ -38,7 +38,7 @@ public class RoleSettingCommand : GuildMessageCommand
 
     public override string[] Keywords() => new[] { "!权限", "！权限" };
 
-    protected override async Task Execute(string args, SocketMessage msg, SocketGuildUser user,
+    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
         if (args.StartsWith("帮助"))
