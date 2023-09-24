@@ -46,8 +46,6 @@ public class AppModule : NinjectModule
         Bind<MessageCommand>().To<TeamPlayManageCommand>().InSingletonScope();
         Bind<MessageCommand>().To<TeamPlayUserCommand>().InSingletonScope();
         Bind<MessageCommand>().To<TeamPlayPrivateUserCommand>().InSingletonScope();
-        Bind<MessageCommand>().To<TeamPlayerRoomUpdateCommand>().InSingletonScope();
-        Bind<MessageCommand>().To<TeamPlayerPrivateRoomUpdateCommand>().InSingletonScope();
         Bind<ButtonActionCommand>().To<TeamPlayButtonActionEntry>().InSingletonScope();
         Bind<TeamPlayRoomScanJob>().To<TeamPlayRoomScanJob>().InSingletonScope();
         Bind<TeamPlayRoomService>().To<TeamPlayRoomService>().InSingletonScope();

@@ -9,19 +9,24 @@ namespace Jellyfish.Core.Kook;
 public class EventMatcher
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private readonly ButtonActionCommand[] _buttonActionCommands;
     private readonly KookSocketClient _client;
+    private readonly ulong _currentUserId;
 
     private readonly MessageCommand[] _messageCommands;
+    private readonly ButtonActionCommand[] _buttonActionCommands;
+    private readonly ChannelCreateEventCommand[] _channelCreateEventCommands;
 
     public EventMatcher(
         MessageCommand[] messageCommand,
         ButtonActionCommand[] buttonActionCommands,
+        ChannelCreateEventCommand[] channelCreateEventCommands,
         KookSocketClient client)
     {
         _messageCommands = messageCommand.FindAll(c => c.Enabled).ToArray();
         _buttonActionCommands = buttonActionCommands.FindAll(c => c.Enabled).ToArray();
+        _channelCreateEventCommands = channelCreateEventCommands;
         _client = client;
+        _currentUserId = client.CurrentUser.Id;
     }
 
     /// <summary>
@@ -32,7 +37,7 @@ public class EventMatcher
     /// <param name="channel">Current channel</param>
     public Task OnMessageReceived(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
     {
-        if (user.Id == _client.CurrentUser.Id) return Task.CompletedTask;
+        if (user.Id == _currentUserId) return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
@@ -63,7 +68,7 @@ public class EventMatcher
     public Task OnCardActionClicked(string value, Cacheable<SocketGuildUser, ulong> user,
         Cacheable<IMessage, Guid> message, SocketTextChannel channel)
     {
-        if (user.Id == _client.CurrentUser.Id) return Task.CompletedTask;
+        if (user.Id == _currentUserId) return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
@@ -77,6 +82,32 @@ public class EventMatcher
                 catch (Exception e)
                 {
                     Log.Info(e, $"卡片操作 {command.Name()} 执行失败！");
+                }
+            }
+        });
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Handle channel created event
+    /// </summary>
+    /// <param name="channel">New channel</param>
+    public Task OnChannelCreated(SocketChannel channel)
+    {
+        if (channel.Users.Any(u => u.Id == _currentUserId)) return Task.CompletedTask;
+
+        _ = Task.Run(async () =>
+        {
+            foreach (var command in _channelCreateEventCommands)
+            {
+                try
+                {
+                    var result = await command.Execute(channel);
+                    if (result == CommandResult.Done) break;
+                }
+                catch (Exception e)
+                {
+                    Log.Info(e, $"频道创建事件操作 {command.Name()} 执行失败！");
                 }
             }
         });
