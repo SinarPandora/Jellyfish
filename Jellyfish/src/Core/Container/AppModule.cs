@@ -40,20 +40,21 @@ public class AppModule : NinjectModule
 
         // ------------------------------------------------ Commands ---------------------------------------------------
         // Simple Command
-        Bind<MessageCommand>().To<SimpleTestCommand>().InSingletonScope();
+        Bind<GuildMessageCommand>().To<SimpleTestCommand>().InSingletonScope();
 
         // TeamPlay Command
-        Bind<MessageCommand>().To<TeamPlayManageCommand>().InSingletonScope();
-        Bind<MessageCommand>().To<TeamPlayUserCommand>().InSingletonScope();
-        Bind<MessageCommand>().To<TeamPlayPrivateUserCommand>().InSingletonScope();
+        Bind<GuildMessageCommand>().To<TeamPlayManageCommand>().InSingletonScope();
+        Bind<GuildMessageCommand>().To<TeamPlayUserCommand>().InSingletonScope();
+        Bind<DmcCommand>().To<TeamPlayRoomUpdateDmcCommand>().InSingletonScope();
         Bind<ButtonActionCommand>().To<TeamPlayButtonActionEntry>().InSingletonScope();
         Bind<TeamPlayRoomScanJob>().To<TeamPlayRoomScanJob>().InSingletonScope();
         Bind<TeamPlayRoomService>().To<TeamPlayRoomService>().InSingletonScope();
+        Bind<UserConnectEventCommand>().To<TeamPlayClickToJoinCommand>().InSingletonScope();
 
         // Role Command
-        Bind<MessageCommand>().To<RoleSettingCommand>().InSingletonScope();
+        Bind<GuildMessageCommand>().To<RoleSettingCommand>().InSingletonScope();
 
         // Help Command
-        Bind<MessageCommand>().To<GlobalHelpCommand>().InSingletonScope();
+        Bind<GuildMessageCommand>().To<GlobalHelpCommand>().InSingletonScope();
     }
 }

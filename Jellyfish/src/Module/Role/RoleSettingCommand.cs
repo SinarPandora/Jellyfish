@@ -13,11 +13,11 @@ namespace Jellyfish.Module.Role;
 /// <summary>
 ///     Role setting Command
 /// </summary>
-public class RoleSettingCommand : MessageCommand
+public class RoleSettingCommand : GuildMessageCommand
 {
     private readonly ImmutableHashSet<string> _commandNames;
 
-    public RoleSettingCommand(IEnumerable<MessageCommand> commands)
+    public RoleSettingCommand(IEnumerable<GuildMessageCommand> commands)
     {
         _commandNames = commands.Select(c => c.Name()).ToImmutableHashSet();
         HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
@@ -38,7 +38,8 @@ public class RoleSettingCommand : MessageCommand
 
     public override string[] Keywords() => new[] { "!权限", "！权限" };
 
-    public override async Task Execute(string args, SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
+    protected override async Task Execute(string args, SocketMessage msg, SocketGuildUser user,
+        SocketTextChannel channel)
     {
         if (args.StartsWith("帮助"))
             await channel.SendTextAsync(HelpMessage);

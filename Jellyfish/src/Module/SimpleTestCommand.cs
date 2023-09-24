@@ -9,7 +9,7 @@ namespace Jellyfish.Module;
 /// <summary>
 ///     Simple testing command
 /// </summary>
-public class SimpleTestCommand : MessageCommand
+public class SimpleTestCommand : GuildMessageCommand
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
     private readonly KookApiFactory _apiFactory;
@@ -26,7 +26,8 @@ public class SimpleTestCommand : MessageCommand
 
     public override string[] Keywords() => new[] { "!Test", "！Test" };
 
-    public override async Task Execute(string args, SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
+    protected override async Task Execute(string args, SocketMessage msg, SocketGuildUser user,
+        SocketTextChannel channel)
     {
         await channel.SendTextAsync("Simple hello world!");
         Log.Info($"Current Boot Level is {channel.Guild.BoostLevel}");

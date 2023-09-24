@@ -8,7 +8,15 @@ public static class Args
     ///     Create room args
     /// </summary>
     /// <param name="Config">TeamPlay config</param>
+    /// <param name="RawCommand">Raw text command</param>
     /// <param name="RoomName">(Optional)User input room name</param>
     /// <param name="RawMemberLimit">(Optional)User input member limit</param>
-    public record CreateRoomArgs(TpConfig Config, string? RoomName = null, string? RawMemberLimit = null);
+    /// <param name="Password">(Optional)User input room password</param>
+    public record CreateRoomArgs(
+        TpConfig Config,
+        string RawCommand,
+        string? RoomName = null,
+        string? RawMemberLimit = null,
+        string Password = ""
+    );
 }

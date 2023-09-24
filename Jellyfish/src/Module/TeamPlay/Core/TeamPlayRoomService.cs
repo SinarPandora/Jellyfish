@@ -35,24 +35,40 @@ public class TeamPlayRoomService
         _kook = kook;
     }
 
-
     /// <summary>
     ///     Create room instance, using text command
     /// </summary>
     /// <param name="args">Create room args</param>
-    /// <param name="rawMsg">Raw user msg object</param>
     /// <param name="user">Current user</param>
-    /// <param name="channel">Current channel</param>
     /// <param name="onSuccess">Callback on success</param>
-    public static async Task CreateRoomWithCommand(
-        Args.CreateRoomArgs args, SocketMessage rawMsg, SocketGuildUser user,
-        SocketTextChannel channel, Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
+    public async Task CreateRoomWithCommand(
+        Args.CreateRoomArgs args, SocketGuildUser user,
+        Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
     {
-        if (args.Config.VoiceChannelId == null) return;
+        var tpConfig = args.Config;
+        if (tpConfig.VoiceChannelId == null) return;
 
-        var roomName = args.Config.RoomNamePattern != null
-            ? args.Config.RoomNamePattern.Replace(TeamPlayManageService.UserInjectKeyword, user.DisplayName)
-            : $"{user.DisplayName}的房间";
+        var guild = _kook.GetGuild(tpConfig.GuildId);
+        IMessageChannel channel = tpConfig.TextChannelId == null
+            ? await user.CreateDMChannelAsync()
+            : guild.GetTextChannel((ulong)tpConfig.TextChannelId);
+
+        var roomName = tpConfig.RoomNamePattern != null
+            ? tpConfig.RoomNamePattern.Replace(TeamPlayManageService.UserInjectKeyword,
+                args.RoomName ?? user.DisplayName)
+            : args.RoomName ?? $"{user.DisplayName}的房间";
+
+        if (args.Password.IsNotEmpty())
+        {
+            if (args.Password.Length > 12 || !long.TryParse(args.Password, out _))
+            {
+                await channel.SendErrorCardAsync(UnsupportedPassword);
+                return;
+            }
+
+            roomName = $"🔐{roomName}";
+        }
+
 
         await using var dbCtx = new DatabaseContext();
 
@@ -63,10 +79,10 @@ public class TeamPlayRoomService
             return;
         }
 
-        var parentChannel = channel.Guild.GetVoiceChannel((ulong)args.Config.VoiceChannelId);
+        var parentChannel = guild.GetVoiceChannel((ulong)tpConfig.VoiceChannelId);
         if (parentChannel == null)
         {
-            Log.Error($"{args.Config.Id}：{args.Config.Name} 所对应的父频道未找到，请检查错误日志并更新频道配置");
+            Log.Error($"{tpConfig.Id}：{tpConfig.Name} 所对应的父频道未找到，请检查错误日志并更新频道配置");
             await channel.SendErrorCardAsync(ParentChannelNotFound);
             return;
         }
@@ -84,7 +100,7 @@ public class TeamPlayRoomService
         }
         else
         {
-            memberLimit = args.Config.DefaultMemberLimit;
+            memberLimit = tpConfig.DefaultMemberLimit;
         }
 
         memberLimit = memberLimit == 0 ? null : memberLimit + 1; // Add one more space for bot
@@ -92,22 +108,30 @@ public class TeamPlayRoomService
         try
         {
             Log.Info($"开始创建语音房间{roomName}");
-            var room = await channel.Guild.CreateVoiceChannelAsync(roomName, r =>
+            var room = await guild.CreateVoiceChannelAsync(roomName, r =>
             {
-                r.VoiceQuality = channel.Guild.GetHighestVoiceQuality();
+                r.VoiceQuality = guild.GetHighestVoiceQuality();
                 r.UserLimit = memberLimit;
                 r.CategoryId = parentChannel.CategoryId;
             });
+
+            if (args.Password.IsNotEmpty())
+            {
+                Log.Info($"检测到房间 {roomName} 带有初始密码，尝试设置密码");
+                await room.ModifyAsync(v => { v.Password = args.Password; });
+                Log.Info($"房间 {roomName} 密码设置成功！");
+            }
+
             Log.Info($"创建语音房间 API 调用成功，房间名：{roomName}");
 
             var instance = new TpRoomInstance(
-                tpConfigId: args.Config.Id,
+                tpConfigId: tpConfig.Id,
                 voiceChannelId: room.Id,
-                guildId: channel.Guild.Id,
+                guildId: tpConfig.GuildId,
                 roomName: roomName,
                 ownerId: user.Id,
                 memberLimit: memberLimit,
-                commandText: rawMsg.Content
+                commandText: args.RawCommand
             );
             dbCtx.TpRoomInstances.Add(instance);
             dbCtx.SaveChanges();
@@ -120,6 +144,20 @@ public class TeamPlayRoomService
             Log.Error(e, "创建语音房间出错！");
             await channel.SendErrorCardAsync(ApiFailed);
         }
+    }
+
+    /// <summary>
+    ///     Create room invite card
+    /// </summary>
+    /// <param name="room">New voice channel</param>
+    /// <returns>Kook card object</returns>
+    public static async Task<Card> CreateInviteCard(RestVoiceChannel room)
+    {
+        var invite = await room.CreateInviteAsync(InviteMaxAge.NeverExpires);
+        var card = new CardBuilder();
+        card.AddModule<HeaderModuleBuilder>(m => m.Text = $"✅房间已创建：{room.Name}，等你加入！");
+        card.AddModule<InviteModuleBuilder>(m => m.Code = invite.Code);
+        return card.Build();
     }
 
     /// <summary>

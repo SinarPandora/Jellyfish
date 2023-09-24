@@ -9,11 +9,11 @@ namespace Jellyfish.Module.Help;
 /// <summary>
 ///     Global help command
 /// </summary>
-public class GlobalHelpCommand : MessageCommand
+public class GlobalHelpCommand : GuildMessageCommand
 {
-    private readonly ImmutableArray<MessageCommand> _commands;
+    private readonly ImmutableArray<GuildMessageCommand> _commands;
 
-    public GlobalHelpCommand(IEnumerable<MessageCommand> commands)
+    public GlobalHelpCommand(IEnumerable<GuildMessageCommand> commands)
     {
         _commands = commands.Where(e => e.Name() != "全局帮助指令").ToImmutableArray();
     }
@@ -22,7 +22,8 @@ public class GlobalHelpCommand : MessageCommand
 
     public override string[] Keywords() => new[] { "/帮助" };
 
-    public override async Task Execute(string args, SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
+    protected override async Task Execute(string args, SocketMessage msg, SocketGuildUser user,
+        SocketTextChannel channel)
     {
         var cache = AppCaches.Permissions;
         var userGuildRoles = user.Roles.Select(it => it.Id).ToArray();

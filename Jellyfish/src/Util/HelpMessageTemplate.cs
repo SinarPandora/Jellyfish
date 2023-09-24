@@ -14,7 +14,7 @@ public abstract class HelpMessageTemplate
     /// <param name="description">Command description</param>
     /// <param name="options">Command options</param>
     /// <returns>Help message</returns>
-    public static string ForMessageCommand(MessageCommand command, string description, string options) =>
+    public static string ForMessageCommand(GuildMessageCommand command, string description, string options) =>
         $"""
          {command.Name()}
          ---
@@ -22,8 +22,8 @@ public abstract class HelpMessageTemplate
          ---
          指令名称：{string.Join(" 或 ", command.Keywords())}
 
-         选项：
-         帮助：显示此消息
+         **选项：**
+         - 帮助：显示此消息
          {options}
          """;
 }

@@ -8,7 +8,7 @@ namespace Jellyfish.Module.TeamPlay.Manage;
 /// <summary>
 ///     Team play config manage command
 /// </summary>
-public class TeamPlayManageCommand : MessageCommand
+public class TeamPlayManageCommand : GuildMessageCommand
 {
     public TeamPlayManageCommand()
     {
@@ -21,7 +21,6 @@ public class TeamPlayManageCommand : MessageCommand
             当绑定了一个语音入口频道或文字入口频道后，配置就可以使用啦
             """,
             $"""
-             - 帮助：显示此消息
              - 列表：列出全部的组队配置
              - 配置 [配置名称]：调整指定组队配置
              - 绑定文字频道 [配置名称]：在目标频道中使用，设置后，该频道发送的组队质量会使用该配置创建语音频道
@@ -36,7 +35,8 @@ public class TeamPlayManageCommand : MessageCommand
 
     public override IEnumerable<string> Keywords() => new[] { "!组队", "！组队" };
 
-    public override async Task Execute(string args, SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
+    protected override async Task Execute(string args, SocketMessage msg, SocketGuildUser user,
+        SocketTextChannel channel)
     {
         if (args.StartsWith("帮助"))
             await channel.SendTextAsync(HelpMessage);
