@@ -7,6 +7,8 @@ using Jellyfish.Module.Role.Helper;
 using Jellyfish.Util;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Ninject;
+using AppContext = Jellyfish.Core.Container.AppContext;
 
 namespace Jellyfish.Module.Role;
 
@@ -15,11 +17,15 @@ namespace Jellyfish.Module.Role;
 /// </summary>
 public class RoleSettingCommand : GuildMessageCommand
 {
-    private readonly ImmutableHashSet<string> _commandNames;
+    private readonly Lazy<ImmutableHashSet<string>> _commandNames = new(
+        () => AppContext.Instance
+            .GetAll<GuildMessageCommand>()
+            .Select(c => c.Name())
+            .ToImmutableHashSet()
+    );
 
-    public RoleSettingCommand(IEnumerable<GuildMessageCommand> commands)
+    public RoleSettingCommand()
     {
-        _commandNames = commands.Select(c => c.Name()).ToImmutableHashSet();
         HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
             """
             可以限制「只有某些角色才能使用某指令」
@@ -106,7 +112,7 @@ public class RoleSettingCommand : GuildMessageCommand
         }
 
         var commandName = args[0];
-        if (_commandNames.All(it => it != commandName))
+        if (_commandNames.Value.All(it => it != commandName))
         {
             await channel.SendErrorCardAsync("指令不存在，您可以发送 `/帮助` 查看全部指令名称");
             return null;

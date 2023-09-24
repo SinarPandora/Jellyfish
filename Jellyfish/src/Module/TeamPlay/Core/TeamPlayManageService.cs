@@ -298,20 +298,26 @@ public static class TeamPlayManageService
                      默认人数：{(config.DefaultMemberLimit == 0 ? "无限制" : config.DefaultMemberLimit.ToString())}
                      语音质量：{config.VoiceQuality?.GetName() ?? "频道当前最高"}
                      ---
-                     设置房间名格式：`!组队 {config.Name} 房间名格式`
+                     **设置房间名格式：**
+                     > `!组队 房间名格式 {config.Name} 房间名格式`
+
                      使用 {UserInjectKeyword} 代表用户输入内容
                      举例如下：
-                     1. 使用 `!组队 房间名格式 {config.Name} 【上分】{UserInjectKeyword}` 设置房间格式
+                     1. 指令：`!组队 房间名格式 {config.Name} 【上分】{UserInjectKeyword}`
                      2. 用户发送指令创建房间：`/组队 XP1700开放`
                      3. 最终房间名为：`【上分】XP1700开放`
-
                      若房间重名，将在房间后面添加序号来进行区分
+
                      ---
-                     设置默认人数：`!组队 默认人数 [数字]`
-                     设定创建语音房间的默认人数，输入 -1 代表人数无限
+                     **设置默认人数：**
+                     > `!组队 默认人数 {config.Name} [数字]`
+
+                     设定创建语音房间的默认人数，输入 0 代表人数无限
                      **默认人数无限**
                      ---
-                     设置语音质量：`!组队 语音质量 {config.Name} [低|中|高]`
+                     **设置语音质量:**
+                     > `!组队 语音质量 {config.Name} [低|中|高]`
+
                      低、中、高 为可选项，选择一个即可
                      未配置前根据助力等级自动使用**最高的语音质量**，配置后使用指定的语音质量
                      """, true);
@@ -359,7 +365,7 @@ public static class TeamPlayManageService
             config.RoomNamePattern = pattern;
             dbCtx.SaveChanges();
             AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{args[0]}"].RoomNamePattern = pattern;
-            await channel.SendSuccessCardAsync($"更改房间名格式成功，新房间名称格式为：{pattern}{UserInjectKeyword}");
+            await channel.SendSuccessCardAsync($"更改房间名格式成功，新房间名称格式为：{pattern}");
         }
     }
 

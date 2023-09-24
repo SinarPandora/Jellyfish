@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Jellyfish.Core.Command;
-using Jellyfish.Core.Kook;
 using Kook.WebSocket;
 using NLog;
 
@@ -12,11 +11,9 @@ namespace Jellyfish.Module;
 public class SimpleTestCommand : GuildMessageCommand
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private readonly KookApiFactory _apiFactory;
 
-    public SimpleTestCommand(KookApiFactory apiFactory)
+    public SimpleTestCommand()
     {
-        _apiFactory = apiFactory;
         Enabled = false;
         HelpMessage = "无";
         EnableOnlyOnDebug();
@@ -24,12 +21,12 @@ public class SimpleTestCommand : GuildMessageCommand
 
     public override string Name() => "简单测试指令";
 
-    public override string[] Keywords() => new[] { "!Test", "！Test" };
+    public override string[] Keywords() => new[] { "!test", "！test" };
 
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
-        await channel.SendTextAsync("Simple hello world!");
+        await channel.SendTextAsync("I'm Here!");
         Log.Info($"Current Boot Level is {channel.Guild.BoostLevel}");
     }
 

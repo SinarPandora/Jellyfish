@@ -3,6 +3,8 @@ using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Kook;
 using Kook.WebSocket;
+using Ninject;
+using AppContext = Jellyfish.Core.Container.AppContext;
 
 namespace Jellyfish.Module.Help;
 
@@ -11,12 +13,12 @@ namespace Jellyfish.Module.Help;
 /// </summary>
 public class GlobalHelpCommand : GuildMessageCommand
 {
-    private readonly ImmutableArray<GuildMessageCommand> _commands;
-
-    public GlobalHelpCommand(IEnumerable<GuildMessageCommand> commands)
-    {
-        _commands = commands.Where(e => e.Name() != "全局帮助指令").ToImmutableArray();
-    }
+    private readonly Lazy<ImmutableArray<GuildMessageCommand>> _commands = new(
+        () => AppContext.Instance
+            .GetAll<GuildMessageCommand>()
+            .Where(e => e.Name() != "全局帮助指令")
+            .ToImmutableArray()
+    );
 
     public override string Name() => "全局帮助指令";
 
@@ -29,7 +31,7 @@ public class GlobalHelpCommand : GuildMessageCommand
         var userGuildRoles = user.Roles.Select(it => it.Id).ToArray();
         var availableCommands =
             string.Join("\n",
-                from command in _commands
+                from command in _commands.Value
                 let cacheKey = $"{user.Guild.Id}_{command.Name()}"
                 where !cache.ContainsKey(cacheKey) || cache.GetValueOrDefault(cacheKey).ContainsAny(userGuildRoles)
                 orderby command.Name()

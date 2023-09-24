@@ -24,15 +24,14 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
     public override string Name() => "语音频道点击创建房间指令";
 
     public override async Task<CommandResult> Execute(Cacheable<SocketGuildUser, ulong> user,
-        SocketVoiceChannel channel,
-        DateTimeOffset joinAt)
+        SocketVoiceChannel channel, DateTimeOffset joinAt)
     {
         var tpConfig = (from config in AppCaches.TeamPlayConfigs.Values
             where config.GuildId == channel.Guild.Id && config.VoiceChannelId == channel.Id
             select config).FirstOrDefault();
 
         if (tpConfig == null) return CommandResult.Continue;
-        await _service.CreateRoomWithCommand(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value,
+        await _service.CreateAndMoveToRoom(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value,
             async (_, room) =>
             {
                 if (tpConfig.TextChannelId != null)

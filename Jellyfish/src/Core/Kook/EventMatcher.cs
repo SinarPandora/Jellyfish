@@ -2,14 +2,19 @@ using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Kook;
 using Kook.WebSocket;
+using Ninject;
 using NLog;
+using AppContext = Jellyfish.Core.Container.AppContext;
 
 namespace Jellyfish.Core.Kook;
 
 public class EventMatcher
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    private readonly ulong _currentUserId;
+
+    private readonly Lazy<ulong> _currentUserId = new(
+        () => AppContext.Instance.Get<KookSocketClient>().CurrentUser.Id
+    );
 
     private readonly GuildMessageCommand[] _messageCommands;
     private readonly ButtonActionCommand[] _buttonActionCommands;
@@ -20,14 +25,12 @@ public class EventMatcher
         GuildMessageCommand[] messageCommand,
         ButtonActionCommand[] buttonActionCommands,
         UserConnectEventCommand[] userConnectEventCommands,
-        DmcCommand[] dmcCommands,
-        BaseSocketClient client)
+        DmcCommand[] dmcCommands)
     {
         _messageCommands = messageCommand.FindAll(c => c.Enabled).ToArray();
         _buttonActionCommands = buttonActionCommands.FindAll(c => c.Enabled).ToArray();
         _userConnectEventCommands = userConnectEventCommands;
         _dmcCommands = dmcCommands;
-        _currentUserId = client.CurrentUser.Id;
     }
 
     /// <summary>
@@ -38,7 +41,7 @@ public class EventMatcher
     /// <param name="channel">Current channel</param>
     public Task OnMessageReceived(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
     {
-        if (user.Id == _currentUserId) return Task.CompletedTask;
+        if (user.Id == _currentUserId.Value) return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
@@ -52,7 +55,7 @@ public class EventMatcher
                 }
                 catch (Exception e)
                 {
-                    Log.Info(e, $"工会文字指令 {command.Name()} 执行失败！");
+                    Log.Info(e, $"服务器文字指令 {command.Name()} 执行失败！");
                 }
             }
         });
@@ -69,7 +72,7 @@ public class EventMatcher
     public Task OnCardActionClicked(string value, Cacheable<SocketGuildUser, ulong> user,
         Cacheable<IMessage, Guid> msg, SocketTextChannel channel)
     {
-        if (user.Id == _currentUserId) return Task.CompletedTask;
+        if (user.Id == _currentUserId.Value) return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
@@ -98,7 +101,7 @@ public class EventMatcher
     public Task OnChannelCreated(Cacheable<SocketGuildUser, ulong> user, SocketVoiceChannel channel,
         DateTimeOffset joinAt)
     {
-        if (channel.Users.Any(u => u.Id == _currentUserId)) return Task.CompletedTask;
+        if (channel.Users.All(u => u.Id == _currentUserId.Value)) return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
@@ -120,7 +123,7 @@ public class EventMatcher
 
     public Task OnDirectMessageReceived(SocketMessage msg, SocketUser user, SocketDMChannel channel)
     {
-        if (user.Id == _currentUserId) return Task.CompletedTask;
+        if (user.Id == _currentUserId.Value) return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
@@ -148,7 +151,7 @@ public class EventMatcher
     /// <returns>Does user has permission or not</returns>
     private static bool CheckIfUserHasPermission(SocketGuildUser user, string commandName)
     {
-        return AppCaches.Permissions.ContainsKey($"{user.Guild.Id}_{commandName}")
+        return !AppCaches.Permissions.ContainsKey($"{user.Guild.Id}_{commandName}")
                || AppCaches.Permissions.GetValueOrDefault($"{user.Guild.Id}_{commandName}")
                    .ContainsAny(user.Roles.Select(it => it.Id).ToArray());
     }

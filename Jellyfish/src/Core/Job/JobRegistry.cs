@@ -11,6 +11,6 @@ public class JobRegistry : Registry
     // ReSharper disable once SuggestBaseTypeForParameterInConstructor
     public JobRegistry(TeamPlayRoomScanJob teamPlayRoomScanJob)
     {
-        Schedule(teamPlayRoomScanJob).ToRunEvery(3).Minutes();
+        Schedule(teamPlayRoomScanJob).ToRunEvery(1).Minutes();
     }
 }

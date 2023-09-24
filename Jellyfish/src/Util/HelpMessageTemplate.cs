@@ -20,6 +20,7 @@ public abstract class HelpMessageTemplate
          ---
          > {string.Join("\n> ", description.Split("\n"))}
          ---
+
          指令名称：{string.Join(" 或 ", command.Keywords())}
 
          **选项：**

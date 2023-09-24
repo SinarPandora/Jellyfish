@@ -3,6 +3,7 @@ using Jellyfish.Core.Command;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Util;
+using Kook;
 using Kook.WebSocket;
 
 namespace Jellyfish.Module.TeamPlay.User;
@@ -81,7 +82,29 @@ public class TeamPlayUserCommand : GuildMessageCommand
         var tpConfig = (from config in AppCaches.TeamPlayConfigs.Values
             where config.GuildId == channel.Guild.Id && config.TextChannelId == channel.Id
             select config).FirstOrDefault();
-        if (tpConfig == null) return;
+        if (tpConfig == null)
+        {
+            var configs =
+                (from config in AppCaches.TeamPlayConfigs.Values
+                    where config.GuildId == channel.Guild.Id && config.TextChannelId != null
+                    select MentionUtils.KMarkdownMentionChannel((ulong)config.TextChannelId!)
+                ).ToArray();
+
+            if (configs.IsEmpty())
+            {
+                await channel.SendInfoCardAsync("当前服务器没有开启组队功能");
+            }
+            else
+            {
+                await channel.SendInfoCardAsync(
+                    $"""
+                     当前频道没有配置组队功能，请前往以下频道使用该功能：
+                     {string.Join('\n', configs)}
+                     """);
+            }
+
+            return;
+        }
 
         var help = HelpTemplate.Format(tpConfig.DefaultMemberLimit == 0
             ? "无限制"
@@ -105,7 +128,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
             select config).FirstOrDefault();
         if (tpConfig == null) return;
 
-        await _service.CreateRoomWithCommand(argsBuilder(tpConfig), user,
+        await _service.CreateAndMoveToRoom(argsBuilder(tpConfig), user,
             async (_, room)
                 => await channel.SendCardAsync(await TeamPlayRoomService.CreateInviteCard(room)));
     }

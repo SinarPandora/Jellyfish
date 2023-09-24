@@ -41,7 +41,7 @@ public class TeamPlayRoomService
     /// <param name="args">Create room args</param>
     /// <param name="user">Current user</param>
     /// <param name="onSuccess">Callback on success</param>
-    public async Task CreateRoomWithCommand(
+    public async Task CreateAndMoveToRoom(
         Args.CreateRoomArgs args, SocketGuildUser user,
         Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
     {
@@ -123,6 +123,10 @@ public class TeamPlayRoomService
             }
 
             Log.Info($"创建语音房间 API 调用成功，房间名：{roomName}");
+
+            Log.Info($"尝试移动用户所在房间，用户：{user.DisplayName()}，目标房间：{room.Name}");
+            await guild.MoveToRoomAsync(user, room);
+            Log.Info($"移动成功，用户已移动到{room.Name}");
 
             var instance = new TpRoomInstance(
                 tpConfigId: tpConfig.Id,
