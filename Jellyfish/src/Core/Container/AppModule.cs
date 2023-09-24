@@ -7,6 +7,7 @@ using Jellyfish.Module;
 using Jellyfish.Module.Help;
 using Jellyfish.Module.Role;
 using Jellyfish.Module.TeamPlay;
+using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Module.TeamPlay.Job;
 using Jellyfish.Module.TeamPlay.Manage;
 using Jellyfish.Module.TeamPlay.User;
@@ -49,6 +50,7 @@ public class AppModule : NinjectModule
         Bind<MessageCommand>().To<TeamPlayerPrivateRoomUpdateCommand>().InSingletonScope();
         Bind<ButtonActionCommand>().To<TeamPlayButtonActionEntry>().InSingletonScope();
         Bind<TeamPlayRoomScanJob>().To<TeamPlayRoomScanJob>().InSingletonScope();
+        Bind<TeamPlayRoomService>().To<TeamPlayRoomService>().InSingletonScope();
 
         // Role Command
         Bind<MessageCommand>().To<RoleSettingCommand>().InSingletonScope();

@@ -13,7 +13,8 @@
 * [易有云](https://doc.linkease.com/)
 * [Z.ExtensionMethods](https://csharp-extension.com/)
 * [Ninject](https://github.com/ninject/Ninject/wiki)
-* [CacheManager](https://cachemanager.michaco.net/)
+* [FluentScheduler](https://fluentscheduler.github.io/creating-schedules/)
+* [Polly](https://www.thepollyproject.org/)
 
 ### Kook 开发者文档
 
