@@ -169,7 +169,7 @@ public class TeamPlayRoomService
     /// <param name="channel">Current channel</param>
     /// <param name="onSuccess">Callback on success</param>
     public async Task UpdateRoomMemberLimit(
-        string rawMemberLimit, SocketGuildUser user,
+        string rawMemberLimit, SocketUser user,
         IMessageChannel channel, Func<Task> onSuccess)
     {
         if (!int.TryParse(rawMemberLimit, out var memberLimit) || memberLimit < 0)
@@ -226,7 +226,7 @@ public class TeamPlayRoomService
     /// <param name="channel">Current channel</param>
     /// <param name="onSuccess">Callback on success</param>
     public async Task UpdateRoomName(
-        string roomName, SocketGuildUser user,
+        string roomName, SocketUser user,
         IMessageChannel channel, Func<Task> onSuccess)
     {
         await using var dbCtx = new DatabaseContext();
@@ -274,7 +274,7 @@ public class TeamPlayRoomService
     /// <param name="user">Current user</param>
     /// <param name="channel">Current channel</param>
     /// <param name="onSuccess">Callback on success</param>
-    public async Task SetRoomPassword(string password, SocketGuildUser user, IMessageChannel channel,
+    public async Task SetRoomPassword(string password, SocketUser user, IMessageChannel channel,
         Func<Task> onSuccess)
     {
         await using var dbCtx = new DatabaseContext();
@@ -344,7 +344,7 @@ public class TeamPlayRoomService
     /// <param name="channel">Current channel</param>
     /// <param name="onSuccess">Callback on success</param>
     public async Task DissolveRoomInstance(
-        SocketGuildUser user, IMessageChannel channel, Func<Task> onSuccess)
+        SocketUser user, IMessageChannel channel, Func<Task> onSuccess)
     {
         await using var dbCtx = new DatabaseContext();
         var room = dbCtx.TpRoomInstances
