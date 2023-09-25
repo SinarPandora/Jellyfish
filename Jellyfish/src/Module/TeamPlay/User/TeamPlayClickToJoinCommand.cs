@@ -30,7 +30,7 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
             select config).FirstOrDefault();
 
         if (tpConfig == null) return CommandResult.Continue;
-        await _service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value,
+        await _service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
             async (_, room) =>
             {
                 if (tpConfig.TextChannelId != null)

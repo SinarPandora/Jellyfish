@@ -128,7 +128,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
             select config).FirstOrDefault();
         if (tpConfig == null) return;
 
-        await _service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user,
+        await _service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
             async (_, room) =>
             {
                 await channel.SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));

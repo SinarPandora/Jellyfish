@@ -22,8 +22,6 @@ public class TeamPlayRoomService
     private const string ParentChannelNotFound = "父频道未找到，请联系频道管理员";
     private const string RoomMemberLimitInvalid = "房间人数应 1~99 整数，或使用 0 代表不限人数";
     private const string UnsupportedPassword = "密码应为 1~12 位数字";
-    private const string UserNotARoomOwner = "您还没有创建任何语音房间";
-    private const string RoomNotFound = "房间未找到";
 
     #endregion
 
@@ -39,18 +37,18 @@ public class TeamPlayRoomService
     /// </summary>
     /// <param name="args">Create room args</param>
     /// <param name="user">Current user</param>
+    /// <param name="noticeChannel">Text channel for notice</param>
     /// <param name="onSuccess">Callback on success</param>
     public async Task CreateAndMoveToRoomAsync(
         Args.CreateRoomArgs args, SocketGuildUser user,
+        IMessageChannel? noticeChannel,
         Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
     {
         var tpConfig = args.Config;
         if (tpConfig.VoiceChannelId == null) return;
 
         var guild = _kook.GetGuild(tpConfig.GuildId);
-        IMessageChannel channel = tpConfig.TextChannelId == null
-            ? await user.CreateDMChannelAsync()
-            : guild.GetTextChannel((ulong)tpConfig.TextChannelId);
+        noticeChannel ??= await user.CreateDMChannelAsync();
 
         var roomName = tpConfig.RoomNamePattern != null
             ? tpConfig.RoomNamePattern.Replace(TeamPlayManageService.UserInjectKeyword,
@@ -61,7 +59,7 @@ public class TeamPlayRoomService
         {
             if (args.Password.Length > 12 || !long.TryParse(args.Password, out _))
             {
-                await channel.SendErrorCardAsync(UnsupportedPassword);
+                await noticeChannel.SendErrorCardAsync(UnsupportedPassword);
                 return;
             }
 
@@ -74,7 +72,7 @@ public class TeamPlayRoomService
         if (dbCtx.TpRoomInstances.Any(e => e.OwnerId == user.Id))
         {
             Log.Info($"创建频道 {roomName} 失败，用户 {user.DisplayName}#{user.Id} 已加入其他语音频道");
-            await channel.SendErrorCardAsync(UserDoesNotFree);
+            await noticeChannel.SendErrorCardAsync(UserDoesNotFree);
             return;
         }
 
@@ -82,7 +80,7 @@ public class TeamPlayRoomService
         if (parentChannel == null)
         {
             Log.Error($"{tpConfig.Id}：{tpConfig.Name} 所对应的父频道未找到，请检查错误日志并更新频道配置");
-            await channel.SendErrorCardAsync(ParentChannelNotFound);
+            await noticeChannel.SendErrorCardAsync(ParentChannelNotFound);
             return;
         }
 
@@ -91,7 +89,7 @@ public class TeamPlayRoomService
         {
             if (!int.TryParse(args.RawMemberLimit, out var limit) || limit < 0 || limit > 99)
             {
-                await channel.SendErrorCardAsync(RoomMemberLimitInvalid);
+                await noticeChannel.SendErrorCardAsync(RoomMemberLimitInvalid);
                 return;
             }
 
@@ -124,7 +122,12 @@ public class TeamPlayRoomService
             Log.Info($"创建语音房间 API 调用成功，房间名：{roomName}");
 
             Log.Info($"尝试移动用户所在房间，用户：{user.DisplayName()}，目标房间：{room.Name}");
-            await guild.MoveToRoomAsync(user, room);
+
+            if (user.VoiceChannel != null)
+            {
+                await guild.MoveToRoomAsync(user, room);
+            }
+
             Log.Info($"移动成功，用户已移动到{room.Name}");
 
             // Give owner permission
@@ -147,7 +150,7 @@ public class TeamPlayRoomService
             // Send post messages
             await SendRoomUpdateWizardToDmcAsync(
                 tpConfig.TextChannelId == null
-                    ? channel // Use the DMC created above
+                    ? noticeChannel // Use the DMC created above
                     : await user.CreateDMChannelAsync() // Create new one
                 , room.Name);
             await onSuccess(instance, room);
@@ -155,7 +158,7 @@ public class TeamPlayRoomService
         catch (Exception e)
         {
             Log.Error(e, "创建语音房间出错！");
-            await channel.SendErrorCardAsync(ApiFailed);
+            await noticeChannel.SendErrorCardAsync(ApiFailed);
         }
     }
 
