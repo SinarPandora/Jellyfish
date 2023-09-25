@@ -15,8 +15,8 @@ public static class KookCoreApiHelper
     /// <summary>
     ///     Delete channel, core API, retry in 2 times if error occur
     /// </summary>
-    /// <param name="guild"></param>
-    /// <param name="voiceChannelId"></param>
+    /// <param name="guild">Current guild</param>
+    /// <param name="voiceChannelId">Voice channel id</param>
     /// <returns></returns>
     public static Task DeleteVoiceChannelAsync(this SocketGuild guild, ulong voiceChannelId)
     {
@@ -57,7 +57,8 @@ public static class KookCoreApiHelper
                 })
             .ExecuteAsync(async () =>
             {
-                if (currentChannel == null || currentChannel.Id != toChannel.Id)
+                if (currentChannel == null) return;
+                if (currentChannel.Id != toChannel.Id)
                 {
                     await guild.MoveUsersAsync(guildUsers, toChannel);
                 }

@@ -19,17 +19,20 @@ public class EventMatcher
     private readonly GuildMessageCommand[] _messageCommands;
     private readonly ButtonActionCommand[] _buttonActionCommands;
     private readonly UserConnectEventCommand[] _userConnectEventCommands;
+    private readonly UserDisconnectEventCommand[] _userDisconnectEventCommands;
     private readonly DmcCommand[] _dmcCommands;
 
     public EventMatcher(
         GuildMessageCommand[] messageCommand,
         ButtonActionCommand[] buttonActionCommands,
         UserConnectEventCommand[] userConnectEventCommands,
+        UserDisconnectEventCommand[] userDisconnectEventCommands,
         DmcCommand[] dmcCommands)
     {
         _messageCommands = messageCommand.FindAll(c => c.Enabled).ToArray();
         _buttonActionCommands = buttonActionCommands.FindAll(c => c.Enabled).ToArray();
         _userConnectEventCommands = userConnectEventCommands;
+        _userDisconnectEventCommands = userDisconnectEventCommands;
         _dmcCommands = dmcCommands;
     }
 
@@ -98,7 +101,7 @@ public class EventMatcher
     /// <param name="user">Current user</param>
     /// <param name="channel">Target channel</param>
     /// <param name="joinAt">Join at</param>
-    public Task OnChannelCreated(Cacheable<SocketGuildUser, ulong> user, SocketVoiceChannel channel,
+    public Task OnUserConnected(Cacheable<SocketGuildUser, ulong> user, SocketVoiceChannel channel,
         DateTimeOffset joinAt)
     {
         if (channel.Users.All(u => u.Id == _currentUserId.Value)) return Task.CompletedTask;
@@ -114,13 +117,49 @@ public class EventMatcher
                 }
                 catch (Exception e)
                 {
-                    Log.Info(e, $"频道创建事件操作 {command.Name()} 执行失败！");
+                    Log.Info(e, $"加入语音频道事件操作 {command.Name()} 执行失败！");
                 }
             }
         });
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    ///     Handle user leave a joined voice channel event
+    /// </summary>
+    /// <param name="user">Current user</param>
+    /// <param name="channel">Target channel</param>
+    /// <param name="leaveAt">Leave at</param>
+    public Task OnUserDisconnected(Cacheable<SocketGuildUser, ulong> user, SocketVoiceChannel channel,
+        DateTimeOffset leaveAt)
+    {
+        if (channel.Users.All(u => u.Id == _currentUserId.Value)) return Task.CompletedTask;
+
+        _ = Task.Run(async () =>
+        {
+            foreach (var command in _userDisconnectEventCommands)
+            {
+                try
+                {
+                    var result = await command.Execute(user, channel, leaveAt);
+                    if (result == CommandResult.Done) break;
+                }
+                catch (Exception e)
+                {
+                    Log.Info(e, $"离开语音频道事件操作 {command.Name()} 执行失败！");
+                }
+            }
+        });
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Handle on DMC message received
+    /// </summary>
+    /// <param name="msg">Direct message</param>
+    /// <param name="user">Message sender</param>
+    /// <param name="channel">The DMC</param>
+    /// <returns></returns>
     public Task OnDirectMessageReceived(SocketMessage msg, SocketUser user, SocketDMChannel channel)
     {
         if (user.Id == _currentUserId.Value) return Task.CompletedTask;

@@ -21,7 +21,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
 
         **参数解释：**
         - 房间名：建议不超过 12 字
-        - 人数：1 以上整数，或 “无限制”（该频道房间默认%s人）
+        - 人数：1~99 整数，或 “无限制”（该频道房间默认%s人）
         - 密码：1~12 位纯数字
 
         ```
@@ -128,8 +128,11 @@ public class TeamPlayUserCommand : GuildMessageCommand
             select config).FirstOrDefault();
         if (tpConfig == null) return;
 
-        await _service.CreateAndMoveToRoom(argsBuilder(tpConfig), user,
-            async (_, room)
-                => await channel.SendCardAsync(await TeamPlayRoomService.CreateInviteCard(room)));
+        await _service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user,
+            async (_, room) =>
+            {
+                await channel.SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
+                await channel.SendTextAsync($"{MentionUtils.KMarkdownMentionUser(user.Id)} 👍🏻请点击上方「加入」按钮进入房间");
+            });
     }
 }

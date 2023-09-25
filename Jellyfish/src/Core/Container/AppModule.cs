@@ -50,6 +50,7 @@ public class AppModule : NinjectModule
         Bind<TeamPlayRoomScanJob>().To<TeamPlayRoomScanJob>().InSingletonScope();
         Bind<TeamPlayRoomService>().To<TeamPlayRoomService>().InSingletonScope();
         Bind<UserConnectEventCommand>().To<TeamPlayClickToJoinCommand>().InSingletonScope();
+        Bind<UserDisconnectEventCommand>().To<TeamPlayRoomOwnerLeaveCommand>().InSingletonScope();
 
         // Role Command
         Bind<GuildMessageCommand>().To<RoleSettingCommand>().InSingletonScope();

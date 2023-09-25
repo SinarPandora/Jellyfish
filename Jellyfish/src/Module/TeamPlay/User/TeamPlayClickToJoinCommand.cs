@@ -1,7 +1,6 @@
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Jellyfish.Module.TeamPlay.Core;
-using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
 
@@ -31,7 +30,7 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
             select config).FirstOrDefault();
 
         if (tpConfig == null) return CommandResult.Continue;
-        await _service.CreateAndMoveToRoom(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value,
+        await _service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value,
             async (_, room) =>
             {
                 if (tpConfig.TextChannelId != null)
@@ -39,25 +38,8 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
                     await _kook
                         .GetGuild(tpConfig.GuildId)
                         .GetTextChannel((ulong)tpConfig.TextChannelId)
-                        .SendCardAsync(await TeamPlayRoomService.CreateInviteCard(room));
+                        .SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
                 }
-
-                // Show room update hits in private channel
-                var dmc = await user.Value.CreateDMChannelAsync();
-                await dmc.SendSuccessCardAsync(
-                    $"""
-                     您已创建房间{room.Name}
-                     ---
-                     您可以发送以下指令修改房间信息：
-                     ```
-                     - /改名 [新房间名]
-                     - /密码 [房间密码，1~12 位纯数字]
-                     - /人数 [设置房间人数，1 以上整数，或 “无限制”]
-                     ```
-                     ---
-                     当所有人退出房间后，房间将被解散。
-                     您也可以发送：`/解散` 来立刻解散当前房间。
-                     """);
             });
         return CommandResult.Done;
     }

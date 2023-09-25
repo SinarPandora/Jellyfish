@@ -41,7 +41,7 @@ public class TeamPlayRoomService
     /// <param name="args">Create room args</param>
     /// <param name="user">Current user</param>
     /// <param name="onSuccess">Callback on success</param>
-    public async Task CreateAndMoveToRoom(
+    public async Task CreateAndMoveToRoomAsync(
         Args.CreateRoomArgs args, SocketGuildUser user,
         Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
     {
@@ -118,7 +118,7 @@ public class TeamPlayRoomService
             if (args.Password.IsNotEmpty())
             {
                 Log.Info($"检测到房间 {roomName} 带有初始密码，尝试设置密码");
-                await room.ModifyAsync(v => { v.Password = args.Password; });
+                await room.ModifyAsync(v => v.Password = args.Password);
                 Log.Info($"房间 {roomName} 密码设置成功！");
             }
 
@@ -141,6 +141,13 @@ public class TeamPlayRoomService
             dbCtx.SaveChanges();
 
             Log.Info($"语音房间记录已保存：{roomName}");
+
+            // Send post messages
+            await SendRoomUpdateWizardToDmcAsync(
+                tpConfig.TextChannelId == null
+                    ? channel // Use the DMC created above
+                    : await user.CreateDMChannelAsync() // Create new one
+                , room.Name);
             await onSuccess(instance, room);
         }
         catch (Exception e)
@@ -155,13 +162,37 @@ public class TeamPlayRoomService
     /// </summary>
     /// <param name="room">New voice channel</param>
     /// <returns>Kook card object</returns>
-    public static async Task<Card> CreateInviteCard(RestVoiceChannel room)
+    public static async Task<Card> CreateInviteCardAsync(RestVoiceChannel room)
     {
         var invite = await room.CreateInviteAsync(InviteMaxAge.NeverExpires);
         var card = new CardBuilder();
         card.AddModule<HeaderModuleBuilder>(m => m.Text = $"✅房间已创建：{room.Name}，等你加入！");
         card.AddModule<InviteModuleBuilder>(m => m.Code = invite.Code);
+        card.WithSize(CardSize.Large);
         return card.Build();
+    }
+
+    /// <summary>
+    ///     Send room update wizard to DMC
+    /// </summary>
+    /// <param name="dmc">The DMC</param>
+    /// <param name="roomName">Room name</param>
+    public static async Task SendRoomUpdateWizardToDmcAsync(IMessageChannel dmc, string roomName)
+    {
+        await dmc.SendSuccessCardAsync(
+            $"""
+             您已成为房间 {roomName} 的房主
+             ---
+             您可以发送以下指令修改房间信息：
+             ```
+             1. /改名 [新房间名]
+             2. /密码 [房间密码，1~12 位纯数字]
+             3. /人数 [设置房间人数，1~99 整数，或 “无限制”]
+             ```
+             ---
+             当所有人退出房间后，房间将被解散。
+             您也可以发送：`/解散` 来立刻解散当前房间。
+             """);
     }
 
     /// <summary>
@@ -172,7 +203,7 @@ public class TeamPlayRoomService
     /// <param name="user">Current user</param>
     /// <param name="channel">Current channel</param>
     /// <param name="onSuccess">Callback on success</param>
-    public async Task UpdateRoomMemberLimit(
+    public async Task UpdateRoomMemberLimitAsync(
         string rawMemberLimit, SocketUser user,
         IMessageChannel channel, Func<Task> onSuccess)
     {
@@ -229,7 +260,7 @@ public class TeamPlayRoomService
     /// <param name="user">Current user</param>
     /// <param name="channel">Current channel</param>
     /// <param name="onSuccess">Callback on success</param>
-    public async Task UpdateRoomName(
+    public async Task UpdateRoomNameAsync(
         string roomName, SocketUser user,
         IMessageChannel channel, Func<Task> onSuccess)
     {
@@ -278,7 +309,7 @@ public class TeamPlayRoomService
     /// <param name="user">Current user</param>
     /// <param name="channel">Current channel</param>
     /// <param name="onSuccess">Callback on success</param>
-    public async Task SetRoomPassword(string password, SocketUser user, IMessageChannel channel,
+    public async Task SetRoomPasswordAsync(string password, SocketUser user, IMessageChannel channel,
         Func<Task> onSuccess)
     {
         await using var dbCtx = new DatabaseContext();
@@ -347,7 +378,7 @@ public class TeamPlayRoomService
     /// <param name="user">Current user</param>
     /// <param name="channel">Current channel</param>
     /// <param name="onSuccess">Callback on success</param>
-    public async Task DissolveRoomInstance(
+    public async Task DissolveRoomInstanceAsync(
         SocketUser user, IMessageChannel channel, Func<Task> onSuccess)
     {
         await using var dbCtx = new DatabaseContext();

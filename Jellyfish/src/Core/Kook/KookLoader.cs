@@ -27,7 +27,8 @@ public class KookLoader
         _client.MessageReceived += _eventMatcher.OnMessageReceived;
         _client.MessageButtonClicked += _eventMatcher.OnCardActionClicked;
         _client.DirectMessageReceived += _eventMatcher.OnDirectMessageReceived;
-        _client.UserConnected += _eventMatcher.OnChannelCreated;
+        _client.UserConnected += _eventMatcher.OnUserConnected;
+        _client.UserDisconnected += _eventMatcher.OnUserDisconnected;
         await _client.LoginAsync(TokenType.Bot, _appConfig.KookToken);
         await _client.StartAsync();
     }

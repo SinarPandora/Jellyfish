@@ -26,17 +26,17 @@ public class TeamPlayRoomUpdateDmcCommand : DmcCommand
     {
         return keyword switch
         {
-            "/改名" => _service.UpdateRoomName(args, user, channel,
+            "/改名" => _service.UpdateRoomNameAsync(args, user, channel,
                 () => channel.SendSuccessCardAsync($"房间名已修改为 {args}")),
-            "/密码" => _service.SetRoomPassword(args, user, channel,
+            "/密码" => _service.SetRoomPasswordAsync(args, user, channel,
                 async () =>
                 {
                     if (args.IsEmpty()) await channel.SendSuccessCardAsync("已移除房间密码");
                     else await channel.SendSuccessCardAsync("已设置房间密码");
                 }),
-            "/人数" => _service.UpdateRoomMemberLimit(args, user, channel,
+            "/人数" => _service.UpdateRoomMemberLimitAsync(args, user, channel,
                 () => channel.SendSuccessCardAsync($"房间人数已设置为 {args}")),
-            "/解散" => _service.DissolveRoomInstance(user, channel,
+            "/解散" => _service.DissolveRoomInstanceAsync(user, channel,
                 () => channel.SendSuccessCardAsync("您已解散房间")),
             _ => Task.CompletedTask
         };

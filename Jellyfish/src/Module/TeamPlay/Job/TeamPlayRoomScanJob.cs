@@ -1,5 +1,6 @@
 using FluentScheduler;
 using Jellyfish.Core.Data;
+using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Util;
 using Kook.WebSocket;
@@ -40,15 +41,12 @@ public class TeamPlayRoomScanJob : IAsyncJob
             var guild = _client.GetGuild(guildId);
             foreach (var room in rooms)
             {
-                // 5 minutes as timeout in order not to clean up room just created
-                if (room.UpdateTime.AddMinutes(5) < now)
-                {
-                    await CheckAndDeleteRoom(guild, room, dbCtx);
-                }
+                // 2 minutes as timeout in order not to clean up room just created
+                if (room.UpdateTime.AddMinutes(2) >= now) continue;
+                await CheckAndDeleteRoom(guild, room, dbCtx);
+                dbCtx.SaveChanges(); // Save immediately for each room
             }
         }
-
-        dbCtx.SaveChanges();
     }
 
     /// <summary>
@@ -57,19 +55,35 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// <param name="guild">Current guild</param>
     /// <param name="room">Room instance</param>
     /// <param name="dbCtx">Database context</param>
-    private async Task CheckAndDeleteRoom(SocketGuild guild, TpRoomInstance room, DatabaseContext dbCtx)
+    private static async Task CheckAndDeleteRoom(SocketGuild guild, TpRoomInstance room, DatabaseContext dbCtx)
     {
         var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
         try
         {
             var users = await voiceChannel.GetConnectedUsersAsync();
-            if (users.Count < 2 &&
-                (users.FirstOrDefault() == null || users.First().Id == _client.CurrentUser.Id))
+            if (users.All(u => u.IsBot ?? false))
             {
                 Log.Info($"检测到房间 {room.RoomName} 只剩 bot 自己，开始清理房间");
                 await guild.DeleteVoiceChannelAsync(room.VoiceChannelId);
                 dbCtx.TpRoomInstances.Remove(room);
                 Log.Info($"已删除房间：{room.RoomName}");
+            }
+            else if (users.Count > 1 && users.All(u => u.Id != room.OwnerId))
+            {
+                // If room owner not in the room, switch owner
+                var newOwner =
+                    (from user in users
+                        where user.IsBot ?? false
+                        select user).FirstOrDefault();
+                if (newOwner == null) return;
+
+                Log.Info($"检测到房主离开房间 {room.RoomName}，将随机产生新房主");
+                room.OwnerId = newOwner.Id;
+                await TeamPlayRoomService.SendRoomUpdateWizardToDmcAsync(
+                    await newOwner.CreateDMChannelAsync(),
+                    room.RoomName
+                );
+                Log.Info($"新房主已产生，房间：{room.RoomName}，房主：{newOwner.DisplayName()}");
             }
         }
         catch (Exception e)
