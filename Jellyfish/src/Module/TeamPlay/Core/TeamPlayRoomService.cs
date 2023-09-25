@@ -139,7 +139,6 @@ public class TeamPlayRoomService
                 guildId: tpConfig.GuildId,
                 roomName: roomName,
                 ownerId: user.Id,
-                memberLimit: memberLimit,
                 commandText: args.RawCommand
             );
             dbCtx.TpRoomInstances.Add(instance);

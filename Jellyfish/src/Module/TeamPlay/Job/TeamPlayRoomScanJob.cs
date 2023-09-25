@@ -42,7 +42,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
             foreach (var room in rooms)
             {
                 // 2 minutes as timeout in order not to clean up room just created
-                if (room.UpdateTime.AddMinutes(2) >= now) continue;
+                if (room.CreateTime.AddMinutes(2) >= now) continue;
                 await CheckAndDeleteRoom(guild, room, dbCtx);
                 dbCtx.SaveChanges(); // Save immediately for each room
             }
@@ -60,12 +60,14 @@ public class TeamPlayRoomScanJob : IAsyncJob
         var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
         try
         {
+            // 1. Check if room not exist
             if (voiceChannel == null)
             {
                 dbCtx.TpRoomInstances.Remove(room);
                 return;
             }
 
+            // 2. Check if room empty
             var users = await voiceChannel.GetConnectedUsersAsync();
             if (users.All(u => u.IsBot ?? false))
             {
@@ -74,6 +76,8 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 dbCtx.TpRoomInstances.Remove(room);
                 Log.Info($"已删除房间：{room.RoomName}");
             }
+
+            // 3. Check if owner leave
             else if (users.Count > 1 && users.All(u => u.Id != room.OwnerId))
             {
                 // If room owner not in the room, switch owner
@@ -92,6 +96,22 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 );
                 Log.Info($"新房主已产生，房间：{room.RoomName}，房主：{newOwner.DisplayName()}");
             }
+
+            // 4. Check room name with 🔐locked icon if it has password(and also sync the name)
+            var newRoomName = voiceChannel.Name;
+            if (voiceChannel.HasPassword)
+            {
+                if (!newRoomName.StartsWith("🔐"))
+                {
+                    newRoomName = $"🔐{room.RoomName}";
+                }
+            }
+            else if (newRoomName.StartsWith("🔐"))
+            {
+                newRoomName = newRoomName.ReplaceFirst("🔐", string.Empty);
+            }
+
+            room.RoomName = newRoomName;
         }
         catch (Exception e)
         {

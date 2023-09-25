@@ -8,7 +8,6 @@ namespace Jellyfish.Module.TeamPlay.Data;
 public class TpRoomInstance : TrackableEntity
 {
     public TpRoomInstance(long tpConfigId, ulong voiceChannelId, ulong guildId, string roomName, ulong ownerId,
-        int? memberLimit,
         string commandText)
     {
         TpConfigId = tpConfigId;
@@ -16,7 +15,6 @@ public class TpRoomInstance : TrackableEntity
         GuildId = guildId;
         RoomName = roomName;
         OwnerId = ownerId;
-        MemberLimit = memberLimit;
         CommandText = commandText;
     }
 
@@ -26,7 +24,6 @@ public class TpRoomInstance : TrackableEntity
     public ulong GuildId { get; set; }
     public string RoomName { get; set; }
     public ulong OwnerId { get; set; }
-    public int? MemberLimit { get; set; }
     public string CommandText { get; set; }
 
     // References
