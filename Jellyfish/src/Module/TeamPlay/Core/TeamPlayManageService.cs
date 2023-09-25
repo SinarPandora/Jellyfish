@@ -1,13 +1,11 @@
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Data;
-using Jellyfish.Core.Kook.Protocol;
 using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using NLog;
-using VoiceQuality = Jellyfish.Core.Kook.Protocol.VoiceQuality;
 
 namespace Jellyfish.Module.TeamPlay.Core;
 
@@ -114,8 +112,8 @@ public static class TeamPlayManageService
                     var textChannel = e.TextChannelId != null
                         ? MentionUtils.KMarkdownMentionChannel((ulong)e.TextChannelId)
                         : "未绑定";
-                    return $"ID：{e.Id}，名称：{e.Name}，语音入口：{voiceChannel}，文字入口：{textChannel}" +
-                           $"语音质量：{e.VoiceQuality?.GetName() ?? "默认"}，当前语音房间数：{e.RoomInstances.Count}";
+                    return $"ID：{e.Id}，名称：{e.Name}，语音入口：{voiceChannel}，" +
+                           $"文字入口：{textChannel}，当前语音房间数：{e.RoomInstances.Count}";
                 })
                 .ToArray();
             await channel.SendTextAsync(string.Join("\n", configs));
@@ -162,7 +160,6 @@ public static class TeamPlayManageService
             }
 
             // Refresh voice quality when updating
-            config.VoiceQuality = VoiceQualityHelper.GetHighestVoiceQuality(channel.Guild);
             dbCtx.SaveChanges();
             AppCaches.TeamPlayConfigs.AddOrUpdate($"{channel.Guild.Id}_{name}", config);
             await channel.SendSuccessCardAsync(
@@ -198,7 +195,6 @@ public static class TeamPlayManageService
         }
 
         // Refresh voice quality when updating
-        config.VoiceQuality = VoiceQualityHelper.GetHighestVoiceQuality(channel.Guild);
         dbCtx.SaveChanges();
         AppCaches.TeamPlayConfigs.AddOrUpdate($"{channel.Guild.Id}_{name}", config);
         await channel.SendSuccessCardAsync(
@@ -210,44 +206,6 @@ public static class TeamPlayManageService
         await SendFurtherConfigIntroMessage(channel, config);
 
         Log.Info($"成功绑定 {name} 到 {channel.Name}：{channel.Id}，ID：{config.Id}");
-    }
-
-    /// <summary>
-    ///     Set default voice quality, only for temporary updates when the boost level drops
-    /// </summary>
-    /// <param name="channel">Current channel</param>
-    /// <param name="msg">Message that contains args</param>
-    public static async Task SetDefaultQuality(SocketTextChannel channel, string msg)
-    {
-        var args = Regexs.MatchWhiteChars().Split(msg, 2);
-        if (args.Length < 2)
-        {
-            await channel.SendErrorCardAsync("参数不足！举例：`!组队 语音质量 休闲 高`");
-            return;
-        }
-
-        var quality = VoiceQualityHelper.FromName(args[1]);
-        if (quality == null)
-        {
-            await channel.SendErrorCardAsync("请从以下选项中选择语音质量：低，中，高");
-        }
-        else
-        {
-            await using var dbCtx = new DatabaseContext();
-            var config = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
-                .FirstOrDefault(e => e.Name == args[0]);
-            if (config == null)
-            {
-                await channel.SendErrorCardAsync("配置不存在，您可以发送：`!组队 列表` 查看现有配置");
-            }
-            else
-            {
-                config.VoiceQuality = (VoiceQuality)quality;
-                dbCtx.SaveChanges();
-                AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{args[0]}"].VoiceQuality = config.VoiceQuality;
-                await channel.SendSuccessCardAsync("设置成功！");
-            }
-        }
     }
 
     /// <summary>
@@ -296,7 +254,7 @@ public static class TeamPlayManageService
                      ---
                      房间格式：{config.RoomNamePattern ?? $"{UserInjectKeyword}的房间"}
                      默认人数：{(config.DefaultMemberLimit == 0 ? "无限制" : config.DefaultMemberLimit.ToString())}
-                     语音质量：{config.VoiceQuality?.GetName() ?? "频道当前最高"}
+                     语音质量：当前频道默认最高质量
                      ---
                      **设置房间名格式：**
                      > `!组队 房间名格式 {config.Name} 房间名格式`
@@ -314,14 +272,9 @@ public static class TeamPlayManageService
 
                      设定创建语音房间的默认人数，输入 0 代表人数无限
                      **默认人数无限**
-                     ---
-                     **设置语音质量:**
-                     > `!组队 语音质量 {config.Name} [低|中|高]`
-
-                     低、中、高 为可选项，选择一个即可
-                     未配置前根据助力等级自动使用**最高的语音质量**，配置后使用指定的语音质量
                      """, true);
             })
+            .WithSize(CardSize.Large)
             .Build());
     }
 

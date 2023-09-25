@@ -1,5 +1,4 @@
 using Jellyfish.Core.Data;
-using Jellyfish.Core.Kook.Protocol;
 
 namespace Jellyfish.Module.TeamPlay.Data;
 
@@ -20,7 +19,6 @@ public class TpConfig : TrackableEntity
     public ulong? VoiceChannelId { get; set; }
     public ulong? TextChannelId { get; set; }
     public ulong GuildId { get; set; }
-    public VoiceQuality? VoiceQuality { get; set; }
     public string? RoomNamePattern { get; set; }
     public int DefaultMemberLimit { get; set; }
     public bool Enabled { get; set; }

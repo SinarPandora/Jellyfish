@@ -60,6 +60,12 @@ public class TeamPlayRoomScanJob : IAsyncJob
         var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
         try
         {
+            if (voiceChannel == null)
+            {
+                dbCtx.TpRoomInstances.Remove(room);
+                return;
+            }
+
             var users = await voiceChannel.GetConnectedUsersAsync();
             if (users.All(u => u.IsBot ?? false))
             {
@@ -78,6 +84,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 if (newOwner == null) return;
 
                 Log.Info($"检测到房主离开房间 {room.RoomName}，将随机产生新房主");
+                await TeamPlayRoomService.GiveOwnerPermissionAsync(voiceChannel, newOwner);
                 room.OwnerId = newOwner.Id;
                 await TeamPlayRoomService.SendRoomUpdateWizardToDmcAsync(
                     await newOwner.CreateDMChannelAsync(),

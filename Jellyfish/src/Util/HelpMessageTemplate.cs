@@ -24,7 +24,7 @@ public abstract class HelpMessageTemplate
          指令名称：{string.Join(" 或 ", command.Keywords())}
 
          **选项：**
-         - 帮助：显示此消息
+         0. 帮助：显示此消息
          {options}
          """;
 }

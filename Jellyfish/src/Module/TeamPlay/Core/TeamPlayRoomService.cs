@@ -4,7 +4,6 @@ using Jellyfish.Util;
 using Kook;
 using Kook.Rest;
 using Kook.WebSocket;
-using Microsoft.EntityFrameworkCore;
 using NLog;
 
 namespace Jellyfish.Module.TeamPlay.Core;
@@ -21,7 +20,7 @@ public class TeamPlayRoomService
     private const string ApiFailed = "操作失败，请稍后再试";
     private const string UserDoesNotFree = "您已加入到其他语音房间，请退出后再试";
     private const string ParentChannelNotFound = "父频道未找到，请联系频道管理员";
-    private const string RoomMemberLimitInvalid = "房间人数应为正数，或使用 0 代表不限人数";
+    private const string RoomMemberLimitInvalid = "房间人数应 1~99 整数，或使用 0 代表不限人数";
     private const string UnsupportedPassword = "密码应为 1~12 位数字";
     private const string UserNotARoomOwner = "您还没有创建任何语音房间";
     private const string RoomNotFound = "房间未找到";
@@ -90,7 +89,7 @@ public class TeamPlayRoomService
         int? memberLimit;
         if (args.RawMemberLimit != null)
         {
-            if (!int.TryParse(args.RawMemberLimit, out var limit) || limit < 0)
+            if (!int.TryParse(args.RawMemberLimit, out var limit) || limit < 0 || limit > 99)
             {
                 await channel.SendErrorCardAsync(RoomMemberLimitInvalid);
                 return;
@@ -128,6 +127,9 @@ public class TeamPlayRoomService
             await guild.MoveToRoomAsync(user, room);
             Log.Info($"移动成功，用户已移动到{room.Name}");
 
+            // Give owner permission
+            await GiveOwnerPermissionAsync(room, user);
+
             var instance = new TpRoomInstance(
                 tpConfigId: tpConfig.Id,
                 voiceChannelId: room.Id,
@@ -158,6 +160,26 @@ public class TeamPlayRoomService
     }
 
     /// <summary>
+    ///     Give voice channel permission to user
+    /// </summary>
+    /// <param name="channel">Room</param>
+    /// <param name="user">Owner</param>
+    public static async Task GiveOwnerPermissionAsync(IVoiceChannel channel, IGuildUser user)
+    {
+        await channel.AddPermissionOverwriteAsync(user);
+        await channel.ModifyPermissionOverwriteAsync(user, permissions =>
+            permissions.Modify(
+                createInvites: PermValue.Allow,
+                manageChannels: PermValue.Allow,
+                manageVoice: PermValue.Allow,
+                deafenMembers: PermValue.Allow,
+                muteMembers: PermValue.Allow,
+                playSoundtrack: PermValue.Allow,
+                shareScreen: PermValue.Allow
+            ));
+    }
+
+    /// <summary>
     ///     Create room invite card
     /// </summary>
     /// <param name="room">New voice channel</param>
@@ -182,241 +204,9 @@ public class TeamPlayRoomService
         await dmc.SendSuccessCardAsync(
             $"""
              您已成为房间 {roomName} 的房主
-             ---
-             您可以发送以下指令修改房间信息：
-             ```
-             1. /改名 [新房间名]
-             2. /密码 [房间密码，1~12 位纯数字]
-             3. /人数 [设置房间人数，1~99 整数，或 “无限制”]
-             ```
+             作为房主，您可以随意修改房间信息，设置密码，调整麦序，全体静音等
              ---
              当所有人退出房间后，房间将被解散。
-             您也可以发送：`/解散` 来立刻解散当前房间。
              """);
-    }
-
-    /// <summary>
-    ///     Update room member count
-    ///     The new count is always 1 more than the user entered so that bot can join
-    /// </summary>
-    /// <param name="rawMemberLimit">New room member limit(raw input)</param>
-    /// <param name="user">Current user</param>
-    /// <param name="channel">Current channel</param>
-    /// <param name="onSuccess">Callback on success</param>
-    public async Task UpdateRoomMemberLimitAsync(
-        string rawMemberLimit, SocketUser user,
-        IMessageChannel channel, Func<Task> onSuccess)
-    {
-        if (!int.TryParse(rawMemberLimit, out var memberLimit) || memberLimit < 0)
-        {
-            Log.Info($"修改房间失败，{rawMemberLimit} 不是一个合法的房间人数值");
-            await channel.SendErrorCardAsync(RoomMemberLimitInvalid);
-            return;
-        }
-
-        await using var dbCtx = new DatabaseContext();
-        var room = dbCtx.TpRoomInstances
-            .FirstOrDefault(e => e.OwnerId == user.Id);
-
-        if (room == null)
-        {
-            Log.Info($"修改房间失败，用户 {user.DisplayName}#{user.Id} 未创建任何房间");
-            await channel.SendErrorCardAsync(UserNotARoomOwner);
-            return;
-        }
-
-        var guild = _kook.GetGuild(room.GuildId);
-        var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
-        if (voiceChannel == null)
-        {
-            Log.Info($"修改房间失败，房间 {room.VoiceChannelId} 不存在");
-            await channel.SendErrorCardAsync(RoomNotFound);
-            return;
-        }
-
-        room.MemberLimit = memberLimit == 0 ? null : memberLimit + 1;
-        try
-        {
-            Log.Info($"开始修改语音房间 {room.RoomName} 人数到 {memberLimit}");
-            await voiceChannel.ModifyAsync(v => v.UserLimit = room.MemberLimit);
-            Log.Info($"修改房间 API 调用成功，房间名： {room.RoomName}");
-
-            dbCtx.SaveChanges();
-            Log.Info($"修改房间成功，房间名： {room.RoomName}，" +
-                     $"房间人数：{(room.MemberLimit == 0 ? "无限制" : room.MemberLimit.ToString())}");
-            await onSuccess();
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "修改语音房间人数出错！");
-            await channel.SendErrorCardAsync(ApiFailed);
-        }
-    }
-
-    /// <summary>
-    ///     Update room name
-    /// </summary>
-    /// <param name="roomName">New room name</param>
-    /// <param name="user">Current user</param>
-    /// <param name="channel">Current channel</param>
-    /// <param name="onSuccess">Callback on success</param>
-    public async Task UpdateRoomNameAsync(
-        string roomName, SocketUser user,
-        IMessageChannel channel, Func<Task> onSuccess)
-    {
-        await using var dbCtx = new DatabaseContext();
-        var room = dbCtx.TpRoomInstances
-            .Include(e => e.TpConfig)
-            .FirstOrDefault(e => e.OwnerId == user.Id);
-
-        if (room == null)
-        {
-            Log.Info($"修改房间名失败，用户 {user.DisplayName}#{user.Id} 未创建任何房间");
-            await channel.SendErrorCardAsync(UserNotARoomOwner);
-            return;
-        }
-
-        var guild = _kook.GetGuild(room.GuildId);
-        var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
-        if (voiceChannel == null)
-        {
-            Log.Info($"修改房间失败，房间 {room.VoiceChannelId} 不存在");
-            await channel.SendErrorCardAsync(RoomNotFound);
-            return;
-        }
-
-        try
-        {
-            Log.Info($"开始修改语音房间 {room.RoomName} 名称为 {roomName}");
-            await voiceChannel.ModifyAsync(v => v.Name = (room.TpConfig.RoomNamePattern ?? "") + roomName);
-            Log.Info($"修改房间 API 调用成功，房间名： {room.RoomName}");
-
-            dbCtx.SaveChanges();
-            Log.Info($"修改房间成功，当前房间名为： {room.RoomName}，");
-            await onSuccess();
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "修改语音房间名出错！");
-            await channel.SendErrorCardAsync(ApiFailed);
-        }
-    }
-
-    /// <summary>
-    ///     Set room password
-    /// </summary>
-    /// <param name="password">Room password</param>
-    /// <param name="user">Current user</param>
-    /// <param name="channel">Current channel</param>
-    /// <param name="onSuccess">Callback on success</param>
-    public async Task SetRoomPasswordAsync(string password, SocketUser user, IMessageChannel channel,
-        Func<Task> onSuccess)
-    {
-        await using var dbCtx = new DatabaseContext();
-        var room = dbCtx.TpRoomInstances
-            .FirstOrDefault(e => e.OwnerId == user.Id);
-
-        if (password.Length > 12 || !long.TryParse(password, out _))
-        {
-            await channel.SendErrorCardAsync(UnsupportedPassword);
-            return;
-        }
-
-        if (room == null)
-        {
-            Log.Info($"修改房间密码失败，用户 {user.DisplayName}#{user.Id} 未创建任何房间");
-            await channel.SendErrorCardAsync(UserNotARoomOwner);
-            return;
-        }
-
-        var guild = _kook.GetGuild(room.GuildId);
-        var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
-        if (voiceChannel == null)
-        {
-            Log.Info($"修改房间失败，房间 {room.VoiceChannelId} 不存在");
-            await channel.SendErrorCardAsync(RoomNotFound);
-            return;
-        }
-
-        var newRoomName = room.RoomName;
-        if (password.IsEmpty())
-        {
-            if (room.RoomName.StartsWith("🔐"))
-            {
-                newRoomName = room.RoomName.ReplaceFirst("🔐", string.Empty);
-            }
-        }
-        else if (!room.RoomName.StartsWith("🔐"))
-        {
-            newRoomName = $"🔐{room.RoomName}";
-        }
-
-        try
-        {
-            Log.Info($"开始修改语音房间 {room.RoomName} 密码为 {password}");
-            await voiceChannel.ModifyAsync(v =>
-            {
-                v.Name = newRoomName;
-                v.Password = password;
-            });
-            Log.Info($"修改房间 API 调用成功，房间名： {room.RoomName}");
-
-            dbCtx.SaveChanges();
-            Log.Info($"修改房间密码成功，当前房间名为： {room.RoomName}，新密码：{password}");
-            await onSuccess();
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "修改语音房间密码出错！");
-            await channel.SendErrorCardAsync(ApiFailed);
-        }
-    }
-
-    /// <summary>
-    ///     Dissolve room instance
-    /// </summary>
-    /// <param name="user">Current user</param>
-    /// <param name="channel">Current channel</param>
-    /// <param name="onSuccess">Callback on success</param>
-    public async Task DissolveRoomInstanceAsync(
-        SocketUser user, IMessageChannel channel, Func<Task> onSuccess)
-    {
-        await using var dbCtx = new DatabaseContext();
-        var room = dbCtx.TpRoomInstances
-            .FirstOrDefault(e => e.OwnerId == user.Id);
-
-        if (room == null)
-        {
-            Log.Info($"解散房间失败，用户 {user.DisplayName}#{user.Id} 未创建任何房间");
-            await channel.SendErrorCardAsync(UserNotARoomOwner);
-            return;
-        }
-
-        var guild = _kook.GetGuild(room.GuildId);
-        var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
-        try
-        {
-            if (voiceChannel == null)
-            {
-                Log.Warn("解散房间失败，房间已解散，若该警告频繁发生，请优化这段代码");
-            }
-            else
-            {
-                Log.Info($"开始解散语音房间 {room.RoomName}");
-                await voiceChannel.DeleteAsync();
-                Log.Info($"删除语音房间 API 调用成功，房间：{room.Id}：{room.RoomName}");
-            }
-
-            dbCtx.TpRoomInstances.Remove(room);
-            dbCtx.SaveChanges();
-            Log.Info($"解散房间成功，房间：{room.Id}：{room.RoomName}");
-
-            await onSuccess();
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "解散语音房间出错！");
-            await channel.SendErrorCardAsync(ApiFailed);
-        }
     }
 }

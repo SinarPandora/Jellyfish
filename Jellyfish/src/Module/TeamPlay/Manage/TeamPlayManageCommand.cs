@@ -21,13 +21,12 @@ public class TeamPlayManageCommand : GuildMessageCommand
             当绑定了一个语音入口频道或文字入口频道后，配置就可以使用啦
             """,
             $"""
-             - 列表：列出全部的组队配置
-             - 配置 [配置名称]：调整指定组队配置
-             - 绑定文字频道 [配置名称]：在目标频道中使用，设置后，该频道发送的组队质量会使用该配置创建语音频道
-             - 房间名格式 [配置名称] [名称格式]：修改语音房间名称格式，使用 {TeamPlayManageService.UserInjectKeyword} 代表用户输入的内容
-             - 默认人数 [配置名称] [数字]：设定创建语音房间的默认人数，输入 0 代表人数无限
-             - 语音质量 [配置名称] [低|中|高]：设定临时语音频道的质量
-             - 删除 [配置名称]：删除指定配置
+             1. 列表：列出全部的组队配置
+             2. 配置 [配置名称]：调整指定组队配置
+             3. 绑定文字频道 [配置名称]：在目标频道中使用，设置后，该频道发送的组队质量会使用该配置创建语音频道
+             4. 房间名格式 [配置名称] [名称格式]：修改语音房间名称格式，使用 {TeamPlayManageService.UserInjectKeyword} 代表用户输入的内容
+             5. 默认人数 [配置名称] [数字]：设定创建语音房间的默认人数，输入 0 代表人数无限
+             6. 删除 [配置名称]：删除指定配置
              """);
     }
 
@@ -44,8 +43,6 @@ public class TeamPlayManageCommand : GuildMessageCommand
             await TeamPlayManageService.SendBindingWizard(user, channel, args[2..].TrimStart());
         else if (args.StartsWith("绑定文字频道"))
             await TeamPlayManageService.BindingTextChannel(channel, args[6..].TrimStart());
-        else if (args.StartsWith("语音质量"))
-            await TeamPlayManageService.SetDefaultQuality(channel, args[4..].TrimStart());
         else if (args.StartsWith("房间名格式"))
             await TeamPlayManageService.SetRoomPattern(channel, args[5..].TrimStart());
         else if (args.StartsWith("默认人数"))
