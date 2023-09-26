@@ -101,7 +101,7 @@ public class TeamPlayRoomService
             memberLimit = tpConfig.DefaultMemberLimit;
         }
 
-        memberLimit = memberLimit == 0 ? null : memberLimit + 1; // Add one more space for bot
+        memberLimit = memberLimit == 0 ? null : memberLimit; // Do not leave a member for bot
 
         try
         {
