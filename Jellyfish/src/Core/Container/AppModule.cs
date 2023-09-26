@@ -35,6 +35,7 @@ public class AppModule : NinjectModule
         Bind<KookLoader>().To<KookLoader>().InSingletonScope();
         Bind<KookApiFactory>().To<KookApiFactory>().InSingletonScope();
         Bind<EventMatcher>().To<EventMatcher>().InSingletonScope();
+        Bind<CacheSyncJob>().To<CacheSyncJob>().InSingletonScope();
         Bind<Registry>().To<JobRegistry>().InSingletonScope();
         Bind<JobLoader>().To<JobLoader>().InSingletonScope();
 

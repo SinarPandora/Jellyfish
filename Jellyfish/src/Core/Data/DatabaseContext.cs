@@ -7,6 +7,9 @@ namespace Jellyfish.Core.Data;
 
 public class DatabaseContext : DbContext
 {
+    private const string CreateTimeProp = nameof(TrackableEntity.CreateTime);
+    private const string UpdateTimeProp = nameof(TrackableEntity.UpdateTime);
+
     public DbSet<TpConfig> TpConfigs { get; set; } = null!;
     public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
     public DbSet<UserRole> UserRoles { get; set; } = null!;
@@ -74,14 +77,19 @@ public class DatabaseContext : DbContext
         var entities = ChangeTracker.Entries().ToList();
 
         foreach (var entry in entities)
-            switch (entry.State)
+            if (entry.State == EntityState.Added)
             {
-                case EntityState.Added:
-                    Entry(entry.Entity).Property(nameof(TrackableEntity.CreateTime)).CurrentValue = DateTime.Now;
-                    break;
-                case EntityState.Modified:
-                    Entry(entry.Entity).Property(nameof(TrackableEntity.UpdateTime)).CurrentValue = DateTime.Now;
-                    break;
+                if (entry.Metadata.FindProperty(CreateTimeProp) != null)
+                {
+                    Entry(entry.Entity).Property(CreateTimeProp).CurrentValue = DateTime.Now;
+                }
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                if (entry.Metadata.FindProperty(UpdateTimeProp) != null)
+                {
+                    Entry(entry.Entity).Property(UpdateTimeProp).CurrentValue = DateTime.Now;
+                }
             }
 
         return base.SaveChanges();

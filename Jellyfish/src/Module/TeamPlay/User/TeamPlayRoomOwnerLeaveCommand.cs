@@ -32,11 +32,11 @@ public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
         var dmc = await user.Value.CreateDMChannelAsync();
         if (channel.Users.All(u => u.Id == user.Value.Id || (u.IsBot ?? false)))
         {
-            await dmc.SendInfoCardAsync($"您已离开当前房间 {room.RoomName}，感谢您的使用");
+            await dmc.SendInfoCardAsync($"您已离开当前房间 {room.RoomName}，感谢您的使用", false);
         }
         else
         {
-            await dmc.SendInfoCardAsync($"您已离开当前房间 {room.RoomName}，您的房主权限将稍后传递给房间内的下一个人，感谢您的使用");
+            await dmc.SendInfoCardAsync($"您已离开当前房间 {room.RoomName}，您的房主权限将稍后传递给房间内的下一个人，感谢您的使用", false);
         }
 
         return CommandResult.Done;

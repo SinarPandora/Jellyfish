@@ -9,8 +9,9 @@ namespace Jellyfish.Core.Job;
 public class JobRegistry : Registry
 {
     // ReSharper disable once SuggestBaseTypeForParameterInConstructor
-    public JobRegistry(TeamPlayRoomScanJob teamPlayRoomScanJob)
+    public JobRegistry(TeamPlayRoomScanJob teamPlayRoomScanJob, CacheSyncJob cacheSyncJob)
     {
         Schedule(teamPlayRoomScanJob).ToRunEvery(1).Minutes();
+        Schedule(cacheSyncJob).ToRunEvery(5).Minutes();
     }
 }

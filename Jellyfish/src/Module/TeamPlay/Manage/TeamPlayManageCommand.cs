@@ -38,20 +38,30 @@ public class TeamPlayManageCommand : GuildMessageCommand
         SocketTextChannel channel)
     {
         if (args.StartsWith("帮助"))
-            await channel.SendTextAsync(HelpMessage);
-        else if (args.StartsWith("配置"))
-            await TeamPlayManageService.SendBindingWizard(user, channel, args[2..].TrimStart());
+        {
+            await channel.SendCardAsync(HelpMessage);
+            return;
+        }
+
+        var isSuccess = true;
+        if (args.StartsWith("配置"))
+            isSuccess = await TeamPlayManageService.SendBindingWizard(user, channel, args[2..].TrimStart());
         else if (args.StartsWith("绑定文字频道"))
-            await TeamPlayManageService.BindingTextChannel(channel, args[6..].TrimStart());
+            isSuccess = await TeamPlayManageService.BindingTextChannel(channel, args[6..].TrimStart());
         else if (args.StartsWith("房间名格式"))
-            await TeamPlayManageService.SetRoomPattern(channel, args[5..].TrimStart());
+            isSuccess = await TeamPlayManageService.SetRoomPattern(channel, args[5..].TrimStart());
         else if (args.StartsWith("默认人数"))
-            await TeamPlayManageService.SetDefaultMemberCount(channel, args[4..].TrimStart());
+            isSuccess = await TeamPlayManageService.SetDefaultMemberCount(channel, args[4..].TrimStart());
         else if (args.StartsWith("删除"))
-            await TeamPlayManageService.RemoveConfig(channel, args[2..].TrimStart());
+            isSuccess = await TeamPlayManageService.RemoveConfig(channel, args[2..].TrimStart());
         else if (args.StartsWith("列表"))
             await TeamPlayManageService.ListConfigs(channel);
         else
-            await channel.SendTextAsync(HelpMessage);
+            await channel.SendCardAsync(HelpMessage);
+
+        if (!isSuccess)
+        {
+            _ = channel.DeleteMessageWithTimeoutAsync(msg.Id);
+        }
     }
 }

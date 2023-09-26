@@ -39,13 +39,14 @@ public class TeamPlayRoomService
     /// <param name="user">Current user</param>
     /// <param name="noticeChannel">Text channel for notice</param>
     /// <param name="onSuccess">Callback on success</param>
-    public async Task CreateAndMoveToRoomAsync(
+    /// <returns>Is task success</returns>
+    public async Task<bool> CreateAndMoveToRoomAsync(
         Args.CreateRoomArgs args, SocketGuildUser user,
         IMessageChannel? noticeChannel,
         Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
     {
         var tpConfig = args.Config;
-        if (tpConfig.VoiceChannelId == null) return;
+        if (tpConfig.VoiceChannelId == null) return false;
 
         var guild = _kook.GetGuild(tpConfig.GuildId);
         noticeChannel ??= await user.CreateDMChannelAsync();
@@ -59,8 +60,8 @@ public class TeamPlayRoomService
         {
             if (args.Password.Length > 12 || !long.TryParse(args.Password, out _))
             {
-                await noticeChannel.SendErrorCardAsync(UnsupportedPassword);
-                return;
+                await noticeChannel.SendErrorCardAsync(UnsupportedPassword, true);
+                return false;
             }
 
             roomName = $"🔐{roomName}";
@@ -72,16 +73,16 @@ public class TeamPlayRoomService
         if (dbCtx.TpRoomInstances.Any(e => e.OwnerId == user.Id))
         {
             Log.Info($"创建频道 {roomName} 失败，用户 {user.DisplayName}#{user.Id} 已加入其他语音频道");
-            await noticeChannel.SendErrorCardAsync(UserDoesNotFree);
-            return;
+            await noticeChannel.SendErrorCardAsync(UserDoesNotFree, true);
+            return false;
         }
 
         var parentChannel = guild.GetVoiceChannel((ulong)tpConfig.VoiceChannelId);
         if (parentChannel == null)
         {
             Log.Error($"{tpConfig.Id}：{tpConfig.Name} 所对应的父频道未找到，请检查错误日志并更新频道配置");
-            await noticeChannel.SendErrorCardAsync(ParentChannelNotFound);
-            return;
+            await noticeChannel.SendErrorCardAsync(ParentChannelNotFound, true);
+            return false;
         }
 
         int? memberLimit;
@@ -89,8 +90,8 @@ public class TeamPlayRoomService
         {
             if (!int.TryParse(args.RawMemberLimit, out var limit) || limit < 0 || limit > 99)
             {
-                await noticeChannel.SendErrorCardAsync(RoomMemberLimitInvalid);
-                return;
+                await noticeChannel.SendErrorCardAsync(RoomMemberLimitInvalid, true);
+                return false;
             }
 
             memberLimit = limit;
@@ -153,11 +154,13 @@ public class TeamPlayRoomService
                     : await user.CreateDMChannelAsync() // Create new one
                 , room.Name);
             await onSuccess(instance, room);
+            return true;
         }
         catch (Exception e)
         {
             Log.Error(e, "创建语音房间出错！");
-            await noticeChannel.SendErrorCardAsync(ApiFailed);
+            await noticeChannel.SendErrorCardAsync(ApiFailed, true);
+            return false;
         }
     }
 
@@ -209,6 +212,6 @@ public class TeamPlayRoomService
              作为房主，您可以随意修改房间信息，设置密码，调整麦序，全体静音等
              ---
              当所有人退出房间后，房间将被解散。
-             """);
+             """, false);
     }
 }

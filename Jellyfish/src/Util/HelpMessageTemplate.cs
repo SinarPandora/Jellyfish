@@ -1,4 +1,5 @@
 using Jellyfish.Core.Command;
+using Kook;
 
 namespace Jellyfish.Util;
 
@@ -14,17 +15,20 @@ public abstract class HelpMessageTemplate
     /// <param name="description">Command description</param>
     /// <param name="options">Command options</param>
     /// <returns>Help message</returns>
-    public static string ForMessageCommand(GuildMessageCommand command, string description, string options) =>
-        $"""
-         {command.Name()}
-         ---
-         > {string.Join("\n> ", description.Split("\n"))}
-         ---
+    public static Card ForMessageCommand(GuildMessageCommand command, string description, string options) =>
+        new CardBuilder()
+            .AddModule<HeaderModuleBuilder>(m => m.WithText(command.Name()))
+            .AddModule<SectionModuleBuilder>(m => m.WithText($"> {string.Join("\n> ", description.Split("\n"))}", true))
+            .AddModule<DividerModuleBuilder>()
+            .AddModule<SectionModuleBuilder>(
+                m => m.WithText(
+                    $"""
+                     指令名称：{string.Join(" 或 ", command.Keywords())}
 
-         指令名称：{string.Join(" 或 ", command.Keywords())}
-
-         **选项：**
-         0. 帮助：显示此消息
-         {options}
-         """;
+                     **选项：**
+                     {options}
+                     """, true)
+            )
+            .WithSize(CardSize.Large)
+            .Build();
 }

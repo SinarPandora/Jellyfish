@@ -57,7 +57,6 @@ public class TeamPlayUserCommand : GuildMessageCommand
     public TeamPlayUserCommand(TeamPlayRoomService service)
     {
         _service = service;
-        HelpMessage = "请通过 Help 方法生成帮助信息";
     }
 
     public override string Name() => "组队房间指令";
@@ -70,7 +69,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
         if (args.StartsWith("帮助"))
             await Help(channel);
         else
-            await CreateRoom(user, channel, args);
+            await CreateRoom(msg, user, channel, args);
     }
 
     /// <summary>
@@ -92,7 +91,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
 
             if (configs.IsEmpty())
             {
-                await channel.SendInfoCardAsync("当前服务器没有开启组队功能");
+                await channel.SendInfoCardAsync("当前服务器没有开启组队功能", true);
             }
             else
             {
@@ -100,7 +99,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
                     $"""
                      当前频道没有配置组队功能，请前往以下频道使用该功能：
                      {string.Join('\n', configs)}
-                     """);
+                     """, true);
             }
 
             return;
@@ -109,16 +108,19 @@ public class TeamPlayUserCommand : GuildMessageCommand
         var help = HelpTemplate.Format(tpConfig.DefaultMemberLimit == 0
             ? "无限制"
             : tpConfig.DefaultMemberLimit.ToString());
-        await channel.SendTextAsync(HelpMessageTemplate.ForMessageCommand(this, "欢迎使用组队指令！", help));
+        await channel.SendCardAsync(
+            HelpMessageTemplate.ForMessageCommand(this, "欢迎使用组队指令！", help)
+        );
     }
 
     /// <summary>
     ///     Create room instance
     /// </summary>
+    /// <param name="msg">Current message</param>
     /// <param name="user">Current user</param>
     /// <param name="channel">Current text channel</param>
     /// <param name="rawArgs">Raw create room args in string</param>
-    private async Task CreateRoom(SocketGuildUser user, SocketTextChannel channel, string rawArgs)
+    private async Task CreateRoom(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel, string rawArgs)
     {
         await using var dbCtx = new DatabaseContext();
 
@@ -128,11 +130,16 @@ public class TeamPlayUserCommand : GuildMessageCommand
             select config).FirstOrDefault();
         if (tpConfig == null) return;
 
-        await _service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
+        var isSuccess = await _service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
             async (_, room) =>
             {
                 await channel.SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
                 await channel.SendTextAsync($"{MentionUtils.KMarkdownMentionUser(user.Id)} 👍🏻请点击上方「加入」按钮进入房间");
             });
+
+        if (!isSuccess)
+        {
+            _ = channel.DeleteMessageWithTimeoutAsync(msg.Id);
+        }
     }
 }

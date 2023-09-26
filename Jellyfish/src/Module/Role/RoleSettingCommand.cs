@@ -31,6 +31,8 @@ public class RoleSettingCommand : GuildMessageCommand
             可以限制「只有某些角色才能使用某指令」
             当指令**没有与任何角色绑定时，所有人都可以使用它**
             授权和解绑可以重复用在一个指令上，来为指令绑定/解绑多个角色权限
+            ---
+            使用 `/帮助` 指令查看所有可用指令
             """,
             """
             1. 列表：列出全部配置的权限关系
@@ -47,17 +49,24 @@ public class RoleSettingCommand : GuildMessageCommand
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
+        var isSuccess = true;
         if (args.StartsWith("帮助"))
-            await channel.SendTextAsync(HelpMessage);
+            await channel.SendCardAsync(HelpMessage);
         else if (args.StartsWith("列表"))
             await ListPermissions(channel);
         else if (args.StartsWith("服务器角色"))
             await ListGuildRoles(channel);
         else if (args.StartsWith("授权"))
-            await BindingPermission(args[2..].TrimStart(), channel);
+            isSuccess = await BindingPermission(args[2..].TrimStart(), channel);
         else if (args.StartsWith("解绑"))
-            await UnBindingPermission(args[2..].TrimStart(), channel);
-        else await channel.SendTextAsync(HelpMessage);
+            isSuccess = await UnBindingPermission(args[2..].TrimStart(), channel);
+        else
+            await channel.SendCardAsync(HelpMessage);
+
+        if (!isSuccess)
+        {
+            _ = channel.DeleteMessageWithTimeoutAsync(msg.Id);
+        }
     }
 
     /// <summary>
@@ -77,7 +86,7 @@ public class RoleSettingCommand : GuildMessageCommand
             roles.Select(r =>
                 $"{r.GetName(channel.Guild)}：{string.Join("，", r.CommandPermissions.Select(p => p.CommandName))}"
             ));
-        await channel.SendInfoCardAsync($"已配置的权限列表：\n{permissions}");
+        await channel.SendInfoCardAsync($"已配置的权限列表：\n{permissions}", false);
     }
 
     /// <summary>
@@ -91,7 +100,7 @@ public class RoleSettingCommand : GuildMessageCommand
             orderby role.Name
             select role.Name
         );
-        await channel.SendInfoCardAsync($"当前服务器角色：\n{rolenames}");
+        await channel.SendInfoCardAsync($"当前服务器角色：\n{rolenames}", false);
     }
 
     /// <summary>
@@ -107,14 +116,14 @@ public class RoleSettingCommand : GuildMessageCommand
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
         if (args.Length < 2)
         {
-            await channel.SendErrorCardAsync("参数不足！举例：`!权限 授权 权限配置指令 管理员`");
+            await channel.SendErrorCardAsync("参数不足！举例：`!权限 授权 权限配置指令 管理员`", true);
             return null;
         }
 
         var commandName = args[0];
         if (_commandNames.Value.All(it => it != commandName))
         {
-            await channel.SendErrorCardAsync("指令不存在，您可以发送 `/帮助` 查看全部指令名称");
+            await channel.SendErrorCardAsync("指令不存在，您可以发送 `/帮助` 查看全部指令名称", true);
             return null;
         }
 
@@ -122,7 +131,7 @@ public class RoleSettingCommand : GuildMessageCommand
         var guildRoleId = channel.Guild.GetRoleIdByName(guildRoleName);
         if (guildRoleId == null)
         {
-            await channel.SendErrorCardAsync("角色不存在，您可以发送 `!权限 服务器角色` 列出全部角色名称（或查看当前服务器配置）");
+            await channel.SendErrorCardAsync("角色不存在，您可以发送 `!权限 服务器角色` 列出全部角色名称（或查看当前服务器配置）", true);
             return null;
         }
 
@@ -141,45 +150,46 @@ public class RoleSettingCommand : GuildMessageCommand
     /// </summary>
     /// <param name="rawArgs">Raw text args, split with space</param>
     /// <param name="channel">Current channel</param>
-    private async Task BindingPermission(string rawArgs, SocketTextChannel channel)
+    /// <returns>Is task success</returns>
+    private async Task<bool> BindingPermission(string rawArgs, SocketTextChannel channel)
     {
         await using var dbCtx = new DatabaseContext();
 
         var parameters = await ExtractPermissionBindingParameters(rawArgs, channel, dbCtx);
 
-        if (parameters == null) return;
+        if (parameters == null) return false;
 
         var (commandName, guildRoleName, guildRoleId, record) = parameters.Value;
 
         if (record != null)
         {
-            await channel.SendInfoCardAsync("您已设置过该权限");
+            await channel.SendInfoCardAsync("您已设置过该权限", true);
+            return true;
         }
-        else
-        {
-            await using var transaction = await dbCtx.Database.BeginTransactionAsync();
 
-            #region Transaction
+        await using var transaction = await dbCtx.Database.BeginTransactionAsync();
 
-            var role = CreateOrGetRole(dbCtx, guildRoleId, channel.Guild.Id);
-            dbCtx.UserCommandPermissions.Add(new UserCommandPermission(role.Id, commandName));
-            dbCtx.SaveChanges();
+        #region Transaction
 
-            #endregion
+        var role = CreateOrGetRole(dbCtx, guildRoleId, channel.Guild.Id);
+        dbCtx.UserCommandPermissions.Add(new UserCommandPermission(role.Id, commandName));
+        dbCtx.SaveChanges();
 
-            await transaction.CommitAsync();
+        #endregion
 
-            // Update cache
-            AppCaches.Permissions.AddOrUpdate($"{channel.Guild.Id}_{commandName}",
-                new HashSet<uint> { guildRoleId },
-                (_, v) =>
-                {
-                    v.Add(role.KookId);
-                    return v;
-                });
+        await transaction.CommitAsync();
 
-            await channel.SendSuccessCardAsync($"权限绑定成功！角色 {guildRoleName} 可以执行 {commandName}");
-        }
+        // Update cache
+        AppCaches.Permissions.AddOrUpdate($"{channel.Guild.Id}_{commandName}",
+            new HashSet<uint> { guildRoleId },
+            (_, v) =>
+            {
+                v.Add(role.KookId);
+                return v;
+            });
+
+        await channel.SendSuccessCardAsync($"权限绑定成功！角色 {guildRoleName} 可以执行 {commandName}", false);
+        return true;
     }
 
     /// <summary>
@@ -187,19 +197,20 @@ public class RoleSettingCommand : GuildMessageCommand
     /// </summary>
     /// <param name="rawArgs">Raw text args, split with space</param>
     /// <param name="channel">Current channel</param>
-    private async Task UnBindingPermission(string rawArgs, SocketTextChannel channel)
+    /// <returns>Is task success</returns>
+    private async Task<bool> UnBindingPermission(string rawArgs, SocketTextChannel channel)
     {
         await using var dbCtx = new DatabaseContext();
 
         var parameters = await ExtractPermissionBindingParameters(rawArgs, channel, dbCtx);
 
-        if (parameters == null) return;
+        if (parameters == null) return false;
 
         var (commandName, guildRoleName, guildRoleId, record) = parameters.Value;
 
         if (record == null)
         {
-            await channel.SendInfoCardAsync("权限已被解绑");
+            await channel.SendInfoCardAsync("权限已被解绑", false);
         }
         else
         {
@@ -213,8 +224,10 @@ public class RoleSettingCommand : GuildMessageCommand
                 AppCaches.Permissions.GetValueOrDefault(cacheKey)?.Remove(guildRoleId);
             }
 
-            await channel.SendSuccessCardAsync($"权限解绑成功！角色 {guildRoleName} 已无法使用 {commandName}");
+            await channel.SendSuccessCardAsync($"权限解绑成功！角色 {guildRoleName} 已无法使用 {commandName}", false);
         }
+
+        return true;
     }
 
     /// <summary>

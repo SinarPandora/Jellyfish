@@ -1,3 +1,4 @@
+using Kook;
 using Kook.WebSocket;
 
 namespace Jellyfish.Core.Command;
@@ -7,7 +8,11 @@ namespace Jellyfish.Core.Command;
 /// </summary>
 public abstract class GuildMessageCommand : Command
 {
-    protected string HelpMessage { get; init; } = "该指令不包含帮助信息";
+    private static readonly Card EmptyHelp = new CardBuilder()
+        .AddModule<SectionModuleBuilder>(m => m.WithText("该指令没有帮助信息"))
+        .Build();
+
+    protected Card HelpMessage { get; init; } = EmptyHelp;
 
     /// <summary>
     ///     Command keywords, usually what start of each command

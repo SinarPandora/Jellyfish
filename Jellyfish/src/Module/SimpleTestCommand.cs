@@ -15,7 +15,6 @@ public class SimpleTestCommand : GuildMessageCommand
     public SimpleTestCommand()
     {
         Enabled = false;
-        HelpMessage = "无";
         EnableOnlyOnDebug();
     }
 
