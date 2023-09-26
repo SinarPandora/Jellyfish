@@ -22,11 +22,12 @@ public class CacheSyncJob : IAsyncJob
         Log.Info("开始拉取服务器缓存...");
         try
         {
-            await Task.WhenAll(new List<Task>
-                {
-                    _kook.DownloadUsersAsync()
-                }
-            );
+            await _kook.DownloadUsersAsync();
+            foreach (var guild in _kook.Guilds)
+            {
+                await guild.DownloadBoostSubscriptionsAsync();
+            }
+
             Log.Info("服务器缓存拉取成功");
         }
         catch (Exception e)

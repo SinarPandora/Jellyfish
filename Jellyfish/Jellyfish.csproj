@@ -5,8 +5,8 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <PublishSingleFile>true</PublishSingleFile>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <!--        <AppConfig>App.$(Configuration).config</AppConfig>-->
     </PropertyGroup>
 
     <ItemGroup>
@@ -21,13 +21,13 @@
         <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
         <PackageReference Include="Jitbit.FastCache" Version="1.0.10"/>
         <PackageReference Include="Kook.Net" Version="0.5.2"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.10">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.11">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Ninject" Version="3.3.6" />
-        <PackageReference Include="NLog" Version="5.2.3" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
+        <PackageReference Include="NLog" Version="5.2.4"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.11"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" />
         <PackageReference Include="Polly" Version="7.2.4"/>
         <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
