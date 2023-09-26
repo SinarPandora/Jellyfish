@@ -47,7 +47,7 @@ public class TeamPlayManageCommand : GuildMessageCommand
         if (args.StartsWith("配置"))
             isSuccess = await TeamPlayManageService.SendBindingWizard(user, channel, args[2..].TrimStart());
         else if (args.StartsWith("绑定文字频道"))
-            isSuccess = await TeamPlayManageService.BindingTextChannel(channel, args[6..].TrimStart());
+            isSuccess = await TeamPlayManageService.BindingTextChannel(channel, msg, args[6..].TrimStart());
         else if (args.StartsWith("房间名格式"))
             isSuccess = await TeamPlayManageService.SetRoomPattern(channel, args[5..].TrimStart());
         else if (args.StartsWith("默认人数"))

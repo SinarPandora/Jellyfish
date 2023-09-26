@@ -176,9 +176,10 @@ public static class TeamPlayManageService
     ///     Binding text channel to config
     /// </summary>
     /// <param name="channel">Channel to binding</param>
+    /// <param name="msg">Current binding message</param>
     /// <param name="name">Config name</param>
     /// <returns>Is task success</returns>
-    public static async Task<bool> BindingTextChannel(SocketTextChannel channel, string name)
+    public static async Task<bool> BindingTextChannel(SocketTextChannel channel, SocketMessage msg, string name)
     {
         Log.Info($"已收到名为 {name} 的文字频道绑定请求，执行进一步操作");
         await using var dbCtx = new DatabaseContext();
@@ -204,11 +205,11 @@ public static class TeamPlayManageService
             $"""
              绑定成功！当前频道已与组队配置 {name} 绑定
              您可以使用 !组队
-             """, false
+             """, true
         );
-        await SendFurtherConfigIntroMessage(channel, config);
 
         Log.Info($"成功绑定 {name} 到 {channel.Name}：{channel.Id}，ID：{config.Id}");
+        _ = channel.DeleteMessageWithTimeoutAsync(msg.Id);
         return true;
     }
 
