@@ -5,8 +5,7 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PublishSingleFile>true</PublishSingleFile>
-        <SelfContained>true</SelfContained>
+        <UseAppHost>true</UseAppHost>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
