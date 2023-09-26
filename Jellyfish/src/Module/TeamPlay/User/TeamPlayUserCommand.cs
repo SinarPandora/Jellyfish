@@ -67,16 +67,21 @@ public class TeamPlayUserCommand : GuildMessageCommand
         SocketTextChannel channel)
     {
         if (args.StartsWith("帮助"))
-            await Help(channel);
-        else
-            await CreateRoom(msg, user, channel, args);
+        {
+            if (!await Help(channel))
+            {
+                _ = channel.DeleteMessageWithTimeoutAsync(msg.Id);
+            }
+        }
+        else await CreateRoom(msg, user, channel, args);
     }
 
     /// <summary>
     ///     Show help message
     /// </summary>
     /// <param name="channel">Current channel to find config</param>
-    private async Task Help(SocketTextChannel channel)
+    /// <returns>Is task success</returns>
+    private async Task<bool> Help(SocketTextChannel channel)
     {
         var tpConfig = (from config in AppCaches.TeamPlayConfigs.Values
             where config.GuildId == channel.Guild.Id && config.TextChannelId == channel.Id
@@ -102,7 +107,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
                      """, true);
             }
 
-            return;
+            return false;
         }
 
         var help = HelpTemplate.Format(tpConfig.DefaultMemberLimit == 0
@@ -111,6 +116,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
         await channel.SendCardAsync(
             HelpMessageTemplate.ForMessageCommand(this, "欢迎使用组队指令！", help)
         );
+        return true;
     }
 
     /// <summary>
