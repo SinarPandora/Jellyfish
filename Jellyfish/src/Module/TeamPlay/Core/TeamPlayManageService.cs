@@ -40,48 +40,51 @@ public static class TeamPlayManageService
 
         var cardBuilder = new CardBuilder();
         // Header element
-        cardBuilder.AddModule<SectionModuleBuilder>(s =>
-        {
-            s.WithText($"""
-                        **欢迎使用组队绑定功能**
-                        您正在{(names.Contains(name) ? "重新" : "")}绑定 {name}
-                        """, true);
-        });
-        // Voice channel binding prompt
-        cardBuilder.AddModule<SectionModuleBuilder>(s =>
-        {
-            s.WithText("""
-                       > 🗣️您可以为当前配置绑定语音入口频道，该频道将成为后续自动创建语音频道的入口
-                       > 绑定方法为：先加入目标频道，加入后，请点击下方按钮
-                       """, true);
-        });
-        // Voice channel binding button
-        cardBuilder.AddModule<ActionGroupModuleBuilder>(a =>
-        {
-            a.AddElement(b =>
-            {
-                // Click this button will run DoBindingParentChannel with the name which user input
-                b.WithText("我已加入语音频道")
-                    .WithClick(ButtonClickEventType.ReturnValue)
-                    .WithValue($"tp_bind_{user.Id}_{name}")
-                    .WithTheme(ButtonTheme.Primary);
-            });
-        });
-        // Text channel binding prompt
-        cardBuilder.AddModule<SectionModuleBuilder>(s =>
-        {
-            s.WithText("""
-                       > 💬您也可以同时绑定任意文字频道为入口频道，在目标频道发送由 /组队 开头的消息将自动创建对应房间
-                       > 绑定方法为：在目标文字频道发送 !组队 绑定文字频道
-                       """, true);
-        });
-        // Other prompt
         cardBuilder
+            .AddModule<HeaderModuleBuilder>(m => m.Text = "欢迎使用组队绑定功能")
+            .AddModule<SectionModuleBuilder>(s =>
+            {
+                s.WithText($"您正在{(names.Contains(name) ? "重新" : "")}绑定 {name}", true);
+            })
+            .AddModule<DividerModuleBuilder>()
+            // Voice channel binding prompt
+            .AddModule<SectionModuleBuilder>(s =>
+            {
+                s.WithText("""
+                           > 🗣️您可以为当前配置绑定语音入口频道，该频道将成为后续自动创建语音频道的入口
+                           > 绑定方法为：先加入目标频道，加入后，请点击下方按钮
+                           """, true);
+            })
+            .AddModule<DividerModuleBuilder>()
+            // Voice channel binding button
+            .AddModule<ActionGroupModuleBuilder>(a =>
+            {
+                a.AddElement(b =>
+                {
+                    // Click this button will run DoBindingParentChannel with the name which user input
+                    b.WithText("我已加入语音频道")
+                        .WithClick(ButtonClickEventType.ReturnValue)
+                        .WithValue($"tp_bind_{user.Id}_{name}")
+                        .WithTheme(ButtonTheme.Primary);
+                });
+            })
+            .AddModule<DividerModuleBuilder>()
+            // Text channel binding prompt
+            .AddModule<SectionModuleBuilder>(s =>
+            {
+                s.WithText($"""
+                            > 💬您也可以同时绑定任意文字频道为入口频道，在目标频道发送由 /组队 开头的消息将自动创建对应房间
+                            > 绑定方法为：在目标文字频道发送 `!组队 绑定文字频道 {name}`
+                            """, true);
+            })
+            .AddModule<DividerModuleBuilder>()
+            // Other prompt
             .AddModule<SectionModuleBuilder>(s =>
             {
                 s.WithText("> 当绑定了一个语音入口频道或文字入口频道后，配置就可以使用啦",
                     true);
-            });
+            })
+            .WithSize(CardSize.Large);
 
         await channel.SendCardAsync(cardBuilder.Build());
         Log.Info($"已发送绑定向导，目标类型：{name}");
