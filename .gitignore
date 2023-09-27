@@ -9,3 +9,4 @@ riderModule.iml
 .DS_Store
 App.config
 Jellyfish.sln.DotSettings.user
+.env
