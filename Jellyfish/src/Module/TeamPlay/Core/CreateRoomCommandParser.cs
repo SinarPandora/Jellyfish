@@ -8,7 +8,7 @@ namespace Jellyfish.Module.TeamPlay.Core;
 /// </summary>
 public static partial class CreateRoomCommandParser
 {
-    [GeneratedRegex(@"^(?<limit>\d+|无限制)?\s*(?<name>.+?)?\s*(?<password>\d+)?$")]
+    [GeneratedRegex(@"^((?<limit>\d+|无限制)\s+)?(?<name>.+?)(\s+(?<password>\d+))?$")]
     private static partial Regex MatchAllInOneCommand();
 
     [GeneratedRegex(@"(?<type>人数|密码)\s+(?<value>\d+)")]
