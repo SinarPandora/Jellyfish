@@ -51,8 +51,8 @@ public static class TeamPlayManageService
             .AddModule<SectionModuleBuilder>(s =>
             {
                 s.WithText("""
-                           > 🗣️您可以为当前配置绑定语音入口频道，该频道将成为后续自动创建语音频道的入口
-                           > 绑定方法为：先加入目标频道，加入后，请点击下方按钮
+                           🗣️您可以为当前配置绑定语音入口频道，该频道将成为后续自动创建语音频道的入口
+                           绑定方法为：先加入目标频道，加入后，请点击下方按钮
                            """, true);
             })
             .AddModule<DividerModuleBuilder>()
@@ -73,15 +73,15 @@ public static class TeamPlayManageService
             .AddModule<SectionModuleBuilder>(s =>
             {
                 s.WithText($"""
-                            > 💬您也可以同时绑定任意文字频道为入口频道，在目标频道发送由 /组队 开头的消息将自动创建对应房间
-                            > 绑定方法为：在目标文字频道发送 `!组队 绑定文字频道 {name}`
+                            💬您也可以同时绑定任意文字频道为入口频道，在目标频道发送由 /组队 开头的消息将自动创建对应房间
+                            绑定方法为：在目标文字频道发送 `!组队 绑定文字频道 {name}`
                             """, true);
             })
             .AddModule<DividerModuleBuilder>()
             // Other prompt
             .AddModule<SectionModuleBuilder>(s =>
             {
-                s.WithText("> 当绑定了一个语音入口频道或文字入口频道后，配置就可以使用啦",
+                s.WithText("当绑定了一个语音入口频道或文字入口频道后，配置就可以使用啦",
                     true);
             })
             .WithSize(CardSize.Large);
