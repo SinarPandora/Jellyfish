@@ -78,7 +78,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
             }
 
             // 3. Check if owner leave
-            else if (users.Count > 1 && users.All(u => u.Id != room.OwnerId))
+            else if (users.Count > 0 && users.All(u => u.Id != room.OwnerId))
             {
                 // If room owner not in the room, switch owner
                 var newOwner =
