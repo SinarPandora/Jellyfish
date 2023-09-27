@@ -12,12 +12,10 @@ namespace Jellyfish.Module.TeamPlay.User;
 public class TeamPlayClickToJoinCommand : UserConnectEventCommand
 {
     private readonly TeamPlayRoomService _service;
-    private readonly KookSocketClient _kook;
 
-    public TeamPlayClickToJoinCommand(TeamPlayRoomService service, KookSocketClient kook)
+    public TeamPlayClickToJoinCommand(TeamPlayRoomService service)
     {
         _service = service;
-        _kook = kook;
     }
 
     public override string Name() => "语音频道点击创建房间指令";
@@ -31,16 +29,7 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
 
         if (tpConfig == null) return CommandResult.Continue;
         await _service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
-            async (_, room) =>
-            {
-                if (tpConfig.TextChannelId != null)
-                {
-                    await _kook
-                        .GetGuild(tpConfig.GuildId)
-                        .GetTextChannel((ulong)tpConfig.TextChannelId)
-                        .SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
-                }
-            });
+            (_, _) => Task.CompletedTask);
         return CommandResult.Done;
     }
 }
