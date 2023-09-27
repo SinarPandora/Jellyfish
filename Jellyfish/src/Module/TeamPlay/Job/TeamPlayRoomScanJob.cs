@@ -83,7 +83,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 // If room owner not in the room, switch owner
                 var newOwner =
                     (from user in users
-                        where user.IsBot ?? false
+                        where !(user.IsBot ?? false)
                         select user).FirstOrDefault();
                 if (newOwner == null) return;
 
