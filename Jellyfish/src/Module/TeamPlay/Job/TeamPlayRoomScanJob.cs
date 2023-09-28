@@ -103,12 +103,17 @@ public class TeamPlayRoomScanJob : IAsyncJob
             {
                 if (!newRoomName.StartsWith("🔐"))
                 {
-                    newRoomName = $"🔐{room.RoomName}";
+                    newRoomName = "🔐" + newRoomName;
                 }
             }
             else if (newRoomName.StartsWith("🔐"))
             {
                 newRoomName = newRoomName.ReplaceFirst("🔐", string.Empty);
+            }
+
+            if (newRoomName != voiceChannel.Name)
+            {
+                await voiceChannel.ModifyAsync(v => v.Name = newRoomName);
             }
 
             room.RoomName = newRoomName;
