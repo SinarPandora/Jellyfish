@@ -113,6 +113,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
 
             if (newRoomName != voiceChannel.Name)
             {
+                Log.Info("监测到房间名称发生变化，尝试更新房间名");
                 await voiceChannel.ModifyAsync(v => v.Name = newRoomName);
             }
 
