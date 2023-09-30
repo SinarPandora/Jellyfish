@@ -4,6 +4,7 @@ using Jellyfish.Core.Config;
 using Jellyfish.Core.Job;
 using Jellyfish.Core.Kook;
 using Jellyfish.Module;
+using Jellyfish.Module.GroupControl;
 using Jellyfish.Module.Help;
 using Jellyfish.Module.Role;
 using Jellyfish.Module.TeamPlay;
@@ -57,5 +58,8 @@ public class AppModule : NinjectModule
 
         // Help Command
         Bind<GuildMessageCommand>().To<GlobalHelpCommand>().InSingletonScope();
+
+        // Text Channel Group Control Command
+        Bind<GuildMessageCommand>().To<TcGroupControlCommand>().InSingletonScope();
     }
 }

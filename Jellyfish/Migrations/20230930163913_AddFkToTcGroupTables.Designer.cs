@@ -3,6 +3,7 @@ using System;
 using Jellyfish.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jellyfish.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20230930163913_AddFkToTcGroupTables")]
+    partial class AddFkToTcGroupTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -90,7 +93,7 @@ namespace Jellyfish.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<long>("TcGroupId")
+                    b.Property<long?>("TcGroupId")
                         .HasColumnType("bigint")
                         .HasColumnName("tc_group_id");
 
@@ -283,14 +286,10 @@ namespace Jellyfish.Migrations
 
             modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.TcGroupInstance", b =>
                 {
-                    b.HasOne("Jellyfish.Module.GroupControl.Data.TcGroup", "Group")
+                    b.HasOne("Jellyfish.Module.GroupControl.Data.TcGroup", null)
                         .WithMany("GroupInstances")
                         .HasForeignKey("TcGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
                         .HasConstraintName("fk_tc_group_instances_tc_groups_tc_group_id");
-
-                    b.Navigation("Group");
                 });
 
             modelBuilder.Entity("Jellyfish.Module.Role.Data.UserCommandPermission", b =>

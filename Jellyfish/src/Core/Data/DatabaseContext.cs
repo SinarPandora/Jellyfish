@@ -15,8 +15,8 @@ public class DatabaseContext : DbContext
     public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
     public DbSet<UserRole> UserRoles { get; set; } = null!;
     public DbSet<UserCommandPermission> UserCommandPermissions { get; set; } = null!;
-    public DbSet<RoomGroup> RoomGroups { get; set; } = null!;
-    public DbSet<RoomGroupInstance> RoomGroupInstances { get; set; } = null!;
+    public DbSet<TcGroup> TcGroups { get; set; } = null!;
+    public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -70,7 +70,7 @@ public class DatabaseContext : DbContext
                 .IsRequired();
         });
 
-        modelBuilder.Entity<RoomGroup>(entity =>
+        modelBuilder.Entity<TcGroup>(entity =>
         {
             entity
                 .Property(e => e.CreateTime)
@@ -79,9 +79,15 @@ public class DatabaseContext : DbContext
             entity
                 .Property(e => e.UpdateTime)
                 .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .HasMany(e => e.GroupInstances)
+                .WithOne(e => e.Group)
+                .HasForeignKey(e => e.TcGroupId)
+                .IsRequired();
         });
 
-        modelBuilder.Entity<RoomGroupInstance>(entity =>
+        modelBuilder.Entity<TcGroupInstance>(entity =>
         {
             entity
                 .Property(e => e.CreateTime)

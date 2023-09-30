@@ -12,4 +12,7 @@ public abstract partial class Regexs
 
     [GeneratedRegex("_")]
     public static partial Regex MatchSingleDash();
+
+    [GeneratedRegex(@"\(chn\)(?<channelId>\d+)\(chn\)")]
+    public static partial Regex MatchTextChannelMention();
 }

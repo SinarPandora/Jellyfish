@@ -3,6 +3,7 @@ using System;
 using Jellyfish.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jellyfish.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20230930115954_AddGuildInfoToTcGroupTables")]
+    partial class AddGuildInfoToTcGroupTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -81,18 +84,10 @@ namespace Jellyfish.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<Guid?>("DescriptionMessageId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("description_message_id");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
-
-                    b.Property<long>("TcGroupId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("tc_group_id");
 
                     b.Property<decimal>("TextChannelId")
                         .HasColumnType("numeric(20,0)")
@@ -106,9 +101,6 @@ namespace Jellyfish.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_tc_group_instances");
-
-                    b.HasIndex("TcGroupId")
-                        .HasDatabaseName("ix_tc_group_instances_tc_group_id");
 
                     b.ToTable("tc_group_instances", (string)null);
                 });
@@ -281,18 +273,6 @@ namespace Jellyfish.Migrations
                     b.ToTable("tp_room_instances", (string)null);
                 });
 
-            modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.TcGroupInstance", b =>
-                {
-                    b.HasOne("Jellyfish.Module.GroupControl.Data.TcGroup", "Group")
-                        .WithMany("GroupInstances")
-                        .HasForeignKey("TcGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_tc_group_instances_tc_groups_tc_group_id");
-
-                    b.Navigation("Group");
-                });
-
             modelBuilder.Entity("Jellyfish.Module.Role.Data.UserCommandPermission", b =>
                 {
                     b.HasOne("Jellyfish.Module.Role.Data.UserRole", "UserRole")
@@ -315,11 +295,6 @@ namespace Jellyfish.Migrations
                         .HasConstraintName("fk_tp_room_instances_tp_configs_tp_config_id");
 
                     b.Navigation("TpConfig");
-                });
-
-            modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.TcGroup", b =>
-                {
-                    b.Navigation("GroupInstances");
                 });
 
             modelBuilder.Entity("Jellyfish.Module.Role.Data.UserRole", b =>

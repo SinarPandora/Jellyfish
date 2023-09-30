@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jellyfish.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20230930105824_CreateRoomGroupControlTables")]
-    partial class CreateRoomGroupControlTables
+    [Migration("20230930111020_CreateTcGroupControlTables")]
+    partial class CreateTcGroupControlTables
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace Jellyfish.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.RoomGroup", b =>
+            modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.TcGroup", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -56,12 +56,12 @@ namespace Jellyfish.Migrations
                         .HasDefaultValueSql("current_timestamp");
 
                     b.HasKey("Id")
-                        .HasName("pk_room_groups");
+                        .HasName("pk_tc_groups");
 
-                    b.ToTable("room_groups", (string)null);
+                    b.ToTable("tc_groups", (string)null);
                 });
 
-            modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.RoomGroupInstance", b =>
+            modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.TcGroupInstance", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -92,9 +92,9 @@ namespace Jellyfish.Migrations
                         .HasDefaultValueSql("current_timestamp");
 
                     b.HasKey("Id")
-                        .HasName("pk_room_group_instances");
+                        .HasName("pk_tc_group_instances");
 
-                    b.ToTable("room_group_instances", (string)null);
+                    b.ToTable("tc_group_instances", (string)null);
                 });
 
             modelBuilder.Entity("Jellyfish.Module.Role.Data.UserCommandPermission", b =>

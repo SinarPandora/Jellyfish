@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jellyfish.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateRoomGroupControlTables : Migration
+    public partial class CreateTcGroupControlTables : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,7 +24,7 @@ namespace Jellyfish.Migrations
                 oldDefaultValue: true);
 
             migrationBuilder.CreateTable(
-                name: "room_group_instances",
+                name: "tc_group_instances",
                 columns: table => new
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
@@ -36,11 +36,11 @@ namespace Jellyfish.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_room_group_instances", x => x.id);
+                    table.PrimaryKey("pk_tc_group_instances", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "room_groups",
+                name: "tc_groups",
                 columns: table => new
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
@@ -52,7 +52,7 @@ namespace Jellyfish.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_room_groups", x => x.id);
+                    table.PrimaryKey("pk_tc_groups", x => x.id);
                 });
         }
 
@@ -60,10 +60,10 @@ namespace Jellyfish.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "room_group_instances");
+                name: "tc_group_instances");
 
             migrationBuilder.DropTable(
-                name: "room_groups");
+                name: "tc_groups");
 
             migrationBuilder.AlterColumn<bool>(
                 name: "enabled",
