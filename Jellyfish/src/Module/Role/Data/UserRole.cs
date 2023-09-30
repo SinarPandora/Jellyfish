@@ -9,12 +9,13 @@ public class UserRole
     {
         KookId = kookId;
         GuildId = guildId;
+        Enabled = true;
     }
 
     public long Id { get; set; }
     public uint KookId { get; set; }
     public ulong GuildId { get; set; }
-    public bool? Enabled { get; set; } = true;
+    public bool Enabled { get; set; }
 
     public ICollection<UserCommandPermission> CommandPermissions = new List<UserCommandPermission>();
 }

@@ -1,4 +1,5 @@
 using System.Configuration;
+using Jellyfish.Module.GroupControl.Data;
 using Jellyfish.Module.Role.Data;
 using Jellyfish.Module.TeamPlay.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,8 @@ public class DatabaseContext : DbContext
     public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
     public DbSet<UserRole> UserRoles { get; set; } = null!;
     public DbSet<UserCommandPermission> UserCommandPermissions { get; set; } = null!;
+    public DbSet<RoomGroup> RoomGroups { get; set; } = null!;
+    public DbSet<RoomGroupInstance> RoomGroupInstances { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -61,14 +64,32 @@ public class DatabaseContext : DbContext
         modelBuilder.Entity<UserRole>(entity =>
         {
             entity
-                .Property(e => e.Enabled)
-                .HasDefaultValue(true);
-
-            entity
                 .HasMany(e => e.CommandPermissions)
                 .WithOne(e => e.UserRole)
                 .HasForeignKey(e => e.UserRoleId)
                 .IsRequired();
+        });
+
+        modelBuilder.Entity<RoomGroup>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .Property(e => e.UpdateTime)
+                .HasDefaultValueSql("current_timestamp");
+        });
+
+        modelBuilder.Entity<RoomGroupInstance>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .Property(e => e.UpdateTime)
+                .HasDefaultValueSql("current_timestamp");
         });
     }
 
