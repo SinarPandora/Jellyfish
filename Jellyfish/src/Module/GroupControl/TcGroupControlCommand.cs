@@ -29,15 +29,15 @@ public class TcGroupControlCommand : GuildMessageCommand
             """,
             """
             1. 列表：列出全部的频道组
-            2. 配置 [配置名称] #引导文字频道 [配置文本]：配置频道组（具体内容看下文）
-            3. 改名 [配置名称] [子频道原名] [子频道新名]：更改对应子频道名称
-            4. 显示 [配置名称]：显示全部子频道
-            5. 隐藏 [配置名称]：隐藏全部子频道
-            6. 同步 [配置名称]：同步所属分类频道权限和子频道频道权限
-            7. 解绑 [配置名称]：解绑频道组配置下所有子频道，子频道将不再受到以上指令控制说（无法恢复，请谨慎操作）
-            8. 解绑 [配置名称] [子频道名称]：解绑单独子频道
-            9. 删除 [配置名称]：删除频道组配置和下面全部的子频道（无法恢复，请谨慎操作）
-            10. 删除 [配置名称] [子频道名称]：删除指定子频道
+            2. 配置 [频道组名称] #引导文字频道 [配置文本]：配置频道组（具体内容看下文）
+            3. 改名 [频道组名称] [子频道原名] [子频道新名]：更改对应子频道名称
+            4. 显示 [频道组名称]：显示全部子频道
+            5. 隐藏 [频道组名称]：隐藏全部子频道
+            6. 同步 [频道组名称]：同步所属分组频道权限和子频道频道权限
+            7. 解绑 [频道组名称]：解绑频道组下所有子频道，子频道将不再受到以上指令控制说（无法恢复，请谨慎操作）
+            8. 解绑 [频道组名称] [子频道名称]：解绑单独子频道
+            9. 删除 [频道组名称]：删除频道组和下面全部的子频道（无法恢复，请谨慎操作）
+            10. 删除 [频道组名称] [子频道名称]：删除指定子频道
             ---
             **配置指令参数解释**
             1. # 引导文字频道：一个普通的文字频道，生成的全部子频道将参考该频道所在的分组信息。
@@ -74,6 +74,8 @@ public class TcGroupControlCommand : GuildMessageCommand
             isSuccess = await UpdateGroupVisible(args[2..].TrimStart(), false, channel);
         else if (args.StartsWith("隐藏"))
             isSuccess = await UpdateGroupVisible(args[2..].TrimStart(), true, channel);
+        else if (args.StartsWith("同步"))
+            isSuccess = await SyncGroup(args[2..].TrimStart(), channel);
         else if (args.StartsWith("解绑"))
             isSuccess = await DeleteGroupOrInstance(args[2..].TrimStart(), false, channel);
         else if (args.StartsWith("删除"))
@@ -107,6 +109,53 @@ public class TcGroupControlCommand : GuildMessageCommand
         }
 
         await channel.SendInfoCardAsync(string.Join("\n", groups), false);
+    }
+
+    /// <summary>
+    ///     Sync group permission and location as the target channel
+    ///     (or the category channel specify on created)
+    /// </summary>
+    /// <param name="groupName">Raw command args text</param>
+    /// <param name="channel">Sender channel</param>
+    /// <returns>Is command success or not</returns>
+    private static async Task<bool> SyncGroup(string groupName, SocketTextChannel channel)
+    {
+        await using var dbCtx = new DatabaseContext();
+        var tcGroup = (from g in dbCtx.TcGroups.Include(e => e.GroupInstances)
+            where g.Name == groupName && g.GuildId == channel.Guild.Id
+            select g).FirstOrDefault();
+
+        if (tcGroup == null)
+        {
+            await channel.SendErrorCardAsync("指定频道组不存在！", true);
+            return false;
+        }
+
+        await channel.SendInfoCardAsync($"开始同步组 {groupName} 下全部频道", false);
+        Log.Info($"开始同步组 {groupName} 下全部频道");
+        foreach (var instance in tcGroup.GroupInstances)
+        {
+            var textChannel = channel.Guild.GetTextChannel(instance.TextChannelId);
+            if (textChannel == null)
+            {
+                await channel.SendWarningCardAsync(
+                    $"指定文字频道已被删除，请使用 `!频道组 删除 {groupName} {instance.Name}` 指令手动清理已删频道",
+                    false
+                );
+                continue;
+            }
+
+            if (textChannel.CategoryId == null)
+            {
+                await channel.SendInfoCardAsync($"频道 {instance.Name} 不属于任何分组，已跳过权限同步", false);
+                continue;
+            }
+
+            await textChannel.SyncPermissionsAsync();
+            Log.Info($"频道 {textChannel.Name} 权限已同步");
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -148,6 +197,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         try
         {
             configMapping = YamlDeserializer.Value.Deserialize<Dictionary<string, string>>(args[2]);
+            await channel.SendSuccessCardAsync("已成功解析配置内容，已计划批量创建", false);
         }
         catch (Exception e)
         {
@@ -157,6 +207,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                 true);
         }
 
+        await channel.SendSuccessCardAsync("开始执行批量创建操作", false);
         await CreateOrUpdateTc(args[0], configMapping, originalChannel, channel, dbCtx);
 
         dbCtx.SaveChanges();
@@ -331,7 +382,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 3);
         if (args.Length < 3)
         {
-            await channel.SendErrorCardAsync("请提供频道配置名称，频道原名和修改后名称", true);
+            await channel.SendErrorCardAsync("请提供频道组名称，频道原名和修改后名称", true);
             return false;
         }
 
@@ -347,7 +398,7 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         if (tcGroup == null)
         {
-            await channel.SendErrorCardAsync("指定配置不存在！", true);
+            await channel.SendErrorCardAsync("指定频道组不存在！", true);
             return false;
         }
 
@@ -399,7 +450,7 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         if (tcGroup == null)
         {
-            await channel.SendErrorCardAsync("指定配置不存在！", true);
+            await channel.SendErrorCardAsync("指定频道组不存在！", true);
             return false;
         }
 
@@ -447,7 +498,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
         if (args.Length < 1)
         {
-            await channel.SendErrorCardAsync("请提供频道配置名称，频道原名和修改后名称", true);
+            await channel.SendErrorCardAsync("请提供频道组名称，频道原名和修改后名称", true);
             return false;
         }
 
@@ -460,7 +511,7 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         if (tcGroup == null)
         {
-            await channel.SendErrorCardAsync("指定配置不存在！", true);
+            await channel.SendErrorCardAsync("指定频道组不存在！", true);
             return false;
         }
 
