@@ -432,6 +432,12 @@ public class TcGroupControlCommand : GuildMessageCommand
             .RetryAsync(1, (_, _) => channel.AddPermissionOverwriteAsync(role))
             .ExecuteAsync(async () =>
             {
+                if (channel.RolePermissionOverwrites.Any(u => u.Target == role.Id))
+                {
+                    await channel.RemovePermissionOverwriteAsync(role);
+                }
+
+                await channel.AddPermissionOverwriteAsync(role);
                 await channel.ModifyPermissionOverwriteAsync(role, p => p.Modify(
                     viewChannel: PermValue.Allow)
                 );
@@ -450,6 +456,12 @@ public class TcGroupControlCommand : GuildMessageCommand
             .RetryAsync(1, (_, _) => channel.AddPermissionOverwriteAsync(user))
             .ExecuteAsync(async () =>
             {
+                if (channel.UserPermissionOverwrites.Any(u => u.Target.Id == user.Id))
+                {
+                    await channel.RemovePermissionOverwriteAsync(user);
+                }
+
+                await channel.AddPermissionOverwriteAsync(user);
                 await channel.ModifyPermissionOverwriteAsync(user, p => p.Modify(
                     viewChannel: PermValue.Allow)
                 );
