@@ -7,6 +7,9 @@ namespace Jellyfish.Util;
 /// </summary>
 public abstract partial class Regexs
 {
+    [GeneratedRegex(@"\s*[，,]\s*")]
+    public static partial Regex MatchSpaceComma();
+
     [GeneratedRegex(@"\s+")]
     public static partial Regex MatchWhiteChars();
 

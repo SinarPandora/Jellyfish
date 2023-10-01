@@ -1,11 +1,13 @@
 using Jellyfish.Core.Command;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.GroupControl.Data;
+using Jellyfish.Module.GroupControl.Model;
 using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using NLog;
+using Polly;
 using YamlDotNet.Serialization;
 
 namespace Jellyfish.Module.GroupControl;
@@ -31,13 +33,11 @@ public class TcGroupControlCommand : GuildMessageCommand
             1. 列表：列出全部的频道组
             2. 配置 [频道组名称] #引导文字频道 [配置文本]：配置频道组（具体内容看下文）
             3. 改名 [频道组名称] [子频道原名] [子频道新名]：更改对应子频道名称
-            4. 显示 [频道组名称]：显示全部子频道
-            5. 隐藏 [频道组名称]：隐藏全部子频道
-            6. 同步 [频道组名称]：同步所属分组频道权限和子频道频道权限
-            7. 解绑 [频道组名称]：解绑频道组下所有子频道，子频道将不再受到以上指令控制说（无法恢复，请谨慎操作）
-            8. 解绑 [频道组名称] [子频道名称]：解绑单独子频道
-            9. 删除 [频道组名称]：删除频道组和下面全部的子频道（无法恢复，请谨慎操作）
-            10. 删除 [频道组名称] [子频道名称]：删除指定子频道
+            4. 同步 [频道组名称]：同步所属分组频道权限和子频道频道权限
+            5. 解绑 [频道组名称]：解绑频道组下所有子频道，子频道将不再受到以上指令控制说（无法恢复，请谨慎操作）
+            6. 解绑 [频道组名称] [子频道名称]：解绑单独子频道
+            7. 删除 [频道组名称]：删除频道组和下面全部的子频道（无法恢复，请谨慎操作）
+            8. 删除 [频道组名称] [子频道名称]：删除指定子频道
             ---
             **配置指令参数解释**
             1. # 引导文字频道：一个普通的文字频道，生成的全部子频道将参考该频道所在的分组信息。
@@ -45,14 +45,19 @@ public class TcGroupControlCommand : GuildMessageCommand
 
             2. 配置文本：格式如下（[Yaml 格式](https://yaml.cn/)）：
             ```yaml
-            频道名称1: ｜
+            - 名称：频道名称1
+              允许查看: 用户1#1234，ABC权限
+              描述: |
                 备注信息
                 支持换行
-            频道名称2: ｜
+            - 名称：频道名称1
+              允许查看: 用户1#1234，123权限
+              描述: |
                 备注信息
                 支持换行
             ```
-            其中，`:` 和 `|` 均为英文标点
+            为避免打扰到成员，配置文本中提到的权限和用户均不为 Kook 引用（在消息中为灰色文本）
+            其中，`-`, `:` 和 `|` 均为英文标点
             """);
     }
 
@@ -70,10 +75,6 @@ public class TcGroupControlCommand : GuildMessageCommand
             isSuccess = await ConfigGroup(args[2..].TrimStart(), channel);
         else if (args.StartsWith("改名"))
             isSuccess = await UpdateChannelName(args[2..].TrimStart(), channel);
-        else if (args.StartsWith("显示"))
-            isSuccess = await UpdateGroupVisible(args[2..].TrimStart(), false, channel);
-        else if (args.StartsWith("隐藏"))
-            isSuccess = await UpdateGroupVisible(args[2..].TrimStart(), true, channel);
         else if (args.StartsWith("同步"))
             isSuccess = await SyncGroup(args[2..].TrimStart(), channel);
         else if (args.StartsWith("解绑"))
@@ -100,8 +101,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             from g in dbCtx.TcGroups.Include(e => e.GroupInstances)
             where g.GuildId == channel.Guild.Id
             orderby g.Id
-            let prefix = g.Hidden ? "隐藏" : "显示"
-            select $"【{prefix}】名称：{g.Name}，频道数量：{g.GroupInstances.Count}";
+            select $"名称：{g.Name}，频道数量：{g.GroupInstances.Count}";
         if (groups.IsEmpty())
         {
             await channel.SendInfoCardAsync("当前服务器尚未创建过频道组", false);
@@ -194,10 +194,10 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         // Load config object from message
         await using var dbCtx = new DatabaseContext();
-        Dictionary<string, string> configMapping = null!;
+        List<InstanceDef> defMapping = null!;
         try
         {
-            configMapping = YamlDeserializer.Value.Deserialize<Dictionary<string, string>>(args[2]);
+            defMapping = YamlDeserializer.Value.Deserialize<List<InstanceDef>>(args[2]);
             await channel.SendSuccessCardAsync("已成功解析配置内容，已计划批量创建", false);
         }
         catch (Exception e)
@@ -209,7 +209,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         }
 
         await channel.SendSuccessCardAsync("开始执行批量创建操作", false);
-        await CreateOrUpdateTc(args[0], configMapping, originalChannel, channel, dbCtx);
+        await CreateOrUpdateTc(args[0], defMapping, originalChannel, channel, dbCtx);
 
         dbCtx.SaveChanges();
         await channel.SendSuccessCardAsync("批量频道创建完成！", false);
@@ -220,12 +220,12 @@ public class TcGroupControlCommand : GuildMessageCommand
     ///     Create or update channel
     /// </summary>
     /// <param name="groupName">Channel group name</param>
-    /// <param name="configMapping">Bulk channel config mapping</param>
+    /// <param name="defMapping">Bulk channel config mapping</param>
     /// <param name="originalChannel">Reference channel to locate</param>
     /// <param name="channel">Sender channel</param>
     /// <param name="dbCtx">Database context</param>
     private static async Task CreateOrUpdateTc(string groupName,
-        Dictionary<string, string> configMapping,
+        List<InstanceDef> defMapping,
         SocketTextChannel originalChannel, SocketTextChannel channel,
         DatabaseContext dbCtx)
     {
@@ -246,38 +246,34 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         // Load config mapping from message
         Log.Info("开始批量创建频道");
-        foreach (var (name, rawDescription) in configMapping)
+        foreach (var def in defMapping)
         {
-            Log.Info($"频道 {name} 创建开始");
-            var description = string.IsNullOrWhiteSpace(rawDescription) ? null : rawDescription.Trim();
-            var instance = instanceMap.GetValueOrDefault(name);
+            Log.Info($"频道 {def.Name} 创建开始");
+            var description = string.IsNullOrWhiteSpace(def.Description) ? null : def.Description.Trim();
+            var instance = instanceMap.GetValueOrDefault(def.Name);
             try
             {
-                var childChannel = await CloneRoom(instanceMap, originalChannel, name);
-                await childChannel.ModifyPermissionOverwriteAsync(channel.Guild.EveryoneRole, p =>
-                    p.Modify(
-                        viewChannel: tcGroup.Hidden ? PermValue.Deny : PermValue.Allow)
-                );
+                var childChannel = await CloneRoom(instanceMap, originalChannel, def, channel);
                 // Update description
                 if (instance == null)
                 {
-                    await RecordAndDescribeNewChannel(childChannel, name, description, tcGroup, instanceMap, dbCtx);
+                    await RecordAndDescribeNewChannel(childChannel, def.Name, description, tcGroup, instanceMap, dbCtx);
                 }
                 else
                 {
                     instance.TextChannelId = childChannel.Id;
 
                     // Diff room description
-                    await DescribeExistChannel(instance, name, description, childChannel);
+                    await DescribeExistChannel(instance, def.Name, description, childChannel);
                 }
 
                 dbCtx.SaveChanges();
-                Log.Info($"频道 {name} 创建完毕");
+                Log.Info($"频道 {def.Name} 创建完毕");
             }
             catch (Exception e)
             {
-                Log.Error(e, $"频道 {name} 创建失败");
-                await channel.SendErrorCardAsync($"频道 {name} 创建失败，请稍后重试", false);
+                Log.Error(e, $"频道 {def.Name} 创建失败");
+                await channel.SendErrorCardAsync($"频道 {def.Name} 创建失败，请稍后重试", false);
             }
         }
     }
@@ -351,25 +347,113 @@ public class TcGroupControlCommand : GuildMessageCommand
     /// </summary>
     /// <param name="instances">All existing room instance</param>
     /// <param name="originalChannel">Original channel for clone</param>
-    /// <param name="name">New channel name</param>
+    /// <param name="definition">New channel definition</param>
+    /// <param name="senderChannel">Sender channel</param>
     private static async Task<ITextChannel> CloneRoom(IReadOnlyDictionary<string, TcGroupInstance> instances,
-        SocketTextChannel originalChannel, string name)
+        SocketTextChannel originalChannel, InstanceDef definition, IMessageChannel senderChannel)
     {
         var guild = originalChannel.Guild;
-        var instance = instances.GetValueOrDefault(name);
+        var instance = instances.GetValueOrDefault(definition.Name);
+        ITextChannel newChannel;
         if (instance == null || guild.GetTextChannel(instance.TextChannelId) == null)
         {
             // Create room
-            var channel = await guild.CreateTextChannelAsync(name, p => p.CategoryId = originalChannel.CategoryId);
-            return channel;
+            newChannel = await guild.CreateTextChannelAsync(definition.Name,
+                p => p.CategoryId = originalChannel.CategoryId);
         }
         else
         {
             // Update room
-            var channel = guild.GetTextChannel(instance.TextChannelId);
-            await channel.ModifyAsync(c => c.CategoryId = originalChannel.CategoryId);
-            return channel;
+            newChannel = guild.GetTextChannel(instance.TextChannelId);
+            await newChannel.ModifyAsync(c => c.CategoryId = originalChannel.CategoryId);
         }
+
+        if (originalChannel.CategoryId != null)
+        {
+            await newChannel.SyncPermissionsAsync();
+        }
+
+        // Handle additional permission
+        if (!definition.Allows.IsNotNullOrWhiteSpace()) return newChannel;
+
+        foreach (var allowName in Regexs.MatchSpaceComma().Split(definition.Allows))
+        {
+            if (allowName.Contains('#'))
+            {
+                var found = (
+                    from u in originalChannel.Guild.Users
+                    where $"{u.DisplayName()}#{u.IdentifyNumber}" == allowName
+                    select u
+                ).FirstOrDefault();
+                if (found == null)
+                {
+                    await senderChannel.SendWarningCardAsync(
+                        $"未找到用户 {allowName}，将不会为其添加频道 {definition.Name} 的权限",
+                        false
+                    );
+                    continue;
+                }
+
+                await AddUserViewPermission(newChannel, found);
+            }
+            else
+            {
+                var found = (
+                    from r in originalChannel.Guild.Roles
+                    where r.Name == allowName
+                    select r
+                ).FirstOrDefault();
+
+                if (found == null)
+                {
+                    await senderChannel.SendWarningCardAsync(
+                        $"未找到权限 {allowName}，将不会将其添加到频道 {definition.Name}",
+                        false
+                    );
+                    continue;
+                }
+
+                await AddRoleViewPermission(newChannel, found);
+            }
+        }
+
+        return newChannel;
+    }
+
+    /// <summary>
+    ///     Add view channel permission for role
+    /// </summary>
+    /// <param name="channel">Target channel</param>
+    /// <param name="role">Target role</param>
+    private static Task AddRoleViewPermission(IGuildChannel channel, IRole role)
+    {
+        return Policy
+            .Handle<ArgumentNullException>()
+            .RetryAsync(1, (_, _) => channel.AddPermissionOverwriteAsync(role))
+            .ExecuteAsync(async () =>
+            {
+                await channel.ModifyPermissionOverwriteAsync(role, p => p.Modify(
+                    viewChannel: PermValue.Allow)
+                );
+            });
+    }
+
+    /// <summary>
+    ///     Add view channel permission for user
+    /// </summary>
+    /// <param name="channel">Target channel</param>
+    /// <param name="user">Target user</param>
+    private static Task AddUserViewPermission(IGuildChannel channel, IGuildUser user)
+    {
+        return Policy
+            .Handle<ArgumentNullException>()
+            .RetryAsync(1, (_, _) => channel.AddPermissionOverwriteAsync(user))
+            .ExecuteAsync(async () =>
+            {
+                await channel.ModifyPermissionOverwriteAsync(user, p => p.Modify(
+                    viewChannel: PermValue.Allow)
+                );
+            });
     }
 
     /// <summary>
@@ -432,58 +516,6 @@ public class TcGroupControlCommand : GuildMessageCommand
         }
 
         await channel.SendSuccessCardAsync("频道名称已是最新，无需修改！", false);
-        return true;
-    }
-
-    /// <summary>
-    ///     Update group visible status
-    /// </summary>
-    /// <param name="groupName">Group name to be set</param>
-    /// <param name="hidden">Is hidden or not</param>
-    /// <param name="channel">Sender channel</param>
-    /// <returns>Is command success or not</returns>
-    private static async Task<bool> UpdateGroupVisible(string groupName, bool hidden, SocketTextChannel channel)
-    {
-        await using var dbCtx = new DatabaseContext();
-        var tcGroup = (from g in dbCtx.TcGroups.Include(e => e.GroupInstances)
-            where g.Name == groupName
-            select g).FirstOrDefault();
-
-        if (tcGroup == null)
-        {
-            await channel.SendErrorCardAsync("指定频道组不存在！", true);
-            return false;
-        }
-
-        var status = hidden ? "隐藏" : "显示";
-        foreach (var instance in tcGroup.GroupInstances)
-        {
-            try
-            {
-                var textChannel = channel.Guild.GetTextChannel(instance.TextChannelId);
-                if (textChannel == null)
-                {
-                    await channel.SendErrorCardAsync(
-                        $"指定文字频道已被删除，请使用 `!频道组 删除 {groupName} {instance.Name}` 指令手动清理已删频道",
-                        false
-                    );
-                    continue;
-                }
-
-                await textChannel.ModifyPermissionOverwriteAsync(channel.Guild.EveryoneRole, p =>
-                    p.Modify(viewChannel: hidden ? PermValue.Deny : PermValue.Allow)
-                );
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, $"调整频道 {instance.Name} 权限时出错！");
-                await channel.SendErrorCardAsync($"调整频道 {instance.Name} 状态为 {status} 时出错，请稍后重试", false);
-            }
-        }
-
-        tcGroup.Hidden = hidden;
-        dbCtx.SaveChanges();
-        await channel.SendSuccessCardAsync($"{groupName} 下的全部频道已 {status}", false);
         return true;
     }
 
