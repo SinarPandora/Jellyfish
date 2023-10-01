@@ -155,6 +155,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             Log.Info($"频道 {textChannel.Name} 权限已同步");
         }
 
+        await channel.SendSuccessCardAsync("频道组权限同步完成", false);
         return true;
     }
 
