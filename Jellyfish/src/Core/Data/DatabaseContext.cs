@@ -117,10 +117,4 @@ public class DatabaseContext : DbContext
 
         return base.SaveChanges();
     }
-
-    public override void Dispose()
-    {
-        Console.WriteLine("== Disposed!! ==");
-        base.Dispose();
-    }
 }
