@@ -18,7 +18,7 @@ public class RoleSettingCommand : GuildMessageCommand
     private readonly Lazy<ImmutableHashSet<string>> _commandNames;
     private readonly DatabaseContext _dbCtx;
 
-    public RoleSettingCommand(IServiceProvider provider, DatabaseContext dbCtx)
+    public RoleSettingCommand(IServiceScopeFactory provider, DatabaseContext dbCtx)
     {
         _dbCtx = dbCtx;
         HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
@@ -37,10 +37,13 @@ public class RoleSettingCommand : GuildMessageCommand
             """);
 
         _commandNames = new Lazy<ImmutableHashSet<string>>(() =>
-            provider
-                .GetServices<GuildMessageCommand>()
-                .Select(c => c.Name())
-                .ToImmutableHashSet()
+            {
+                using var scope = provider.CreateScope();
+                return scope.ServiceProvider
+                    .GetServices<GuildMessageCommand>()
+                    .Select(c => c.Name())
+                    .ToImmutableHashSet();
+            }
         );
     }
 

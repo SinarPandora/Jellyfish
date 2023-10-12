@@ -1,3 +1,4 @@
+using Autofac;
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Kook;
@@ -23,7 +24,7 @@ public class KookEventMatcher
         IEnumerable<UserConnectEventCommand> userConnectEventCommands,
         IEnumerable<UserDisconnectEventCommand> userDisconnectEventCommands,
         IEnumerable<DmcCommand> dmcCommands,
-        IServiceProvider provider, ILogger<KookEventMatcher> log)
+        IComponentContext provider, ILogger<KookEventMatcher> log)
     {
         _messageCommands = messageCommand.Where(c => c.Enabled).ToArray();
         _buttonActionCommands = buttonActionCommands.Where(c => c.Enabled).ToArray();
@@ -31,7 +32,7 @@ public class KookEventMatcher
         _userDisconnectEventCommands = userDisconnectEventCommands;
         _dmcCommands = dmcCommands;
         _log = log;
-        _currentUserId = new Lazy<ulong>(() => provider.GetRequiredService<KookSocketClient>().CurrentUser.Id);
+        _currentUserId = new Lazy<ulong>(() => provider.Resolve<KookSocketClient>().CurrentUser.Id);
     }
 
     /// <summary>

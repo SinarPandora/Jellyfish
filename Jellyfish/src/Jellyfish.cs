@@ -1,4 +1,6 @@
-﻿using Jellyfish.Core.Data;
+﻿using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Jellyfish.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using NLog.Web;
 using AppContext = Jellyfish.Core.Container.AppContext;
@@ -17,6 +19,8 @@ public static class JellyFish
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+
             // Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -27,14 +31,20 @@ public static class JellyFish
             builder.Host.UseNLog();
 
             // Init database context
-            builder.Services.AddDbContext<DatabaseContext>(options =>
-                options
-                    .UseNpgsql(builder.Configuration.GetValue<string>("DatabaseConnection"))
-                    .UseSnakeCaseNamingConvention()
-            );
+            builder.Host.ConfigureContainer<ContainerBuilder>(container =>
+            {
+                container.Register(_ =>
+                    {
+                        var options = new DbContextOptionsBuilder<DatabaseContext>();
+                        options.UseNpgsql(builder.Configuration.GetValue<string>("DatabaseConnection"))
+                            .UseSnakeCaseNamingConvention();
+                        return new DatabaseContext(options.Options);
+                    })
+                    .InstancePerLifetimeScope();
 
-            // Binding other instances
-            AppContext.BindAll(builder.Services);
+                // Binding other instances
+                AppContext.BindAll(container);
+            });
 
             var app = builder.Build();
             // Configure the HTTP request pipeline.

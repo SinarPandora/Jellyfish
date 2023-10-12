@@ -13,12 +13,15 @@ public class GlobalHelpCommand : GuildMessageCommand
 {
     private readonly Lazy<ImmutableArray<GuildMessageCommand>> _commands;
 
-    public GlobalHelpCommand(IServiceProvider provider)
+    public GlobalHelpCommand(IServiceScopeFactory provider)
     {
         _commands = new Lazy<ImmutableArray<GuildMessageCommand>>(() =>
-            provider.GetServices<GuildMessageCommand>()
-                .Where(e => e.Name() != "全局帮助指令")
-                .ToImmutableArray()
+            {
+                using var scope = provider.CreateScope();
+                return scope.ServiceProvider.GetServices<GuildMessageCommand>()
+                    .Where(e => e.Name() != "全局帮助指令")
+                    .ToImmutableArray();
+            }
         );
     }
 

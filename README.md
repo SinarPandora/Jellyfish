@@ -12,9 +12,9 @@
 * [Newtonsoft.Json](https://www.newtonsoft.com/json)
 * [易有云](https://doc.linkease.com/)
 * [Z.ExtensionMethods](https://csharp-extension.com/)
-* [Ninject](https://github.com/ninject/Ninject/wiki)
 * [FluentScheduler](https://fluentscheduler.github.io/creating-schedules/)
 * [Polly](https://www.thepollyproject.org/)
+* [Autofac](https://autofac.org/)
 
 ### Kook 开发者文档
 

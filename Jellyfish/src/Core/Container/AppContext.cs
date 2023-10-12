@@ -1,3 +1,4 @@
+using Autofac;
 using FluentScheduler;
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
@@ -23,42 +24,43 @@ namespace Jellyfish.Core.Container;
 /// </summary>
 public static class AppContext
 {
-    public static void BindAll(IServiceCollection container)
+    public static void BindAll(ContainerBuilder container)
     {
         // ------------------------------------------------ System -----------------------------------------------------
-        container.AddScoped<CacheLoader>();
-        container.AddSingleton<AppConfig>();
-        container.AddSingleton<KookSocketClient>(provider =>
-            KookLoader.CreateSocketClient(provider.GetRequiredService<AppConfig>()));
-        container.AddScoped<KookLoader>();
-        container.AddSingleton<KookApiFactory>();
-        container.AddScoped<KookEventMatcher>();
-        container.AddScoped<CacheSyncJob>();
-        container.AddScoped<Registry, JobRegistry>();
-        container.AddScoped<JobLoader>();
-        container.AddTransient<IStartupFilter, AppInitializer>();
+        container.RegisterType<CacheLoader>().SingleInstance();
+        container.RegisterType<AppConfig>().SingleInstance();
+        container.Register<KookSocketClient>(provider =>
+                KookLoader.CreateSocketClient(provider.Resolve<AppConfig>()))
+            .SingleInstance();
+        container.RegisterType<KookLoader>().SingleInstance();
+        container.RegisterType<KookApiFactory>().SingleInstance();
+        container.RegisterType<KookEventMatcher>().SingleInstance();
+        container.RegisterType<CacheSyncJob>().SingleInstance();
+        container.RegisterType<JobRegistry>().As<Registry>().SingleInstance();
+        container.RegisterType<JobLoader>().SingleInstance();
+        container.RegisterType<AppInitializer>().As<IStartupFilter>().SingleInstance();
 
         // ------------------------------------------------ Commands ---------------------------------------------------
         // Simple Command
-        container.AddScoped<GuildMessageCommand, SimpleTestCommand>();
+        container.RegisterType<SimpleTestCommand>().As<GuildMessageCommand>().SingleInstance();
 
         // TeamPlay Command
-        container.AddScoped<TeamPlayRoomScanJob>();
-        container.AddScoped<TeamPlayRoomService>();
-        container.AddScoped<TeamPlayManageService>();
-        container.AddScoped<GuildMessageCommand, TeamPlayManageCommand>();
-        container.AddScoped<GuildMessageCommand, TeamPlayUserCommand>();
-        container.AddScoped<ButtonActionCommand, TeamPlayButtonActionEntry>();
-        container.AddScoped<UserConnectEventCommand, TeamPlayClickToJoinCommand>();
-        container.AddScoped<UserDisconnectEventCommand, TeamPlayRoomOwnerLeaveCommand>();
+        container.RegisterType<TeamPlayRoomScanJob>().SingleInstance();
+        container.RegisterType<TeamPlayRoomService>().SingleInstance();
+        container.RegisterType<TeamPlayManageService>().SingleInstance();
+        container.RegisterType<TeamPlayManageCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<TeamPlayUserCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<TeamPlayButtonActionEntry>().As<ButtonActionCommand>().SingleInstance();
+        container.RegisterType<TeamPlayClickToJoinCommand>().As<UserConnectEventCommand>().SingleInstance();
+        container.RegisterType<TeamPlayRoomOwnerLeaveCommand>().As<UserDisconnectEventCommand>().SingleInstance();
 
         // Role Command
-        container.AddScoped<GuildMessageCommand, RoleSettingCommand>();
+        container.RegisterType<RoleSettingCommand>().As<GuildMessageCommand>().SingleInstance();
 
         // Help Command
-        container.AddScoped<GuildMessageCommand, GlobalHelpCommand>();
+        container.RegisterType<GlobalHelpCommand>().As<GuildMessageCommand>().SingleInstance();
 
         // Text Channel Group Control Command
-        container.AddScoped<GuildMessageCommand, TcGroupControlCommand>();
+        container.RegisterType<TcGroupControlCommand>().As<GuildMessageCommand>().SingleInstance();
     }
 }
