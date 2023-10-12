@@ -1,4 +1,3 @@
-using System.Configuration;
 using Jellyfish.Module.GroupControl.Data;
 using Jellyfish.Module.Role.Data;
 using Jellyfish.Module.TeamPlay.Data;
@@ -18,11 +17,8 @@ public class DatabaseContext : DbContext
     public DbSet<TcGroup> TcGroups { get; set; } = null!;
     public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
     {
-        optionsBuilder
-            .UseNpgsql(ConfigurationManager.ConnectionStrings["DbConnectionStr"].ConnectionString)
-            .UseSnakeCaseNamingConvention();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

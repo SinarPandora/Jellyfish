@@ -1,31 +1,36 @@
 using Jellyfish.Core.Data;
 using Microsoft.EntityFrameworkCore;
-using NLog;
 
 namespace Jellyfish.Core.Cache;
 
 /// <summary>
 ///     Global cache loader, init cache once before bot login
 /// </summary>
-public abstract class CacheLoader
+public class CacheLoader
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<CacheLoader> _log;
+    private readonly DatabaseContext _dbCtx;
 
-    public static async Task Load()
+    public CacheLoader(ILogger<CacheLoader> log, DatabaseContext dbCtx)
     {
-        Log.Info("开始加载应用缓存");
+        _log = log;
+        _dbCtx = dbCtx;
+    }
+
+    public async Task Load()
+    {
+        _log.LogInformation("开始加载应用缓存");
         await LoadPermissions();
-        await LoadTeamPlayConfigs();
-        Log.Info("应用缓存加载完成！");
+        LoadTeamPlayConfigs();
+        _log.LogInformation("应用缓存加载完成！");
     }
 
     /// <summary>
     ///     Load permissions
     /// </summary>
-    private static async Task LoadPermissions()
+    private async Task LoadPermissions()
     {
-        await using var dbCtx = new DatabaseContext();
-        var roles = await dbCtx.UserRoles
+        var roles = await _dbCtx.UserRoles
             .Include(e => e.CommandPermissions)
             .AsNoTracking()
             .ToListAsync();
@@ -48,10 +53,9 @@ public abstract class CacheLoader
     /// <summary>
     ///     Load team play configs
     /// </summary>
-    private static async Task LoadTeamPlayConfigs()
+    private void LoadTeamPlayConfigs()
     {
-        await using var dbCtx = new DatabaseContext();
-        dbCtx.TpConfigs
+        _dbCtx.TpConfigs
             .Where(e => e.Enabled)
             .AsNoTracking()
             .AsEnumerable()

@@ -5,7 +5,6 @@ using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Util;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
-using NLog;
 
 namespace Jellyfish.Module.TeamPlay.Job;
 
@@ -14,12 +13,15 @@ namespace Jellyfish.Module.TeamPlay.Job;
 /// </summary>
 public class TeamPlayRoomScanJob : IAsyncJob
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<TeamPlayRoomScanJob> _log;
+    private readonly DatabaseContext _dbCtx;
     private readonly KookSocketClient _client;
 
-    public TeamPlayRoomScanJob(KookSocketClient client)
+    public TeamPlayRoomScanJob(KookSocketClient client, DatabaseContext dbCtx, ILogger<TeamPlayRoomScanJob> log)
     {
         _client = client;
+        _dbCtx = dbCtx;
+        _log = log;
     }
 
     /// <summary>
@@ -28,8 +30,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
     public async Task ExecuteAsync()
     {
         var now = DateTime.Now;
-        await using var dbCtx = new DatabaseContext();
-        var configs = dbCtx.TpConfigs.Include(e => e.RoomInstances)
+        var configs = _dbCtx.TpConfigs.Include(e => e.RoomInstances)
             .GroupBy(e => e.GuildId)
             .ToDictionary(
                 e => e.Key,
@@ -43,8 +44,8 @@ public class TeamPlayRoomScanJob : IAsyncJob
             {
                 // 2 minutes as timeout in order not to clean up room just created
                 if (room.CreateTime.AddMinutes(2) >= now) continue;
-                await CheckAndDeleteRoom(guild, room, dbCtx);
-                dbCtx.SaveChanges(); // Save immediately for each room
+                await CheckAndDeleteRoom(guild, room, _dbCtx);
+                _dbCtx.SaveChanges(); // Save immediately for each room
             }
         }
     }
@@ -54,8 +55,8 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// </summary>
     /// <param name="guild">Current guild</param>
     /// <param name="room">Room instance</param>
-    /// <param name="dbCtx">Database context</param>
-    private static async Task CheckAndDeleteRoom(SocketGuild guild, TpRoomInstance room, DatabaseContext dbCtx)
+    /// <param name="_dbCtx">Database context</param>
+    private async Task CheckAndDeleteRoom(SocketGuild guild, TpRoomInstance room, DatabaseContext _dbCtx)
     {
         var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
         try
@@ -63,7 +64,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
             // 1. Check if room not exist
             if (voiceChannel == null)
             {
-                dbCtx.TpRoomInstances.Remove(room);
+                _dbCtx.TpRoomInstances.Remove(room);
                 return;
             }
 
@@ -71,10 +72,10 @@ public class TeamPlayRoomScanJob : IAsyncJob
             var users = await voiceChannel.GetConnectedUsersAsync();
             if (users.All(u => u.IsBot ?? false))
             {
-                Log.Info($"检测到房间 {room.RoomName} 只剩 bot 自己，开始清理房间");
+                _log.LogInformation("检测到房间 {RoomName} 只剩 bot 自己，开始清理房间", room.RoomName);
                 await guild.DeleteVoiceChannelAsync(room.VoiceChannelId);
-                dbCtx.TpRoomInstances.Remove(room);
-                Log.Info($"已删除房间：{room.RoomName}");
+                _dbCtx.TpRoomInstances.Remove(room);
+                _log.LogInformation("已删除房间：{RoomName}", room.RoomName);
             }
 
             // 3. Check if owner leave
@@ -87,14 +88,14 @@ public class TeamPlayRoomScanJob : IAsyncJob
                         select user).FirstOrDefault();
                 if (newOwner == null) return;
 
-                Log.Info($"检测到房主离开房间 {room.RoomName}，将随机产生新房主");
+                _log.LogInformation("检测到房主离开房间 {RoomName}，将随机产生新房主", room.RoomName);
                 await TeamPlayRoomService.GiveOwnerPermissionAsync(voiceChannel, newOwner);
                 room.OwnerId = newOwner.Id;
                 await TeamPlayRoomService.SendRoomUpdateWizardToDmcAsync(
                     await newOwner.CreateDMChannelAsync(),
                     room.RoomName
                 );
-                Log.Info($"新房主已产生，房间：{room.RoomName}，房主：{newOwner.DisplayName()}");
+                _log.LogInformation("新房主已产生，房间：{RoomName}，房主：{DisplayName}", room.RoomName, newOwner.DisplayName());
             }
 
             // 4. Check room name with 🔐locked icon if it has password(and also sync the name)
@@ -113,7 +114,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
 
             if (newRoomName != voiceChannel.Name)
             {
-                Log.Info("监测到房间名称发生变化，尝试更新房间名");
+                _log.LogInformation("监测到房间名称发生变化，尝试更新房间名");
                 await voiceChannel.ModifyAsync(v => v.Name = newRoomName);
             }
 
@@ -121,7 +122,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
         }
         catch (Exception e)
         {
-            Log.Error(e, $"尝试清理房间失败，房间名：{room.RoomName}");
+            _log.LogError(e, "尝试清理房间失败，房间名：{RoomName}", room.RoomName);
         }
     }
 }

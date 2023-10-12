@@ -1,6 +1,7 @@
 using Kook;
 using Kook.WebSocket;
 using NLog;
+using NLog.Web;
 using Polly;
 
 namespace Jellyfish.Util;
@@ -10,7 +11,7 @@ namespace Jellyfish.Util;
 /// </summary>
 public static class KookCoreApiHelper
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private static readonly Logger Log = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 
     /// <summary>
     ///     Delete channel, core API, retry in 2 times if error occur

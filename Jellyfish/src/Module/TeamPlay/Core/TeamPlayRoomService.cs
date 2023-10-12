@@ -4,7 +4,6 @@ using Jellyfish.Util;
 using Kook;
 using Kook.Rest;
 using Kook.WebSocket;
-using NLog;
 
 namespace Jellyfish.Module.TeamPlay.Core;
 
@@ -13,7 +12,7 @@ namespace Jellyfish.Module.TeamPlay.Core;
 /// </summary>
 public class TeamPlayRoomService
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<TeamPlayRoomService> _log;
 
     #region ErrorMessage
 
@@ -26,10 +25,13 @@ public class TeamPlayRoomService
     #endregion
 
     private readonly KookSocketClient _kook;
+    private readonly DatabaseContext _dbCtx;
 
-    public TeamPlayRoomService(KookSocketClient kook)
+    public TeamPlayRoomService(KookSocketClient kook, DatabaseContext dbCtx, ILogger<TeamPlayRoomService> log)
     {
         _kook = kook;
+        _dbCtx = dbCtx;
+        _log = log;
     }
 
     /// <summary>
@@ -67,12 +69,10 @@ public class TeamPlayRoomService
             roomName = $"🔐{roomName}";
         }
 
-
-        await using var dbCtx = new DatabaseContext();
-
-        if (dbCtx.TpRoomInstances.Any(e => e.OwnerId == user.Id))
+        if (_dbCtx.TpRoomInstances.Any(e => e.OwnerId == user.Id))
         {
-            Log.Info($"创建频道 {roomName} 失败，用户 {user.DisplayName}#{user.Id} 已加入其他语音频道");
+            _log.LogInformation("创建频道 {RoomName} 失败，用户 {DisplayName}#{UserId} 已加入其他语音频道", roomName, user.DisplayName,
+                user.Id);
             await noticeChannel.SendErrorCardAsync(UserDoesNotFree, true);
             return false;
         }
@@ -80,7 +80,7 @@ public class TeamPlayRoomService
         var parentChannel = guild.GetVoiceChannel((ulong)tpConfig.VoiceChannelId);
         if (parentChannel == null)
         {
-            Log.Error($"{tpConfig.Id}：{tpConfig.Name} 所对应的父频道未找到，请检查错误日志并更新频道配置");
+            _log.LogError("{TpConfigId}：{TpConfigName} 所对应的父频道未找到，请检查错误日志并更新频道配置", tpConfig.Id, tpConfig.Name);
             await noticeChannel.SendErrorCardAsync(ParentChannelNotFound, true);
             return false;
         }
@@ -105,7 +105,7 @@ public class TeamPlayRoomService
 
         try
         {
-            Log.Info($"开始创建语音房间{roomName}");
+            _log.LogInformation("开始创建语音房间{RoomName}", roomName);
             var room = await guild.CreateVoiceChannelAsync(roomName, r =>
             {
                 r.VoiceQuality = guild.GetHighestVoiceQuality();
@@ -115,21 +115,21 @@ public class TeamPlayRoomService
 
             if (args.Password.IsNotEmpty())
             {
-                Log.Info($"检测到房间 {roomName} 带有初始密码，尝试设置密码");
+                _log.LogInformation("检测到房间 {RoomName} 带有初始密码，尝试设置密码", roomName);
                 await room.ModifyAsync(v => v.Password = args.Password);
-                Log.Info($"房间 {roomName} 密码设置成功！");
+                _log.LogInformation("房间 {RoomName} 密码设置成功！", roomName);
             }
 
-            Log.Info($"创建语音房间 API 调用成功，房间名：{roomName}");
+            _log.LogInformation("创建语音房间 API 调用成功，房间名：{RoomName}", roomName);
 
-            Log.Info($"尝试移动用户所在房间，用户：{user.DisplayName()}，目标房间：{room.Name}");
+            _log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), room.Name);
 
             if (user.VoiceChannel != null)
             {
                 await guild.MoveToRoomAsync(user, room);
             }
 
-            Log.Info($"移动成功，用户已移动到{room.Name}");
+            _log.LogInformation("移动成功，用户已移动到{RoomName}", room.Name);
 
             // Give owner permission
             await GiveOwnerPermissionAsync(room, user);
@@ -142,10 +142,10 @@ public class TeamPlayRoomService
                 ownerId: user.Id,
                 commandText: args.RawCommand
             );
-            dbCtx.TpRoomInstances.Add(instance);
-            dbCtx.SaveChanges();
+            _dbCtx.TpRoomInstances.Add(instance);
+            _dbCtx.SaveChanges();
 
-            Log.Info($"语音房间记录已保存：{roomName}");
+            _log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
 
             // Send post messages
             await SendRoomUpdateWizardToDmcAsync(
@@ -158,7 +158,7 @@ public class TeamPlayRoomService
         }
         catch (Exception e)
         {
-            Log.Error(e, "创建语音房间出错！");
+            _log.LogError(e, "创建语音房间出错！");
             await noticeChannel.SendErrorCardAsync(ApiFailed, true);
             return false;
         }

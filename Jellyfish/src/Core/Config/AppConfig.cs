@@ -1,4 +1,4 @@
-using System.Configuration;
+using System.Data;
 
 namespace Jellyfish.Core.Config;
 
@@ -8,12 +8,11 @@ public class AppConfig
     public readonly bool KookEnableDebug;
     public readonly string KookToken;
 
-    public AppConfig()
+    public AppConfig(IConfiguration configuration)
     {
-        KookToken = ConfigurationManager.ConnectionStrings["KookToken"].ConnectionString;
-        KookEnableDebug = bool.Parse(ConfigurationManager.AppSettings["KookEnableDebug"] ?? "false");
-        KookConnectTimeout = int.Parse(ConfigurationManager.AppSettings["KookConnectTimeout"] ?? "6000");
-        if (string.IsNullOrEmpty(KookToken))
-            throw new ArgumentNullException(nameof(KookToken), "请在 App.config 中配置 KookToken 以连接 Kook 服务");
+        KookToken = configuration.GetValue<string>("Kook:Token") ??
+                    throw new NoNullAllowedException("请在 appsettings.json 中配置 Token 以连接 Kook 服务");
+        KookEnableDebug = configuration.GetValue<bool?>("Kook:EnableDebug") ?? false;
+        KookConnectTimeout = configuration.GetValue<int?>("Kook:ConnectTimeout") ?? 6000;
     }
 }

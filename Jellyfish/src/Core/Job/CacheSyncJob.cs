@@ -1,6 +1,5 @@
 using FluentScheduler;
 using Kook.WebSocket;
-using NLog;
 
 namespace Jellyfish.Core.Job;
 
@@ -9,17 +8,18 @@ namespace Jellyfish.Core.Job;
 /// </summary>
 public class CacheSyncJob : IAsyncJob
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<CacheSyncJob> _log;
     private readonly KookSocketClient _kook;
 
-    public CacheSyncJob(KookSocketClient kook)
+    public CacheSyncJob(KookSocketClient kook, ILogger<CacheSyncJob> log)
     {
         _kook = kook;
+        _log = log;
     }
 
     public async Task ExecuteAsync()
     {
-        Log.Info("开始拉取服务器缓存...");
+        _log.LogInformation("开始拉取服务器缓存...");
         try
         {
             await _kook.DownloadUsersAsync();
@@ -28,11 +28,11 @@ public class CacheSyncJob : IAsyncJob
                 await guild.DownloadBoostSubscriptionsAsync();
             }
 
-            Log.Info("服务器缓存拉取成功");
+            _log.LogInformation("服务器缓存拉取成功");
         }
         catch (Exception e)
         {
-            Log.Error(e, "服务器缓存拉取失败");
+            _log.LogError(e, "服务器缓存拉取失败");
         }
     }
 }

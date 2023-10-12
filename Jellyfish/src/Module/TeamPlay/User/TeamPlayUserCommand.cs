@@ -1,6 +1,5 @@
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
-using Jellyfish.Core.Data;
 using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Util;
 using Kook;
@@ -128,8 +127,6 @@ public class TeamPlayUserCommand : GuildMessageCommand
     /// <param name="rawArgs">Raw create room args in string</param>
     private async Task CreateRoom(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel, string rawArgs)
     {
-        await using var dbCtx = new DatabaseContext();
-
         var argsBuilder = CreateRoomCommandParser.Parse(rawArgs);
         var tpConfig = (from config in AppCaches.TeamPlayConfigs.Values
             where config.GuildId == channel.Guild.Id && config.TextChannelId == channel.Id

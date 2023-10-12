@@ -2,38 +2,36 @@ using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Kook;
 using Kook.WebSocket;
-using Ninject;
-using NLog;
-using AppContext = Jellyfish.Core.Container.AppContext;
 
 namespace Jellyfish.Core.Kook;
 
-public class EventMatcher
+public class KookEventMatcher
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<KookEventMatcher> _log;
 
-    private readonly Lazy<ulong> _currentUserId = new(
-        () => AppContext.Instance.Get<KookSocketClient>().CurrentUser.Id
-    );
+    private readonly Lazy<ulong> _currentUserId;
 
-    private readonly GuildMessageCommand[] _messageCommands;
-    private readonly ButtonActionCommand[] _buttonActionCommands;
-    private readonly UserConnectEventCommand[] _userConnectEventCommands;
-    private readonly UserDisconnectEventCommand[] _userDisconnectEventCommands;
-    private readonly DmcCommand[] _dmcCommands;
+    private readonly IEnumerable<GuildMessageCommand> _messageCommands;
+    private readonly IEnumerable<ButtonActionCommand> _buttonActionCommands;
+    private readonly IEnumerable<UserConnectEventCommand> _userConnectEventCommands;
+    private readonly IEnumerable<UserDisconnectEventCommand> _userDisconnectEventCommands;
+    private readonly IEnumerable<DmcCommand> _dmcCommands;
 
-    public EventMatcher(
-        GuildMessageCommand[] messageCommand,
-        ButtonActionCommand[] buttonActionCommands,
-        UserConnectEventCommand[] userConnectEventCommands,
-        UserDisconnectEventCommand[] userDisconnectEventCommands,
-        DmcCommand[] dmcCommands)
+    public KookEventMatcher(
+        IEnumerable<GuildMessageCommand> messageCommand,
+        IEnumerable<ButtonActionCommand> buttonActionCommands,
+        IEnumerable<UserConnectEventCommand> userConnectEventCommands,
+        IEnumerable<UserDisconnectEventCommand> userDisconnectEventCommands,
+        IEnumerable<DmcCommand> dmcCommands,
+        IServiceProvider provider, ILogger<KookEventMatcher> log)
     {
-        _messageCommands = messageCommand.FindAll(c => c.Enabled).ToArray();
-        _buttonActionCommands = buttonActionCommands.FindAll(c => c.Enabled).ToArray();
+        _messageCommands = messageCommand.Where(c => c.Enabled).ToArray();
+        _buttonActionCommands = buttonActionCommands.Where(c => c.Enabled).ToArray();
         _userConnectEventCommands = userConnectEventCommands;
         _userDisconnectEventCommands = userDisconnectEventCommands;
         _dmcCommands = dmcCommands;
+        _log = log;
+        _currentUserId = new Lazy<ulong>(() => provider.GetRequiredService<KookSocketClient>().CurrentUser.Id);
     }
 
     /// <summary>
@@ -58,7 +56,7 @@ public class EventMatcher
                 }
                 catch (Exception e)
                 {
-                    Log.Info(e, $"服务器文字指令 {command.Name()} 执行失败！");
+                    _log.LogInformation(e, "服务器文字指令 {Name} 执行失败！", command.Name());
                 }
             }
         });
@@ -88,7 +86,7 @@ public class EventMatcher
                 }
                 catch (Exception e)
                 {
-                    Log.Info(e, $"卡片操作 {command.Name()} 执行失败！");
+                    _log.LogInformation(e, "卡片操作 {Name} 执行失败！", command.Name());
                 }
             }
         });
@@ -117,7 +115,7 @@ public class EventMatcher
                 }
                 catch (Exception e)
                 {
-                    Log.Info(e, $"加入语音频道事件操作 {command.Name()} 执行失败！");
+                    _log.LogInformation(e, "加入语音频道事件操作 {Name} 执行失败！", command.Name());
                 }
             }
         });
@@ -146,7 +144,7 @@ public class EventMatcher
                 }
                 catch (Exception e)
                 {
-                    Log.Info(e, $"离开语音频道事件操作 {command.Name()} 执行失败！");
+                    _log.LogInformation(e, "离开语音频道事件操作 {Name} 执行失败！", command.Name());
                 }
             }
         });
@@ -175,7 +173,7 @@ public class EventMatcher
                 }
                 catch (Exception e)
                 {
-                    Log.Info(e, $"私聊文字指令 {command.Name()} 执行失败！");
+                    _log.LogInformation(e, "私聊文字指令 {Name} 执行失败！", command.Name());
                 }
             }
         });

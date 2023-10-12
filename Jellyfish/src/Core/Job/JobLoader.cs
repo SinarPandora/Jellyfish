@@ -1,5 +1,4 @@
 using FluentScheduler;
-using NLog;
 
 namespace Jellyfish.Core.Job;
 
@@ -8,18 +7,19 @@ namespace Jellyfish.Core.Job;
 /// </summary>
 public class JobLoader
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<JobLoader> _log;
     private readonly Registry _registry;
 
-    public JobLoader(Registry registry)
+    public JobLoader(Registry registry, ILogger<JobLoader> log)
     {
         _registry = registry;
+        _log = log;
     }
 
     public void Load()
     {
-        Log.Info("开始配置定时任务");
+        _log.LogInformation("开始配置定时任务");
         JobManager.Initialize(_registry);
-        Log.Info("定时任务配置完成");
+        _log.LogInformation("定时任务配置完成");
     }
 }

@@ -12,13 +12,19 @@ namespace Jellyfish.Module.TeamPlay.User;
 /// </summary>
 public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
 {
+    private readonly DatabaseContext _dbCtx;
+
+    public TeamPlayRoomOwnerLeaveCommand(DatabaseContext dbCtx)
+    {
+        _dbCtx = dbCtx;
+    }
+
     public override string Name() => "房主离开语音房间指令";
 
     public override async Task<CommandResult> Execute(Cacheable<SocketGuildUser, ulong> user,
         SocketVoiceChannel channel, DateTimeOffset leaveAt)
     {
-        await using var dbCtx = new DatabaseContext();
-        var room = (from instance in dbCtx.TpRoomInstances
+        var room = (from instance in _dbCtx.TpRoomInstances
             where instance.GuildId == channel.Guild.Id && instance.VoiceChannelId == channel.Id
             select instance).FirstOrDefault();
 
@@ -27,7 +33,7 @@ public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
         // Remove owner permission
         await channel.RemovePermissionOverwriteAsync(user.Value);
         room.OwnerId = 0;
-        dbCtx.SaveChanges();
+        _dbCtx.SaveChanges();
 
         var dmc = await user.Value.CreateDMChannelAsync();
         if (channel.Users.All(u => u.Id == user.Value.Id || (u.IsBot ?? false)))

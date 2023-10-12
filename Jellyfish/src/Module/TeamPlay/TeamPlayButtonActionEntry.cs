@@ -3,7 +3,6 @@ using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
-using NLog;
 
 namespace Jellyfish.Module.TeamPlay;
 
@@ -12,7 +11,14 @@ namespace Jellyfish.Module.TeamPlay;
 /// </summary>
 public class TeamPlayButtonActionEntry : ButtonActionCommand
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<TeamPlayButtonActionEntry> _log;
+    private readonly TeamPlayManageService _service;
+
+    public TeamPlayButtonActionEntry(TeamPlayManageService service, ILogger<TeamPlayButtonActionEntry> log)
+    {
+        _service = service;
+        _log = log;
+    }
 
     public override string Name() => "组队游戏卡片操作";
 
@@ -24,11 +30,11 @@ public class TeamPlayButtonActionEntry : ButtonActionCommand
         var args = Regexs.MatchSingleDash().Split(value[8..], 2);
         if (!ulong.TryParse(args[0], out var userId) || userId != user.Value.Id)
         {
-            Log.Info($"已阻止用户 {user.Value.Username} 操作不属于他的卡片按钮");
+            _log.LogInformation("已阻止用户 {Username} 操作不属于他的卡片按钮", user.Value.Username);
             return CommandResult.Done;
         }
 
-        await TeamPlayManageService.BindingVoiceChannel(args[1], user, channel);
+        await _service.BindingVoiceChannel(args[1], user, channel);
         return CommandResult.Done;
     }
 }

@@ -3,8 +3,6 @@ using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Kook;
 using Kook.WebSocket;
-using Ninject;
-using AppContext = Jellyfish.Core.Container.AppContext;
 
 namespace Jellyfish.Module.Help;
 
@@ -13,12 +11,16 @@ namespace Jellyfish.Module.Help;
 /// </summary>
 public class GlobalHelpCommand : GuildMessageCommand
 {
-    private readonly Lazy<ImmutableArray<GuildMessageCommand>> _commands = new(
-        () => AppContext.Instance
-            .GetAll<GuildMessageCommand>()
-            .Where(e => e.Name() != "全局帮助指令")
-            .ToImmutableArray()
-    );
+    private readonly Lazy<ImmutableArray<GuildMessageCommand>> _commands;
+
+    public GlobalHelpCommand(IServiceProvider provider)
+    {
+        _commands = new Lazy<ImmutableArray<GuildMessageCommand>>(() =>
+            provider.GetServices<GuildMessageCommand>()
+                .Where(e => e.Name() != "全局帮助指令")
+                .ToImmutableArray()
+        );
+    }
 
     public override string Name() => "全局帮助指令";
 

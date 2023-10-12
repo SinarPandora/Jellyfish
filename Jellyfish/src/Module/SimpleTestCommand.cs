@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Jellyfish.Core.Command;
 using Kook.WebSocket;
-using NLog;
 
 namespace Jellyfish.Module;
 
@@ -10,10 +9,11 @@ namespace Jellyfish.Module;
 /// </summary>
 public class SimpleTestCommand : GuildMessageCommand
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<SimpleTestCommand> _log;
 
-    public SimpleTestCommand()
+    public SimpleTestCommand(ILogger<SimpleTestCommand> log)
     {
+        _log = log;
         Enabled = false;
         EnableOnlyOnDebug();
     }
@@ -26,7 +26,7 @@ public class SimpleTestCommand : GuildMessageCommand
         SocketTextChannel channel)
     {
         await channel.SendTextAsync("I'm Here!");
-        Log.Info($"Current Boot Level is {channel.Guild.BoostLevel}");
+        _log.LogInformation("Current Boot Level is {GuildBoostLevel}", channel.Guild.BoostLevel);
     }
 
     /// <summary>

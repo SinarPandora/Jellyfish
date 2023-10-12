@@ -10,8 +10,11 @@ namespace Jellyfish.Module.TeamPlay.Manage;
 /// </summary>
 public class TeamPlayManageCommand : GuildMessageCommand
 {
-    public TeamPlayManageCommand()
+    private readonly TeamPlayManageService _service;
+
+    public TeamPlayManageCommand(TeamPlayManageService service)
     {
+        _service = service;
         HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
             """
             管理组队配置
@@ -45,17 +48,17 @@ public class TeamPlayManageCommand : GuildMessageCommand
 
         var isSuccess = true;
         if (args.StartsWith("配置"))
-            isSuccess = await TeamPlayManageService.SendBindingWizard(user, channel, args[2..].TrimStart());
+            isSuccess = await _service.SendBindingWizard(user, channel, args[2..].TrimStart());
         else if (args.StartsWith("绑定文字频道"))
-            isSuccess = await TeamPlayManageService.BindingTextChannel(channel, msg, args[6..].TrimStart());
+            isSuccess = await _service.BindingTextChannel(channel, msg, args[6..].TrimStart());
         else if (args.StartsWith("房间名格式"))
-            isSuccess = await TeamPlayManageService.SetRoomPattern(channel, args[5..].TrimStart());
+            isSuccess = await _service.SetRoomPattern(channel, args[5..].TrimStart());
         else if (args.StartsWith("默认人数"))
-            isSuccess = await TeamPlayManageService.SetDefaultMemberCount(channel, args[4..].TrimStart());
+            isSuccess = await _service.SetDefaultMemberCount(channel, args[4..].TrimStart());
         else if (args.StartsWith("删除"))
-            isSuccess = await TeamPlayManageService.RemoveConfig(channel, args[2..].TrimStart());
+            isSuccess = await _service.RemoveConfig(channel, args[2..].TrimStart());
         else if (args.StartsWith("列表"))
-            await TeamPlayManageService.ListConfigs(channel);
+            await _service.ListConfigs(channel);
         else
             await channel.SendCardAsync(HelpMessage);
 

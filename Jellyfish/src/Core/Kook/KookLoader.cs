@@ -1,34 +1,34 @@
 using Jellyfish.Core.Config;
 using Kook;
 using Kook.WebSocket;
-using NLog;
 
 namespace Jellyfish.Core.Kook;
 
 public class KookLoader
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+    private readonly ILogger<KookLoader> _log;
 
     private readonly AppConfig _appConfig;
     private readonly KookSocketClient _client;
-    private readonly EventMatcher _eventMatcher;
+    private readonly KookEventMatcher _kookEventMatcher;
 
-    public KookLoader(EventMatcher matcher, AppConfig appConfig, KookSocketClient client)
+    public KookLoader(KookEventMatcher matcher, AppConfig appConfig, KookSocketClient client, ILogger<KookLoader> log)
     {
-        _eventMatcher = matcher;
+        _kookEventMatcher = matcher;
         _appConfig = appConfig;
         _client = client;
+        _log = log;
     }
 
     public async Task Load()
     {
         _client.Log += KookLog;
         _client.Ready += KookReady;
-        _client.MessageReceived += _eventMatcher.OnMessageReceived;
-        _client.MessageButtonClicked += _eventMatcher.OnCardActionClicked;
-        _client.DirectMessageReceived += _eventMatcher.OnDirectMessageReceived;
-        _client.UserConnected += _eventMatcher.OnUserConnected;
-        _client.UserDisconnected += _eventMatcher.OnUserDisconnected;
+        _client.MessageReceived += _kookEventMatcher.OnMessageReceived;
+        _client.MessageButtonClicked += _kookEventMatcher.OnCardActionClicked;
+        _client.DirectMessageReceived += _kookEventMatcher.OnDirectMessageReceived;
+        _client.UserConnected += _kookEventMatcher.OnUserConnected;
+        _client.UserDisconnected += _kookEventMatcher.OnUserDisconnected;
         await _client.LoginAsync(TokenType.Bot, _appConfig.KookToken);
         await _client.StartAsync();
     }
@@ -38,15 +38,15 @@ public class KookLoader
     /// </summary>
     /// <param name="msg">Message to Log</param>
     /// <returns>Empty Async Result</returns>
-    private static Task KookLog(LogMessage msg)
+    private Task KookLog(LogMessage msg)
     {
-        Log.Info(msg.ToString);
+        _log.LogInformation("{Message}", msg.ToString());
         return Task.CompletedTask;
     }
 
     private Task KookReady()
     {
-        Log.Info($"{_client.CurrentUser} 已连接！");
+        _log.LogInformation("{ClientCurrentUser} 已连接！", _client.CurrentUser);
         return Task.CompletedTask;
     }
 
