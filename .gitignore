@@ -4,8 +4,7 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 .idea
-*.Debug.config
-*.Release.config
+appsettings.Development.json
 .DS_Store
 App.config
 Jellyfish.sln.DotSettings.user
