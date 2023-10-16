@@ -1,18 +1,17 @@
+set dotenv-load
+
+docker_cli := if os() == "linux" { "sudo docker" } else { "podman" }
+container_name := "jellyfish"
+
 migrate:
-    mkdir -p DataBackup && cd DataBackup
-    pg_dump --dbname=jellyfish_kook --file="DataBackup/Postgres-$(date '+%Y-%m-%d-%H-%M-%S')-dump.sql" --username=jellyfish --host=localhost --port=5432
+    export BACKUP_FILE_NAME="Jellyfish-$(date '+%Y-%m-%d-%H-%M-%S')-dump.tar" && \
+    {{ docker_cli }} exec {{ container_name }} pg_dump --dbname=jellyfish_kook --file="$BACKUP_FILE_NAME" --username=jellyfish --host=localhost --port=5432 && \
+    mkdir -p DataBackup && cd DataBackup && \
+    {{ docker_cli }} cp "$BACKUP_FILE_NAME" {{ container_name }}:/
     cd ./Jellyfish && dotnet ef database update
 
-[linux]
 deploy:
-    sudo docker build --no-cache -f ./Jellyfish/Dockerfile -t jellyfish:1.0 .
-    sudo docker stop jellyfish || true
-    sudo docker rm jellyfish || true
-    sudo docker run -d --network=host --name jellyfish jellyfish:1.0
-
-[macos]
-deploy:
-    podman build --no-cache -f ./Jellyfish/Dockerfile -t jellyfish:1.0 .
-    podman stop jellyfish || true
-    podman rm jellyfish || true
-    podman run -d --network=host --name jellyfish jellyfish:1.0
+    {{ docker_cli }} build --no-cache -f ./Jellyfish/Dockerfile -t jellyfish:1.0 .
+    {{ docker_cli }} stop {{ container_name }} || true
+    {{ docker_cli }} rm {{ container_name }} || true
+    {{ docker_cli }} run -d --network=host --name {{ container_name }} jellyfish:1.0
