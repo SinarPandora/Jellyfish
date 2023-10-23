@@ -3,6 +3,7 @@ using Autofac.Extensions.DependencyInjection;
 using Jellyfish.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using NLog.Web;
+using Npgsql;
 using AppContext = Jellyfish.Core.Container.AppContext;
 
 namespace Jellyfish;
@@ -35,10 +36,15 @@ public static class JellyFish
             {
                 container.Register(_ =>
                     {
-                        var options = new DbContextOptionsBuilder<DatabaseContext>();
-                        options.UseNpgsql(builder.Configuration.GetValue<string>("DatabaseConnection"))
-                            .UseSnakeCaseNamingConvention();
-                        return new DatabaseContext(options.Options);
+                        var dataSourceBuilder = new NpgsqlDataSourceBuilder(
+                            builder.Configuration.GetValue<string>("DatabaseConnection")
+                        );
+                        return new DatabaseContext(
+                            new DbContextOptionsBuilder<DatabaseContext>()
+                                .UseNpgsql(dataSourceBuilder.Build())
+                                .UseSnakeCaseNamingConvention()
+                                .Options
+                        );
                     })
                     .InstancePerLifetimeScope();
 
