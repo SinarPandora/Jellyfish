@@ -1,6 +1,6 @@
 set dotenv-load
 
-docker_cli := if os() == "linux" { "sudo docker" } else { "podman" }
+docker_cli := if os() == "linux" { "sudo docker" } else { "docker" }
 container_name := "jellyfish"
 postgres_container_name := "jellyfish_postgres_container"
 
