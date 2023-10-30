@@ -15,6 +15,7 @@ using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Module.TeamPlay.Job;
 using Jellyfish.Module.TeamPlay.Manage;
 using Jellyfish.Module.TeamPlay.User;
+using Jellyfish.Util;
 using Kook.WebSocket;
 
 namespace Jellyfish.Core.Container;
@@ -30,7 +31,11 @@ public static class AppContext
         container.RegisterType<CacheLoader>().SingleInstance();
         container.RegisterType<AppConfig>().SingleInstance();
         container.Register<KookSocketClient>(provider =>
-                KookLoader.CreateSocketClient(provider.Resolve<AppConfig>()))
+            {
+                var kookSocketClient = KookLoader.CreateSocketClient(provider.Resolve<AppConfig>());
+                KookCoreApiHelper.Kook = kookSocketClient;
+                return kookSocketClient;
+            })
             .SingleInstance();
         container.RegisterType<KookLoader>().SingleInstance();
         container.RegisterType<KookApiFactory>().SingleInstance();
