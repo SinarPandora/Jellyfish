@@ -6,7 +6,6 @@ using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
-using Polly;
 using YamlDotNet.Serialization;
 
 namespace Jellyfish.Module.GroupControl;
@@ -394,7 +393,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                     continue;
                 }
 
-                await AddUserViewPermission(newChannel, found);
+                await newChannel.OverrideUserPermission(found, p => p.Modify(viewChannel: PermValue.Allow));
             }
             else
             {
@@ -413,59 +412,11 @@ public class TcGroupControlCommand : GuildMessageCommand
                     continue;
                 }
 
-                await AddRoleViewPermission(newChannel, found);
+                await newChannel.OverrideRolePermission(found, p => p.Modify(viewChannel: PermValue.Allow));
             }
         }
 
         return newChannel;
-    }
-
-    /// <summary>
-    ///     Add view channel permission for role
-    /// </summary>
-    /// <param name="channel">Target channel</param>
-    /// <param name="role">Target role</param>
-    private static Task AddRoleViewPermission(IGuildChannel channel, IRole role)
-    {
-        return Policy
-            .Handle<ArgumentNullException>()
-            .RetryAsync(1, (_, _) => channel.AddPermissionOverwriteAsync(role))
-            .ExecuteAsync(async () =>
-            {
-                if (channel.RolePermissionOverwrites.Any(u => u.Target == role.Id))
-                {
-                    await channel.RemovePermissionOverwriteAsync(role);
-                }
-
-                await channel.AddPermissionOverwriteAsync(role);
-                await channel.ModifyPermissionOverwriteAsync(role, p => p.Modify(
-                    viewChannel: PermValue.Allow)
-                );
-            });
-    }
-
-    /// <summary>
-    ///     Add view channel permission for user
-    /// </summary>
-    /// <param name="channel">Target channel</param>
-    /// <param name="user">Target user</param>
-    private static Task AddUserViewPermission(IGuildChannel channel, IGuildUser user)
-    {
-        return Policy
-            .Handle<ArgumentNullException>()
-            .RetryAsync(1, (_, _) => channel.AddPermissionOverwriteAsync(user))
-            .ExecuteAsync(async () =>
-            {
-                if (channel.UserPermissionOverwrites.Any(u => u.Target.Id == user.Id))
-                {
-                    await channel.RemovePermissionOverwriteAsync(user);
-                }
-
-                await channel.AddPermissionOverwriteAsync(user);
-                await channel.ModifyPermissionOverwriteAsync(user, p => p.Modify(
-                    viewChannel: PermValue.Allow)
-                );
-            });
     }
 
     /// <summary>
