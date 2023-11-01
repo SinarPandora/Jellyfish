@@ -313,7 +313,7 @@ namespace Jellyfish.Migrations
                     b.ToTable("tp_room_instances", (string)null);
                 });
 
-            modelBuilder.Entity("Jellyfish.Module.TmpChannel.Data.TmpTextChannelInstance", b =>
+            modelBuilder.Entity("Jellyfish.Module.TmpChannel.Data.TmpTextChannel", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -356,9 +356,9 @@ namespace Jellyfish.Migrations
                         .HasDefaultValueSql("current_timestamp");
 
                     b.HasKey("Id")
-                        .HasName("pk_tmp_text_channel_instances");
+                        .HasName("pk_tmp_text_channels");
 
-                    b.ToTable("tmp_text_channel_instances", (string)null);
+                    b.ToTable("tmp_text_channels", (string)null);
                 });
 
             modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.TcGroupInstance", b =>
