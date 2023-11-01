@@ -1,4 +1,5 @@
 using Jellyfish.Core.Data;
+using Jellyfish.Module.TmpChannel.Data;
 
 namespace Jellyfish.Module.TeamPlay.Data;
 
@@ -21,6 +22,7 @@ public class TpRoomInstance : TrackableEntity
     public long Id { get; set; }
     public long TpConfigId { get; set; }
     public ulong VoiceChannelId { get; set; }
+    public long? TmpTextChannelId { get; set; }
     public ulong GuildId { get; set; }
     public string RoomName { get; set; }
     public ulong OwnerId { get; set; }
@@ -28,4 +30,5 @@ public class TpRoomInstance : TrackableEntity
 
     // References
     public TpConfig TpConfig { get; set; } = null!;
+    public TmpTextChannel? TmpTextChannel { get; set; }
 }

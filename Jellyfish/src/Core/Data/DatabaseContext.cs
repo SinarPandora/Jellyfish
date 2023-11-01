@@ -65,6 +65,11 @@ public class DatabaseContext : DbContext
             entity
                 .Property(e => e.UpdateTime)
                 .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .HasOne(e => e.TmpTextChannel)
+                .WithMany()
+                .HasForeignKey(e => e.TmpTextChannelId);
         });
 
         modelBuilder.Entity<UserRole>(entity =>
