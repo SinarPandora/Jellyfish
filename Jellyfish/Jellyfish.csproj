@@ -52,6 +52,5 @@
 
     <ItemGroup>
       <Folder Include="Migrations\" />
-        <Folder Include="src\Module\TemporaryTextChannel\Data\"/>
     </ItemGroup>
 </Project>
