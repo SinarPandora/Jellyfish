@@ -7,6 +7,7 @@ using Jellyfish.Core.Job;
 using Jellyfish.Core.Kook;
 using Jellyfish.Core.Lifecycle;
 using Jellyfish.Module;
+using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.GroupControl;
 using Jellyfish.Module.Help;
 using Jellyfish.Module.Role;
@@ -15,6 +16,7 @@ using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Module.TeamPlay.Job;
 using Jellyfish.Module.TeamPlay.Manage;
 using Jellyfish.Module.TeamPlay.User;
+using Jellyfish.Module.TmpChannel.Core;
 using Jellyfish.Util;
 using Kook.WebSocket;
 
@@ -44,6 +46,10 @@ public static class AppContext
         container.RegisterType<JobRegistry>().As<Registry>().SingleInstance();
         container.RegisterType<JobLoader>().SingleInstance();
         container.RegisterType<AppInitializer>().As<IStartupFilter>().SingleInstance();
+
+        // ------------------------------------------------ Kook Extension ---------------------------------------------
+        container.RegisterType<TmpTextChannelService>().SingleInstance();
+        container.RegisterType<ExpireExtendScanJob>().SingleInstance();
 
         // ------------------------------------------------ Commands ---------------------------------------------------
         // Simple Command
