@@ -5,9 +5,9 @@ namespace Jellyfish.Module.TmpChannel.Data;
 /// <summary>
 ///     Temporary text channel instance
 /// </summary>
-public class TmpTextChannelInstance : TrackableEntity
+public class TmpTextChannel : TrackableEntity
 {
-    public TmpTextChannelInstance(ulong guildId, ulong channelId, string name, ulong creatorId, DateTime? expireTime)
+    public TmpTextChannel(ulong guildId, ulong channelId, string name, ulong creatorId, DateTime? expireTime)
     {
         GuildId = guildId;
         ChannelId = channelId;
