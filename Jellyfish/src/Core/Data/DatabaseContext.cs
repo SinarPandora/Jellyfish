@@ -1,6 +1,10 @@
+using Jellyfish.Core.Enum;
+using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GroupControl.Data;
 using Jellyfish.Module.Role.Data;
 using Jellyfish.Module.TeamPlay.Data;
+using Jellyfish.Module.TmpChannel.Data;
+using Kook;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jellyfish.Core.Data;
@@ -16,6 +20,8 @@ public class DatabaseContext : DbContext
     public DbSet<UserCommandPermission> UserCommandPermissions { get; set; } = null!;
     public DbSet<TcGroup> TcGroups { get; set; } = null!;
     public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
+    public DbSet<TmpTextChannelInstance> TmpTextChannelInstances { get; set; } = null!;
+    public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
 
     public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
     {
@@ -24,6 +30,10 @@ public class DatabaseContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.HasPostgresEnum<ChannelType>();
+        modelBuilder.HasPostgresEnum<TimeUnit>();
+        modelBuilder.HasPostgresEnum<ExtendTargetType>();
 
         modelBuilder.Entity<TpConfig>(entity =>
         {
@@ -84,6 +94,17 @@ public class DatabaseContext : DbContext
         });
 
         modelBuilder.Entity<TcGroupInstance>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .Property(e => e.UpdateTime)
+                .HasDefaultValueSql("current_timestamp");
+        });
+
+        modelBuilder.Entity<TmpTextChannelInstance>(entity =>
         {
             entity
                 .Property(e => e.CreateTime)
