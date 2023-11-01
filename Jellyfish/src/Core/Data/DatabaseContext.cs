@@ -20,7 +20,7 @@ public class DatabaseContext : DbContext
     public DbSet<UserCommandPermission> UserCommandPermissions { get; set; } = null!;
     public DbSet<TcGroup> TcGroups { get; set; } = null!;
     public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
-    public DbSet<TmpTextChannelInstance> TmpTextChannelInstances { get; set; } = null!;
+    public DbSet<TmpTextChannel> TmpTextChannels { get; set; } = null!;
     public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
 
     public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
@@ -104,7 +104,7 @@ public class DatabaseContext : DbContext
                 .HasDefaultValueSql("current_timestamp");
         });
 
-        modelBuilder.Entity<TmpTextChannelInstance>(entity =>
+        modelBuilder.Entity<TmpTextChannel>(entity =>
         {
             entity
                 .Property(e => e.CreateTime)

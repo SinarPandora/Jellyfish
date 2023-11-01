@@ -59,7 +59,7 @@ public class ExpireExtendScanJob : IAsyncJob
     private async Task HandleTmpTextChannelExpire(Data.ExpireExtendSession session, DateTimeOffset now)
     {
         var handled = false;
-        var instance = _dbCtx.TmpTextChannelInstances
+        var instance = _dbCtx.TmpTextChannels
             .FirstOrDefault(i => i.Id == session.TargetId);
         if (instance != null)
         {
