@@ -1,6 +1,9 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Jellyfish.Core.Data;
+using Jellyfish.Core.Enum;
+using Jellyfish.Module.ExpireExtendSession.Data;
+using Kook;
 using Microsoft.EntityFrameworkCore;
 using NLog.Web;
 using Npgsql;
@@ -39,6 +42,11 @@ public static class JellyFish
                         var dataSourceBuilder = new NpgsqlDataSourceBuilder(
                             builder.Configuration.GetValue<string>("DatabaseConnection")
                         );
+
+                        dataSourceBuilder.MapEnum<ChannelType>();
+                        dataSourceBuilder.MapEnum<TimeUnit>();
+                        dataSourceBuilder.MapEnum<ExtendTargetType>();
+
                         return new DatabaseContext(
                             new DbContextOptionsBuilder<DatabaseContext>()
                                 .UseNpgsql(dataSourceBuilder.Build())
