@@ -16,7 +16,6 @@ public class TeamPlayRoomService
 
     #region ErrorMessage
 
-    private const string ApiFailed = "操作失败，请稍后再试";
     private const string UserDoesNotFree = "您已加入到其他语音房间，请退出后再试";
     private const string ParentChannelNotFound = "父频道未找到，请联系频道管理员";
     private const string RoomMemberLimitInvalid = "房间人数应 1~99 整数，或使用 0 代表不限人数";
@@ -50,7 +49,7 @@ public class TeamPlayRoomService
         var tpConfig = args.Config;
         if (tpConfig.VoiceChannelId == null) return false;
 
-        var guild = _kook.GetGuild(tpConfig.GuildId);
+        var guild = user.Guild;
         noticeChannel ??= await user.CreateDMChannelAsync();
 
         var roomName = tpConfig.RoomNamePattern != null
@@ -159,7 +158,7 @@ public class TeamPlayRoomService
         catch (Exception e)
         {
             _log.LogError(e, "创建语音房间出错！");
-            await noticeChannel.SendErrorCardAsync(ApiFailed, true);
+            await noticeChannel.SendErrorCardAsync(ErrorMessages.ApiFailed, true);
             return false;
         }
     }

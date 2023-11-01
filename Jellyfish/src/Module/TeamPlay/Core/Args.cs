@@ -2,6 +2,9 @@ using Jellyfish.Module.TeamPlay.Data;
 
 namespace Jellyfish.Module.TeamPlay.Core;
 
+/// <summary>
+///     Action args
+/// </summary>
 public static class Args
 {
     /// <summary>
