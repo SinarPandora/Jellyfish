@@ -73,6 +73,7 @@ public class ExpireExtendScanJob : IAsyncJob
 
                 _log.LogInformation("监测到临时文字房间到期，开始清理房间：{Name}#{Id}", textChannel.Name, textChannel.Id);
                 await textChannel.DeleteAsync();
+                _log.LogInformation("在服务器中的房间实例已被清理，数据库中的房间数据将由临时房间清理任务清理");
                 handled = true;
             }
         }

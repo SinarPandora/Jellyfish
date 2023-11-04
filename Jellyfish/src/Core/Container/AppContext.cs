@@ -17,6 +17,7 @@ using Jellyfish.Module.TeamPlay.Job;
 using Jellyfish.Module.TeamPlay.Manage;
 using Jellyfish.Module.TeamPlay.User;
 using Jellyfish.Module.TmpChannel.Core;
+using Jellyfish.Module.TmpChannel.Job;
 using Jellyfish.Util;
 using Kook.WebSocket;
 
@@ -49,6 +50,7 @@ public static class AppContext
 
         // ------------------------------------------------ Kook Extension ---------------------------------------------
         container.RegisterType<TmpTextChannelService>().SingleInstance();
+        container.RegisterType<CleanNonExistTmpTextChannelJob>().SingleInstance();
         container.RegisterType<ExpireExtendScanJob>().SingleInstance();
 
         // ------------------------------------------------ Commands ---------------------------------------------------
@@ -63,6 +65,7 @@ public static class AppContext
         container.RegisterType<TeamPlayUserCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<TeamPlayButtonActionEntry>().As<ButtonActionCommand>().SingleInstance();
         container.RegisterType<TeamPlayClickToJoinCommand>().As<UserConnectEventCommand>().SingleInstance();
+        container.RegisterType<TeamPlayTeammateJoinCommand>().As<UserConnectEventCommand>().SingleInstance();
         container.RegisterType<TeamPlayRoomOwnerLeaveCommand>().As<UserDisconnectEventCommand>().SingleInstance();
 
         // Role Command

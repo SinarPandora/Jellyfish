@@ -31,7 +31,7 @@ public class TmpTextChannelService
     /// <param name="creator">The creator</param>
     /// <param name="onSuccess">Action on success</param>
     /// <param name="onError">Action on error</param>
-    public async Task CreateForOwnerAsync(Args.CreateTextChannelArgs args, SocketGuildUser creator,
+    public async Task CreateAsync(Args.CreateTextChannelArgs args, SocketGuildUser creator,
         Func<TmpTextChannel, RestTextChannel, Task> onSuccess, Func<Exception, Task> onError)
     {
         var identityStr = $"房间名：{args.Name}，创建者：{creator.DisplayName()}#{creator.Id}";
@@ -40,7 +40,7 @@ public class TmpTextChannelService
 
         try
         {
-            var newChannel = await creator.Guild.CreateTextChannelAsync(args.Name, c => c.CategoryId = args.CategoryId);
+            var newChannel = await creator.Guild.CreateTextChannelAsync(args.Name, args.CategoryId);
             await newChannel.OverrideRolePermission(creator.Guild.EveryoneRole, p =>
                 p.Modify(viewChannel: PermValue.Deny)
             );

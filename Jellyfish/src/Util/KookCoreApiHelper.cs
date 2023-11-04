@@ -1,4 +1,5 @@
 using Kook;
+using Kook.Rest;
 using Kook.WebSocket;
 using NLog;
 using NLog.Web;
@@ -158,5 +159,32 @@ public static class KookCoreApiHelper
 
                 await restGuildChannel.ModifyPermissionOverwriteAsync(user, overrideFn);
             });
+    }
+
+    /// <summary>
+    ///     Create text channel
+    /// </summary>
+    /// <param name="guild">Current guild</param>
+    /// <param name="name"></param>
+    /// <param name="categoryId">Category to place the text channel, default is null</param>
+    /// <returns></returns>
+    public static async Task<RestTextChannel> CreateTextChannelAsync(this SocketGuild guild, string name,
+        ulong? categoryId = null)
+    {
+        return await new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                MaxRetryAttempts = 2,
+                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                OnRetry = args =>
+                {
+                    Log.Warn(args.Outcome.Exception,
+                        $"创建文字频道 API 调用失败一次，频道名：{name}，所属分类 Id：{categoryId}，重试次数：{args.AttemptNumber}");
+                    return ValueTask.CompletedTask;
+                }
+            })
+            .Build()
+            .ExecuteAsync(async _ => await guild.CreateTextChannelAsync(name, c => c.CategoryId = categoryId));
     }
 }

@@ -1,6 +1,7 @@
 using FluentScheduler;
 using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.TeamPlay.Job;
+using Jellyfish.Module.TmpChannel.Job;
 
 namespace Jellyfish.Core.Job;
 
@@ -9,14 +10,16 @@ namespace Jellyfish.Core.Job;
 /// </summary>
 public class JobRegistry : Registry
 {
-    // ReSharper disable once SuggestBaseTypeForParameterInConstructor
+    // ReSharper disable SuggestBaseTypeForParameterInConstructor
     public JobRegistry(
         TeamPlayRoomScanJob teamPlayRoomScanJob,
         CacheSyncJob cacheSyncJob,
-        ExpireExtendScanJob expireExtendScanJob)
+        ExpireExtendScanJob expireExtendScanJob,
+        CleanNonExistTmpTextChannelJob cleanNonExistTmpTextChannelJob)
     {
         Schedule(teamPlayRoomScanJob).ToRunEvery(1).Minutes();
         Schedule(cacheSyncJob).ToRunEvery(5).Minutes();
         Schedule(expireExtendScanJob).ToRunEvery(1).Minutes();
+        Schedule(cleanNonExistTmpTextChannelJob).ToRunEvery(3).Minutes();
     }
 }

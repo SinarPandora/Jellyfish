@@ -1,5 +1,6 @@
 using Jellyfish.Core.Data;
 using Jellyfish.Module.TeamPlay.Data;
+using Jellyfish.Module.TmpChannel.Core;
 using Jellyfish.Util;
 using Kook;
 using Kook.Rest;
@@ -12,8 +13,6 @@ namespace Jellyfish.Module.TeamPlay.Core;
 /// </summary>
 public class TeamPlayRoomService
 {
-    private readonly ILogger<TeamPlayRoomService> _log;
-
     #region ErrorMessage
 
     private const string UserDoesNotFree = "您已加入到其他语音房间，请退出后再试";
@@ -21,16 +20,24 @@ public class TeamPlayRoomService
     private const string RoomMemberLimitInvalid = "房间人数应 1~99 整数，或使用 0 代表不限人数";
     private const string UnsupportedPassword = "密码应为 1~12 位数字";
 
+    private const string FailToCreateTmpTextChannel = """
+                                                      创建配套的临时文字房间失败，若您非常需要使用该功能，请退出当前组队语音房间，
+                                                      等待您创建的房间被清理后重新创建一次。
+                                                      若此问题重复出现，请联系请与相关工作人员。
+                                                      """;
+
     #endregion
 
-    private readonly KookSocketClient _kook;
     private readonly DatabaseContext _dbCtx;
+    private readonly ILogger<TeamPlayRoomService> _log;
+    private readonly TmpTextChannelService _tmpTextChannelService;
 
-    public TeamPlayRoomService(KookSocketClient kook, DatabaseContext dbCtx, ILogger<TeamPlayRoomService> log)
+    public TeamPlayRoomService(DatabaseContext dbCtx, ILogger<TeamPlayRoomService> log,
+        TmpTextChannelService tmpTextChannelService)
     {
-        _kook = kook;
         _dbCtx = dbCtx;
         _log = log;
+        _tmpTextChannelService = tmpTextChannelService;
     }
 
     /// <summary>
@@ -146,6 +153,16 @@ public class TeamPlayRoomService
 
             _log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
 
+            _ = CreateTemporaryTextChannel(
+                new TmpChannel.Core.Args.CreateTextChannelArgs(
+                    "💬" + roomName,
+                    parentChannel.CategoryId
+                ),
+                user,
+                instance,
+                noticeChannel
+            );
+
             // Send post messages
             await SendRoomUpdateWizardToDmcAsync(
                 tpConfig.TextChannelId == null
@@ -212,5 +229,35 @@ public class TeamPlayRoomService
              ---
              当所有人退出房间后，房间将被解散。
              """, false);
+    }
+
+    /// <summary>
+    ///     Create temporary text channel for team play room
+    /// </summary>
+    /// <param name="args">Channel create args</param>
+    /// <param name="creator">Team play room creator</param>
+    /// <param name="room">Current team play room instance</param>
+    /// <param name="noticeChannel">Notice channel</param>
+    private async Task CreateTemporaryTextChannel(
+        TmpChannel.Core.Args.CreateTextChannelArgs args,
+        SocketGuildUser creator,
+        TpRoomInstance room,
+        IMessageChannel noticeChannel)
+    {
+        await _tmpTextChannelService.CreateAsync(args, creator,
+            async (instance, newChannel) =>
+            {
+                room.TmpTextChannelId = instance.Id;
+                _dbCtx.SaveChanges();
+
+                await newChannel.SendSuccessCardAsync(
+                    $"""
+                     {MentionUtils.KMarkdownMentionUser(creator.Id)}
+                     ---
+                     这是属于组队房间「{room.RoomName}」的专属临时文字频道！
+                     只有**加入过**语音房间的朋友才能看到该频道（即使他/她已经退出了语音）。
+                     """, false);
+            },
+            _ => noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false));
     }
 }
