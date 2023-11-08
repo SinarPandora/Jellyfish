@@ -16,6 +16,12 @@ namespace Jellyfish.Util;
 /// </summary>
 public static class KookCoreApiHelper
 {
+    #region CONST
+
+    private const int MoveUserChannelTimeout = 5;
+
+    #endregion
+
     private static readonly Logger Log = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 
     /// <summary>
@@ -97,8 +103,8 @@ public static class KookCoreApiHelper
                 if (currentChannel.Id != toChannel.Id)
                 {
                     await guild.MoveUsersAsync(guildUsers, toChannel);
-                    // Delay 10s for desktop or mobile app to let user join
-                    await Task.Delay(TimeSpan.FromSeconds(10), token);
+                    // Delay 5s for desktop or mobile app to let user join
+                    await Task.Delay(TimeSpan.FromSeconds(MoveUserChannelTimeout), token);
                     currentChannel = (await restUser.GetConnectedVoiceChannelsAsync()).FirstOrDefault();
                     if (currentChannel == null || currentChannel.Id != toChannel.Id)
                     {

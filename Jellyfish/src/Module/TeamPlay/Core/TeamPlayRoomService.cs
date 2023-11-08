@@ -126,6 +126,9 @@ public class TeamPlayRoomService
                 _log.LogInformation("房间 {RoomName} 密码设置成功！", roomName);
             }
 
+            // Give owner permission
+            await GiveOwnerPermissionAsync(room, user);
+
             _log.LogInformation("创建语音房间 API 调用成功，房间名：{RoomName}", roomName);
 
             _log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), room.Name);
@@ -136,9 +139,6 @@ public class TeamPlayRoomService
             }
 
             _log.LogInformation("移动成功，用户已移动到{RoomName}", room.Name);
-
-            // Give owner permission
-            await GiveOwnerPermissionAsync(room, user);
 
             var instance = new TpRoomInstance(
                 tpConfigId: tpConfig.Id,
@@ -256,6 +256,8 @@ public class TeamPlayRoomService
                      ---
                      这是属于组队房间「{room.RoomName}」的专属临时文字频道！
                      只有**加入过**语音房间的朋友才能看到该频道（即使他/她已经退出了语音）。
+                     ---
+                     当语音或文字房间十分钟内均无人使用时，组队房间将被删除。
                      """, false);
             },
             _ => noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false));
