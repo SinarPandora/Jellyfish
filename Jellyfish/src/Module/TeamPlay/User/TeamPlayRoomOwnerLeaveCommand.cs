@@ -31,7 +31,7 @@ public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
         if (room == null || room.OwnerId != user.Value.Id) return CommandResult.Continue;
 
         // Remove owner permission
-        await channel.RemovePermissionOverwriteAsync(user.Value);
+        await channel.RemoveUserPermissionOverrideAsync(user.Value);
         room.OwnerId = 0;
         _dbCtx.SaveChanges();
 

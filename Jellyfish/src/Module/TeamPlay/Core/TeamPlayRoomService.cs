@@ -132,7 +132,7 @@ public class TeamPlayRoomService
 
             if (user.VoiceChannel != null)
             {
-                await guild.MoveToRoomAsync(user, room);
+                await guild.MoveToRoomAsync(user.Id, room);
             }
 
             _log.LogInformation("移动成功，用户已移动到{RoomName}", room.Name);

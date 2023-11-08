@@ -68,12 +68,14 @@ public static class KookCoreApiHelper
     ///     Move user to room, core API, retry in 2 times if error occur
     /// </summary>
     /// <param name="guild">Current guild</param>
-    /// <param name="user">Target user</param>
+    /// <param name="userId">Target user id</param>
     /// <param name="toChannel">To channel</param>
-    public static async Task MoveToRoomAsync(this IGuild guild, SocketGuildUser user, IVoiceChannel toChannel)
+    public static async Task MoveToRoomAsync(this IGuild guild, ulong userId, IVoiceChannel toChannel)
     {
-        var currentChannel = (await user.GetConnectedVoiceChannelsAsync()).FirstOrDefault();
-        var guildUsers = new List<IGuildUser> { user };
+        var restGuild = await Kook.Rest.GetGuildAsync(guild.Id);
+        var restUser = await restGuild.GetUserAsync(userId);
+        var currentChannel = (await restUser.GetConnectedVoiceChannelsAsync()).FirstOrDefault();
+        var guildUsers = new List<IGuildUser> { restUser };
         await new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions
             {
@@ -83,17 +85,25 @@ public static class KookCoreApiHelper
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
-                        $"移动频道 API 调用失败一次，用户名：{user.DisplayName()}，房间名：{toChannel.Name}，重试次数：{args.AttemptNumber}");
-                    currentChannel = (await user.GetConnectedVoiceChannelsAsync()).FirstOrDefault();
+                        $"移动频道 API 调用失败一次，用户名：{restUser.DisplayName()}，房间名：{toChannel.Name}，重试次数：{args.AttemptNumber}");
+                    restUser = await restGuild.GetUserAsync(userId);
+                    currentChannel = (await restUser.GetConnectedVoiceChannelsAsync()).FirstOrDefault();
                 }
             })
             .Build()
-            .ExecuteAsync(async _ =>
+            .ExecuteAsync(async token =>
             {
                 if (currentChannel == null) return;
                 if (currentChannel.Id != toChannel.Id)
                 {
                     await guild.MoveUsersAsync(guildUsers, toChannel);
+                    // Delay 10s for desktop or mobile app to let user join
+                    await Task.Delay(TimeSpan.FromSeconds(10), token);
+                    currentChannel = (await restUser.GetConnectedVoiceChannelsAsync()).FirstOrDefault();
+                    if (currentChannel == null || currentChannel.Id != toChannel.Id)
+                    {
+                        throw new ApplicationException("当前用户可能未成功移动至语音频道，尝试重新移动用户");
+                    }
                 }
             });
     }
@@ -107,7 +117,6 @@ public static class KookCoreApiHelper
     public static async Task OverrideRolePermission(this IGuildChannel channel, IRole role,
         Func<OverwritePermissions, OverwritePermissions> overrideFn)
     {
-        // Using rest client to avoid caching interfering with the results
         var restGuild = await Kook.Rest.GetGuildAsync(role.Guild.Id);
         var restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
         await new ResiliencePipelineBuilder()
@@ -144,7 +153,6 @@ public static class KookCoreApiHelper
     public static async Task OverrideUserPermission(this IGuildChannel channel, IGuildUser user,
         Func<OverwritePermissions, OverwritePermissions> overrideFn)
     {
-        // Using rest client to avoid caching interfering with the results
         var restGuild = await Kook.Rest.GetGuildAsync(user.Guild.Id);
         var restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
         await new ResiliencePipelineBuilder()
@@ -173,6 +181,70 @@ public static class KookCoreApiHelper
     }
 
     /// <summary>
+    ///     Remove user permission override for channel
+    /// </summary>
+    /// <param name="channel">Target channel</param>
+    /// <param name="user">Target user</param>
+    public static async Task RemoveUserPermissionOverrideAsync(this IGuildChannel channel, IGuildUser user)
+    {
+        var restGuild = await Kook.Rest.GetGuildAsync(user.Guild.Id);
+        var restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+        await new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                MaxRetryAttempts = 2,
+                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                OnRetry = async args =>
+                {
+                    Log.Warn(args.Outcome.Exception,
+                        $"删除覆盖的频道角色权限 API 调用失败一次，用户名：{user.DisplayName}，频道名：{restGuildChannel.Name}，重试次数：{args.AttemptNumber}");
+                    restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+                }
+            })
+            .Build()
+            .ExecuteAsync(async _ =>
+            {
+                if (restGuildChannel.GetPermissionOverwrite(user) != null)
+                {
+                    await restGuildChannel.RemovePermissionOverwriteAsync(user);
+                }
+            });
+    }
+
+    /// <summary>
+    ///     Remove user permission override for channel
+    /// </summary>
+    /// <param name="channel">Target channel</param>
+    /// <param name="role">Target user</param>
+    public static async Task RemoveRolePermissionOverrideAsync(this IGuildChannel channel, IRole role)
+    {
+        var restGuild = await Kook.Rest.GetGuildAsync(role.Guild.Id);
+        var restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+        await new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                MaxRetryAttempts = 2,
+                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                OnRetry = async args =>
+                {
+                    Log.Warn(args.Outcome.Exception,
+                        $"删除覆盖的频道角色权限 API 调用失败一次，权限名：{role.Name}，频道名：{restGuildChannel.Name}，重试次数：{args.AttemptNumber}");
+                    restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+                }
+            })
+            .Build()
+            .ExecuteAsync(async _ =>
+            {
+                if (restGuildChannel.GetPermissionOverwrite(role) != null)
+                {
+                    await restGuildChannel.RemovePermissionOverwriteAsync(role);
+                }
+            });
+    }
+
+    /// <summary>
     ///     Create text channel
     /// </summary>
     /// <param name="guild">Current guild</param>
@@ -197,5 +269,17 @@ public static class KookCoreApiHelper
             })
             .Build()
             .ExecuteAsync(async _ => await guild.CreateTextChannelAsync(name, c => c.CategoryId = categoryId));
+    }
+
+    /// <summary>
+    ///     Get user display name(auto detect by type)
+    /// </summary>
+    /// <param name="user">User object</param>
+    /// <returns>Display name</returns>
+    public static string DisplayName(this IGuildUser user)
+    {
+        return user is SocketGuildUser guildUser
+            ? guildUser.Nickname ?? guildUser.Username
+            : user.Username;
     }
 }
