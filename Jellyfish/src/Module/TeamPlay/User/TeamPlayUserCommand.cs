@@ -90,7 +90,9 @@ public class TeamPlayUserCommand : GuildMessageCommand
             var configs =
                 (from config in AppCaches.TeamPlayConfigs.Values
                     where config.GuildId == channel.Guild.Id && config.TextChannelId.HasValue
-                    select MentionUtils.KMarkdownMentionChannel(config.TextChannelId.Value)
+                    select config.TextChannelId.HasValue
+                        ? MentionUtils.KMarkdownMentionChannel(config.TextChannelId.Value)
+                        : string.Empty
                 ).ToArray();
 
             if (configs.IsEmpty())

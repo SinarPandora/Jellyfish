@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Kook;
 using Kook.Rest;
 using Kook.WebSocket;
@@ -9,7 +10,9 @@ using Polly.Retry;
 namespace Jellyfish.Util;
 
 /// <summary>
-///     The core Kook API in the system, for minimizes errors, retry mechanism is configured
+///     The core Kook API in the system, for minimizes errors, retry mechanism is configured;
+///     Use the Rest API for some API instead of reading from Socket Cached
+///     to avoid critical operational errors caused by caching.
 /// </summary>
 public static class KookCoreApiHelper
 {
@@ -21,34 +24,42 @@ public static class KookCoreApiHelper
     internal static KookSocketClient Kook = null!;
 
     /// <summary>
-    ///     Delete channel, core API, retry in 2 times if error occur
+    ///     Delete single channel in guild.
+    ///     The deleted channel should never be used in system.
     /// </summary>
     /// <param name="guild">Current guild</param>
-    /// <param name="voiceChannelId">Voice channel id</param>
-    /// <returns></returns>
-    public static async Task DeleteVoiceChannelAsync(this SocketGuild guild, ulong voiceChannelId)
+    /// <param name="channelId">Channel id</param>
+    /// <param name="type">Channel type</param>
+    /// <exception cref="InvalidEnumArgumentException">Throws when channel type is unsupported</exception>
+    public static async Task DeleteSingleChannelAsync(this IGuild guild, ulong channelId, ChannelType type)
     {
-        var voiceChannel = guild.GetVoiceChannel(voiceChannelId);
+        if (type != ChannelType.Text && type != ChannelType.Voice)
+            throw new InvalidEnumArgumentException($"删除频道 API 不支持该类型的频道：{type}");
+        var restGuild = await Kook.Rest.GetGuildAsync(guild.Id);
+        RestGuildChannel? channel = type == ChannelType.Text
+            ? await restGuild.GetTextChannelAsync(channelId)
+            : await restGuild.GetVoiceChannelAsync(channelId);
         await new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
                 DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
-                OnRetry = args =>
+                OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
-                        $"删除频道 API 调用失败一次，房间名：{voiceChannel.Name}，重试次数：{args.AttemptNumber}");
-                    voiceChannel = guild.GetVoiceChannel(voiceChannelId);
-                    return ValueTask.CompletedTask;
+                        $"删除频道 API 调用失败一次，房间名：{channel.Name}，重试次数：{args.AttemptNumber}");
+                    channel = type == ChannelType.Text
+                        ? await restGuild.GetTextChannelAsync(channelId)
+                        : await restGuild.GetVoiceChannelAsync(channelId);
                 }
             })
             .Build()
             .ExecuteAsync(async _ =>
             {
-                if (voiceChannel != null)
+                if (channel != null)
                 {
-                    await voiceChannel.DeleteAsync();
+                    await channel.DeleteAsync();
                 }
             });
     }
