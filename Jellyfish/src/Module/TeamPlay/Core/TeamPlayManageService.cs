@@ -114,11 +114,11 @@ public class TeamPlayManageService
             var configs = configRecords
                 .Select(e =>
                 {
-                    var voiceChannel = e.VoiceChannelId != null
-                        ? MentionUtils.KMarkdownMentionChannel((ulong)e.VoiceChannelId)
+                    var voiceChannel = e.VoiceChannelId.HasValue
+                        ? MentionUtils.KMarkdownMentionChannel(e.VoiceChannelId.Value)
                         : "未绑定";
-                    var textChannel = e.TextChannelId != null
-                        ? MentionUtils.KMarkdownMentionChannel((ulong)e.TextChannelId)
+                    var textChannel = e.TextChannelId.HasValue
+                        ? MentionUtils.KMarkdownMentionChannel(e.TextChannelId.Value)
                         : "未绑定";
                     return $"ID：{e.Id}，名称：{e.Name}，语音入口：{voiceChannel}，" +
                            $"文字入口：{textChannel}，当前语音房间数：{e.RoomInstances.Count}";

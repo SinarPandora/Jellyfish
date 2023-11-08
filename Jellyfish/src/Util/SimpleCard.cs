@@ -93,12 +93,12 @@ public static class SimpleCard
             .WithColor(color);
 
         // Add optional timeout
-        if (timeout != null)
+        if (timeout.HasValue)
         {
             cb.AddModule<CountdownModuleBuilder>(m =>
             {
                 m.Mode = CountdownMode.Second;
-                m.EndTime = DateTimeOffset.Now.Add((TimeSpan)timeout);
+                m.EndTime = DateTimeOffset.Now.Add(timeout.Value);
             });
         }
 

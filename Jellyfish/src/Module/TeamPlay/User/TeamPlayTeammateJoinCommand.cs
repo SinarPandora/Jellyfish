@@ -36,6 +36,7 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
 
         if (room?.TmpTextChannel == null) return CommandResult.Continue;
 
+        room.UpdateTime = DateTime.Now; // Any user enter will refresh the expire time
         var tmpInstance = room.TmpTextChannel;
         var restGuild = await _kook.Rest.GetGuildAsync(channel.Guild.Id);
         var restTextChannel = await restGuild.GetTextChannelAsync(tmpInstance.ChannelId);

@@ -35,7 +35,7 @@ public class TmpTextChannelService
         Func<TmpTextChannel, RestTextChannel, Task> onSuccess, Func<Exception, Task> onError)
     {
         var identityStr = $"房间名：{args.Name}，创建者：{creator.DisplayName()}#{creator.Id}";
-        DateTime? expireTime = args.Duration == null ? null : DateTime.Now.Add((TimeSpan)args.Duration);
+        DateTime? expireTime = args.Duration.HasValue ? DateTime.Now.Add(args.Duration.Value) : null;
         _log.LogInformation("开始创建临时文字频道，{IdentityStr}", identityStr);
 
         try

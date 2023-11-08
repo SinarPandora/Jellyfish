@@ -54,7 +54,7 @@ public class TeamPlayRoomService
         Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
     {
         var tpConfig = args.Config;
-        if (tpConfig.VoiceChannelId == null) return false;
+        if (!tpConfig.VoiceChannelId.HasValue) return false;
 
         var guild = user.Guild;
         noticeChannel ??= await user.CreateDMChannelAsync();
@@ -83,7 +83,7 @@ public class TeamPlayRoomService
             return false;
         }
 
-        var parentChannel = guild.GetVoiceChannel((ulong)tpConfig.VoiceChannelId);
+        var parentChannel = guild.GetVoiceChannel(tpConfig.VoiceChannelId.Value);
         if (parentChannel == null)
         {
             _log.LogError("{TpConfigId}：{TpConfigName} 所对应的父频道未找到，请检查错误日志并更新频道配置", tpConfig.Id, tpConfig.Name);
