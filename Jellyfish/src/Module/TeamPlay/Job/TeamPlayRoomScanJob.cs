@@ -53,7 +53,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
             var guild = _kook.GetGuild(guildId);
             foreach (var room in rooms)
             {
-                await CheckAndDeleteRoom(guild, room);
+                await CheckAndDeleteRoom(guild, room, now);
                 _dbCtx.SaveChanges(); // Save immediately for each room
             }
         }
@@ -64,9 +64,9 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// </summary>
     /// <param name="guild">Current guild</param>
     /// <param name="room">Room instance</param>
-    private async Task CheckAndDeleteRoom(SocketGuild guild, TpRoomInstance room)
+    /// <param name="now">Now datetime</param>
+    private async Task CheckAndDeleteRoom(SocketGuild guild, TpRoomInstance room, DateTime now)
     {
-        var now = DateTime.Now;
         var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
         var textChannel = room.TmpTextChannel != null ? guild.GetTextChannel(room.TmpTextChannel.ChannelId) : null;
         try
