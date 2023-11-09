@@ -13,21 +13,6 @@ namespace Jellyfish.Module.TeamPlay.Core;
 /// </summary>
 public class TeamPlayRoomService
 {
-    #region ErrorMessage
-
-    private const string UserDoesNotFree = "您已加入到其他语音房间，请退出后再试";
-    private const string ParentChannelNotFound = "父频道未找到，请联系频道管理员";
-    private const string RoomMemberLimitInvalid = "房间人数应 1~99 整数，或使用 0 代表不限人数";
-    private const string UnsupportedPassword = "密码应为 1~12 位数字";
-
-    private const string FailToCreateTmpTextChannel = """
-                                                      创建配套的临时文字房间失败，若您非常需要使用该功能，请退出当前组队语音房间，
-                                                      等待您创建的房间被清理后重新创建一次。
-                                                      若此问题重复出现，请联系请与相关工作人员。
-                                                      """;
-
-    #endregion
-
     private readonly DatabaseContext _dbCtx;
     private readonly ILogger<TeamPlayRoomService> _log;
     private readonly TmpTextChannelService _tmpTextChannelService;
@@ -219,7 +204,6 @@ public class TeamPlayRoomService
              （由于 Kook APP 限制，手机版可能无法设置/修改语音频道密码）
              ---
              同时你也可以使用配套的文字房间与你的朋友交流！
-             每一个加入过语音房间的朋友都可以在文字房间中聊天（即使他/她已经退出了语音）
              ---
              当语音或文字房间十分钟内均无人使用时，组队房间将被解散。
              """, false);
@@ -239,6 +223,18 @@ public class TeamPlayRoomService
         IMessageChannel noticeChannel)
     {
         await _tmpTextChannelService.CreateAsync(args, creator,
+            async newChannel =>
+            {
+                await newChannel.OverrideUserPermissionAsync(creator, p =>
+                    p.Modify(
+                        viewChannel: PermValue.Allow,
+                        mentionEveryone: PermValue.Allow
+                    ));
+
+                await newChannel.OverrideRolePermissionAsync(creator.Guild.EveryoneRole, p =>
+                    p.Modify(viewChannel: PermValue.Deny)
+                );
+            },
             async (instance, newChannel) =>
             {
                 room.TmpTextChannelId = instance.Id;
@@ -248,12 +244,26 @@ public class TeamPlayRoomService
                     $"""
                      {MentionUtils.KMarkdownMentionUser(creator.Id)}
                      ---
-                     这是属于组队房间「{room.RoomName}」的专属临时文字频道！
-                     只有**加入过**语音房间的朋友才能看到该频道（即使他/她已经退出了语音）。
+                     欢迎光临！这是属于组队房间「{room.RoomName}」的专属临时文字频道！
                      ---
                      当语音或文字房间十分钟内均无人使用时，组队房间将被解散。
                      """, false);
             },
             _ => noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false));
     }
+
+    #region ErrorMessage
+
+    private const string UserDoesNotFree = "您已加入到其他语音房间，请退出后再试";
+    private const string ParentChannelNotFound = "父频道未找到，请联系频道管理员";
+    private const string RoomMemberLimitInvalid = "房间人数应 1~99 整数，或使用 0 代表不限人数";
+    private const string UnsupportedPassword = "密码应为 1~12 位数字";
+
+    private const string FailToCreateTmpTextChannel = """
+                                                      创建配套的临时文字房间失败，若您非常需要使用该功能，请退出当前组队语音房间，
+                                                      等待您创建的房间被清理后重新创建一次。
+                                                      若此问题重复出现，请联系请与相关工作人员。
+                                                      """;
+
+    #endregion
 }
