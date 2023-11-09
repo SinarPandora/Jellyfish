@@ -66,6 +66,7 @@ public static class AppContext
         container.RegisterType<TeamPlayButtonActionEntry>().As<ButtonActionCommand>().SingleInstance();
         container.RegisterType<TeamPlayClickToJoinCommand>().As<UserConnectEventCommand>().SingleInstance();
         container.RegisterType<TeamPlayTeammateJoinCommand>().As<UserConnectEventCommand>().SingleInstance();
+        container.RegisterType<TeamPlayTeammateLeaveCommand>().As<UserDisconnectEventCommand>().SingleInstance();
         container.RegisterType<TeamPlayRoomOwnerLeaveCommand>().As<UserDisconnectEventCommand>().SingleInstance();
 
         // Role Command

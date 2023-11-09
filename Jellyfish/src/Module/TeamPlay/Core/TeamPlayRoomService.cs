@@ -13,6 +13,21 @@ namespace Jellyfish.Module.TeamPlay.Core;
 /// </summary>
 public class TeamPlayRoomService
 {
+    #region ErrorMessage
+
+    private const string UserDoesNotFree = "您已加入到其他语音房间，请退出后再试";
+    private const string ParentChannelNotFound = "父频道未找到，请联系频道管理员";
+    private const string RoomMemberLimitInvalid = "房间人数应 1~99 整数，或使用 0 代表不限人数";
+    private const string UnsupportedPassword = "密码应为 1~12 位数字";
+
+    private const string FailToCreateTmpTextChannel = """
+                                                      创建配套的临时文字房间失败，若您非常需要使用该功能，请退出当前组队语音房间，
+                                                      等待您创建的房间被清理后重新创建一次。
+                                                      若此问题重复出现，请联系请与相关工作人员。
+                                                      """;
+
+    #endregion
+
     private readonly DatabaseContext _dbCtx;
     private readonly ILogger<TeamPlayRoomService> _log;
     private readonly TmpTextChannelService _tmpTextChannelService;
@@ -145,6 +160,7 @@ public class TeamPlayRoomService
                 ),
                 user,
                 instance,
+                args.Password.IsNotEmpty(),
                 noticeChannel
             );
 
@@ -215,25 +231,31 @@ public class TeamPlayRoomService
     /// <param name="args">Channel create args</param>
     /// <param name="creator">Team play room creator</param>
     /// <param name="room">Current team play room instance</param>
+    /// <param name="isVoiceChannelHasPassword">Is voice channel has password</param>
     /// <param name="noticeChannel">Notice channel</param>
     private async Task CreateTemporaryTextChannel(
         TmpChannel.Core.Args.CreateTextChannelArgs args,
         SocketGuildUser creator,
         TpRoomInstance room,
+        bool isVoiceChannelHasPassword,
         IMessageChannel noticeChannel)
     {
         await _tmpTextChannelService.CreateAsync(args, creator,
             async newChannel =>
             {
-                await newChannel.OverrideUserPermissionAsync(creator, p =>
-                    p.Modify(
-                        viewChannel: PermValue.Allow,
-                        mentionEveryone: PermValue.Allow
-                    ));
+                // If voice channel has password, make the bound text channel also be private
+                if (isVoiceChannelHasPassword)
+                {
+                    await newChannel.OverrideUserPermissionAsync(creator, p =>
+                        p.Modify(
+                            viewChannel: PermValue.Allow,
+                            mentionEveryone: PermValue.Allow
+                        ));
 
-                await newChannel.OverrideRolePermissionAsync(creator.Guild.EveryoneRole, p =>
-                    p.Modify(viewChannel: PermValue.Deny)
-                );
+                    await newChannel.OverrideRolePermissionAsync(creator.Guild.EveryoneRole, p =>
+                        p.Modify(viewChannel: PermValue.Deny)
+                    );
+                }
             },
             async (instance, newChannel) =>
             {
@@ -251,19 +273,4 @@ public class TeamPlayRoomService
             },
             _ => noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false));
     }
-
-    #region ErrorMessage
-
-    private const string UserDoesNotFree = "您已加入到其他语音房间，请退出后再试";
-    private const string ParentChannelNotFound = "父频道未找到，请联系频道管理员";
-    private const string RoomMemberLimitInvalid = "房间人数应 1~99 整数，或使用 0 代表不限人数";
-    private const string UnsupportedPassword = "密码应为 1~12 位数字";
-
-    private const string FailToCreateTmpTextChannel = """
-                                                      创建配套的临时文字房间失败，若您非常需要使用该功能，请退出当前组队语音房间，
-                                                      等待您创建的房间被清理后重新创建一次。
-                                                      若此问题重复出现，请联系请与相关工作人员。
-                                                      """;
-
-    #endregion
 }
