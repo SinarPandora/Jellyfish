@@ -41,11 +41,15 @@ public class TmpTextChannelService
         try
         {
             var newChannel = await creator.Guild.CreateTextChannelAsync(args.Name, args.CategoryId);
-            await newChannel.OverrideRolePermission(creator.Guild.EveryoneRole, p =>
+            await newChannel.OverrideUserPermissionAsync(creator, p =>
+                p.Modify(
+                    viewChannel: PermValue.Allow,
+                    mentionEveryone: PermValue.Allow
+                ));
+
+            await newChannel.OverrideRolePermissionAsync(creator.Guild.EveryoneRole, p =>
                 p.Modify(viewChannel: PermValue.Deny)
             );
-
-            await newChannel.OverrideUserPermission(creator, p => p.Modify(viewChannel: PermValue.Allow));
 
             var instance = new TmpTextChannel(
                 guildId: newChannel.GuildId,

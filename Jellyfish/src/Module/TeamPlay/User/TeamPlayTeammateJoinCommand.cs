@@ -49,7 +49,10 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
         }
         else if (restTextChannel.GetPermissionOverwrite(user.Value) == null)
         {
-            await restTextChannel.OverrideUserPermission(user.Value, p => p.Modify(viewChannel: PermValue.Allow));
+            await restTextChannel.OverrideUserPermissionAsync(user.Value, p => p.Modify(
+                viewChannel: PermValue.Allow,
+                mentionEveryone: PermValue.Allow
+            ));
             _log.LogInformation("加入组队房间 {TpRoomName} 的用户：{Name}:{Id}，已获得文字房间 {TextRoomName} 的访问权限",
                 room.RoomName, user.Value.DisplayName(), user.Id, restTextChannel.Name
             );

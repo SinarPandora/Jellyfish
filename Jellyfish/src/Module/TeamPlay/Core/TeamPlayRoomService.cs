@@ -187,17 +187,7 @@ public class TeamPlayRoomService
     /// <param name="user">Owner</param>
     public static async Task GiveOwnerPermissionAsync(IVoiceChannel channel, IGuildUser user)
     {
-        await channel.AddPermissionOverwriteAsync(user);
-        await channel.ModifyPermissionOverwriteAsync(user, permissions =>
-            permissions.Modify(
-                createInvites: PermValue.Allow,
-                manageChannels: PermValue.Allow,
-                manageVoice: PermValue.Allow,
-                deafenMembers: PermValue.Allow,
-                muteMembers: PermValue.Allow,
-                playSoundtrack: PermValue.Allow,
-                shareScreen: PermValue.Allow
-            ));
+        await channel.OverrideUserPermissionAsync(user, _ => OverwritePermissions.AllowAll(channel));
     }
 
     /// <summary>
@@ -224,10 +214,14 @@ public class TeamPlayRoomService
     {
         await dmc.SendSuccessCardAsync(
             $"""
-             您已成为房间 {roomName} 的房主
-             作为房主，您可以随意修改房间信息，设置密码，调整麦序，全体静音等
+             您已成为组队房间 {roomName} 的房主
+             作为房主，您可以随意修改语音房间信息，设置密码，调整麦序，全体静音等
+             （由于 Kook APP 限制，手机版可能无法设置/修改语音频道密码）
              ---
-             当所有人退出房间后，房间将被解散。
+             同时你也可以使用配套的文字房间与你的朋友交流！
+             每一个加入过语音房间的朋友都可以在文字房间中聊天（即使他/她已经退出了语音）
+             ---
+             当语音或文字房间十分钟内均无人使用时，组队房间将被解散。
              """, false);
     }
 
@@ -257,7 +251,7 @@ public class TeamPlayRoomService
                      这是属于组队房间「{room.RoomName}」的专属临时文字频道！
                      只有**加入过**语音房间的朋友才能看到该频道（即使他/她已经退出了语音）。
                      ---
-                     当语音或文字房间十分钟内均无人使用时，组队房间将被删除。
+                     当语音或文字房间十分钟内均无人使用时，组队房间将被解散。
                      """, false);
             },
             _ => noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false));

@@ -393,7 +393,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                     continue;
                 }
 
-                await newChannel.OverrideUserPermission(found, p => p.Modify(viewChannel: PermValue.Allow));
+                await newChannel.OverrideUserPermissionAsync(found, p => p.Modify(viewChannel: PermValue.Allow));
             }
             else
             {
@@ -412,7 +412,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                     continue;
                 }
 
-                await newChannel.OverrideRolePermission(found, p => p.Modify(viewChannel: PermValue.Allow));
+                await newChannel.OverrideRolePermissionAsync(found, p => p.Modify(viewChannel: PermValue.Allow));
             }
         }
 

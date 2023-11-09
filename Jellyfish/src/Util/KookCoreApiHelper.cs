@@ -120,7 +120,7 @@ public static class KookCoreApiHelper
     /// <param name="channel">Target channel</param>
     /// <param name="role">Target role</param>
     /// <param name="overrideFn">Override function</param>
-    public static async Task OverrideRolePermission(this IGuildChannel channel, IRole role,
+    public static async Task OverrideRolePermissionAsync(this IGuildChannel channel, IRole role,
         Func<OverwritePermissions, OverwritePermissions> overrideFn)
     {
         var restGuild = await Kook.Rest.GetGuildAsync(role.Guild.Id);
@@ -156,7 +156,7 @@ public static class KookCoreApiHelper
     /// <param name="channel">Target channel</param>
     /// <param name="user">Target user</param>
     /// <param name="overrideFn">Override function</param>
-    public static async Task OverrideUserPermission(this IGuildChannel channel, IGuildUser user,
+    public static async Task OverrideUserPermissionAsync(this IGuildChannel channel, IGuildUser user,
         Func<OverwritePermissions, OverwritePermissions> overrideFn)
     {
         var restGuild = await Kook.Rest.GetGuildAsync(user.Guild.Id);

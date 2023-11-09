@@ -53,8 +53,6 @@ public class TeamPlayRoomScanJob : IAsyncJob
             var guild = _kook.GetGuild(guildId);
             foreach (var room in rooms)
             {
-                // 2 minutes as timeout in order not to clean up room just created
-                if (room.UpdateTime.AddMinutes(2) >= now) continue;
                 await CheckAndDeleteRoom(guild, room);
                 _dbCtx.SaveChanges(); // Save immediately for each room
             }
@@ -109,8 +107,8 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 await ElectNewRoomOwner(room, users, voiceChannel);
             }
 
-            // 6. Check room name with 🔐locked icon if it has password(and also sync the name)
-            await RefreshVoiceRoomName(room, voiceChannel);
+            // 6. Check room name with 🔐locked icon if it has password(and also sync the name for text channel)
+            await RefreshChannelNames(room, voiceChannel, textChannel);
         }
         catch (Exception e)
         {
@@ -165,7 +163,8 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// </summary>
     /// <param name="room">Room instance</param>
     /// <param name="voiceChannel">Current voice channel</param>
-    private async Task RefreshVoiceRoomName(TpRoomInstance room, IVoiceChannel voiceChannel)
+    /// <param name="textChannel">Bound text channel</param>
+    private async Task RefreshChannelNames(TpRoomInstance room, IVoiceChannel voiceChannel, ITextChannel? textChannel)
     {
         var currentName = voiceChannel.Name;
         if (voiceChannel.HasPassword)
@@ -184,6 +183,17 @@ public class TeamPlayRoomScanJob : IAsyncJob
         {
             _log.LogInformation("监测到房间名称发生变化，尝试更新房间名");
             await voiceChannel.ModifyAsync(v => v.Name = currentName);
+            if (textChannel != null)
+            {
+                var textChannelName = currentName.StartsWith("🔐")
+                    ? currentName.ReplaceFirst("🔐", string.Empty)
+                    : currentName;
+                textChannelName = "💬" + textChannelName;
+                if (textChannelName != textChannel.Name)
+                {
+                    await textChannel.ModifyAsync(c => c.Name = textChannelName);
+                }
+            }
         }
 
         room.RoomName = currentName;

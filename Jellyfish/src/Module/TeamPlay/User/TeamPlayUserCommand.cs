@@ -14,6 +14,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
 {
     private const string HelpTemplate =
         """
+        创建组队房间，包括一个文字房间和一个语音房间
 
         **可选参数：**
         [人数] [房间名] [密码]
