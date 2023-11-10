@@ -1,7 +1,7 @@
 set dotenv-load
 
 version := "1.2.0"
-container_name := "jellyfish" + "_" + version
+container_name := "jellyfish"
 postgres_container_name := "jellyfish_postgres_container"
 
 backup:
@@ -15,7 +15,7 @@ migrate:
     cd ./Jellyfish && dotnet ef database update
 
 deploy:
-    docker build --no-cache -f ./Jellyfish/Dockerfile -t jellyfish:1.0 .
+    docker build --no-cache -f ./Jellyfish/Dockerfile -t jellyfish:{{ version }} .
     docker stop {{ container_name }} || true
     docker rm {{ container_name }} || true
-    docker run -d --network=host --name {{ container_name }} jellyfish:1.0
+    docker run -d --network=host --name {{ container_name }} jellyfish:{{ version }}
