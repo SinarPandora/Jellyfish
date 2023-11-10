@@ -242,13 +242,10 @@ public class TeamPlayRoomScanJob : IAsyncJob
             await voiceChannel.ModifyAsync(v => v.Name = currentName);
             if (textChannel != null)
             {
-                var textChannelName = currentName.StartsWith("🔐")
-                    ? currentName.ReplaceFirst("🔐", string.Empty)
-                    : currentName;
-                textChannelName = "💬" + textChannelName;
-                if (textChannelName != textChannel.Name)
+                var newTextChannelName = currentName.StartsWith("🔐") ? currentName : "💬" + currentName;
+                if (newTextChannelName != textChannel.Name)
                 {
-                    await textChannel.ModifyAsync(c => c.Name = textChannelName);
+                    await textChannel.ModifyAsync(c => c.Name = newTextChannelName);
                 }
             }
         }

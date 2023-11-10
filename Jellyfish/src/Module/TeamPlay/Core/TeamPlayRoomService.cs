@@ -63,6 +63,7 @@ public class TeamPlayRoomService
             ? tpConfig.RoomNamePattern.Replace(TeamPlayManageService.UserInjectKeyword,
                 args.RoomName ?? user.DisplayName)
             : args.RoomName ?? $"{user.DisplayName}的房间";
+        var roomNameWithoutIcon = roomName;
 
         if (args.Password.IsNotEmpty())
         {
@@ -155,7 +156,7 @@ public class TeamPlayRoomService
 
             _ = CreateTemporaryTextChannel(
                 new TmpChannel.Core.Args.CreateTextChannelArgs(
-                    "💬" + roomName,
+                    "💬" + roomNameWithoutIcon,
                     parentChannel.CategoryId
                 ),
                 user,
