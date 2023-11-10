@@ -21,16 +21,15 @@ public class TeamPlayRoomScanJob : IAsyncJob
 
     #endregion
 
-
     private readonly ILogger<TeamPlayRoomScanJob> _log;
-    private readonly DatabaseContext _dbCtx;
     private readonly KookSocketClient _kook;
+    private readonly DbContextProvider _dbProvider;
 
-    public TeamPlayRoomScanJob(KookSocketClient kook, DatabaseContext dbCtx, ILogger<TeamPlayRoomScanJob> log)
+    public TeamPlayRoomScanJob(KookSocketClient kook, ILogger<TeamPlayRoomScanJob> log, DbContextProvider dbProvider)
     {
         _kook = kook;
-        _dbCtx = dbCtx;
         _log = log;
+        _dbProvider = dbProvider;
     }
 
     /// <summary>
@@ -40,7 +39,9 @@ public class TeamPlayRoomScanJob : IAsyncJob
     {
         _log.LogInformation("组队房间扫描任务开始");
         var now = DateTime.Now;
-        var configs = _dbCtx.TpConfigs
+
+        await using var dbCtx = _dbProvider.Provide();
+        var configs = dbCtx.TpConfigs
             .Include(e => e.RoomInstances)
             .ThenInclude(e => e.TmpTextChannel)
             .GroupBy(e => e.GuildId)
@@ -54,8 +55,8 @@ public class TeamPlayRoomScanJob : IAsyncJob
             var guild = _kook.GetGuild(guildId);
             foreach (var room in rooms)
             {
-                await CheckAndDeleteRoom(guild, room, now);
-                _dbCtx.SaveChanges(); // Save immediately for each room
+                await CheckAndDeleteRoom(guild, room, now, dbCtx);
+                dbCtx.SaveChanges(); // Save immediately for each room
             }
         }
 
@@ -68,7 +69,8 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// <param name="guild">Current guild</param>
     /// <param name="room">Room instance</param>
     /// <param name="now">Now datetime</param>
-    private async Task CheckAndDeleteRoom(SocketGuild guild, TpRoomInstance room, DateTime now)
+    /// <param name="dbCtx">Database context</param>
+    private async Task CheckAndDeleteRoom(SocketGuild guild, TpRoomInstance room, DateTime now, DatabaseContext dbCtx)
     {
         var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
         var textChannel = room.TmpTextChannel != null ? guild.GetTextChannel(room.TmpTextChannel.ChannelId) : null;
@@ -88,7 +90,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
                     await textChannel.DeleteAsync();
                 }
 
-                _dbCtx.TpRoomInstances.Remove(room);
+                dbCtx.TpRoomInstances.Remove(room);
                 return;
             }
 
@@ -105,7 +107,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
 
                 if (needCleanup)
                 {
-                    await CleanUpTeamPlayRoom(guild, room, textChannel, voiceChannel);
+                    await CleanUpTeamPlayRoom(guild, room, textChannel, voiceChannel, dbCtx);
                     return; // Break the method
                 }
             }
@@ -178,8 +180,9 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// <param name="room">Team play room instance</param>
     /// <param name="textChannel">Bound text channel</param>
     /// <param name="voiceChannel">Bound voice channel</param>
+    /// <param name="dbCtx">Database context</param>
     private async Task CleanUpTeamPlayRoom(IGuild guild, TpRoomInstance room, IChannel? textChannel,
-        IChannel voiceChannel)
+        IChannel voiceChannel, DatabaseContext dbCtx)
     {
         _log.LogInformation("检测到房间 {RoomName} 已无人使用，开始清理房间", room.RoomName);
         if (textChannel != null)
@@ -190,7 +193,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
 
         await guild.DeleteSingleChannelAsync(room.VoiceChannelId, ChannelType.Voice);
         _log.LogInformation("已删除语音房间：{RoomName}", voiceChannel.Name);
-        _dbCtx.TpRoomInstances.Remove(room);
+        dbCtx.TpRoomInstances.Remove(room);
         _log.LogInformation("已删除组队房间：{RoomName}", room.RoomName);
     }
 

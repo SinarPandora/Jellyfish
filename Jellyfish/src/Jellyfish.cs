@@ -37,24 +37,20 @@ public static class JellyFish
             // Init database context
             builder.Host.ConfigureContainer<ContainerBuilder>(container =>
             {
-                container.Register(_ =>
-                    {
-                        var dataSourceBuilder = new NpgsqlDataSourceBuilder(
-                            builder.Configuration.GetValue<string>("DatabaseConnection")
-                        );
+                container.Register<DbContextProvider>(_ =>
+                {
+                    var dataSourceBuilder = new NpgsqlDataSourceBuilder(
+                        builder.Configuration.GetValue<string>("DatabaseConnection")
+                    );
 
-                        dataSourceBuilder.MapEnum<ChannelType>();
-                        dataSourceBuilder.MapEnum<TimeUnit>();
-                        dataSourceBuilder.MapEnum<ExtendTargetType>();
-
-                        return new DatabaseContext(
-                            new DbContextOptionsBuilder<DatabaseContext>()
-                                .UseNpgsql(dataSourceBuilder.Build())
-                                .UseSnakeCaseNamingConvention()
-                                .Options
-                        );
-                    })
-                    .InstancePerLifetimeScope();
+                    dataSourceBuilder.MapEnum<ChannelType>();
+                    dataSourceBuilder.MapEnum<TimeUnit>();
+                    dataSourceBuilder.MapEnum<ExtendTargetType>();
+                    return new DbContextProvider(new DbContextOptionsBuilder<DatabaseContext>()
+                        .UseNpgsql(dataSourceBuilder.Build())
+                        .UseSnakeCaseNamingConvention()
+                        .Options);
+                }).SingleInstance();
 
                 // Binding other instances
                 AppContext.BindAll(container);

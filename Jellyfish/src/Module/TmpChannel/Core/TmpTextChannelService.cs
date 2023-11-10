@@ -11,13 +11,13 @@ namespace Jellyfish.Module.TmpChannel.Core;
 /// </summary>
 public class TmpTextChannelService
 {
-    private readonly DatabaseContext _dbCtx;
     private readonly ILogger<TmpTextChannelService> _log;
+    private readonly DbContextProvider _dbProvider;
 
-    public TmpTextChannelService(ILogger<TmpTextChannelService> log, DatabaseContext dbCtx)
+    public TmpTextChannelService(ILogger<TmpTextChannelService> log, DbContextProvider dbProvider)
     {
         _log = log;
-        _dbCtx = dbCtx;
+        _dbProvider = dbProvider;
     }
 
 
@@ -56,8 +56,9 @@ public class TmpTextChannelService
                 expireTime: expireTime
             );
 
-            _dbCtx.TmpTextChannels.Add(instance);
-            _dbCtx.SaveChanges();
+            await using var dbCtx = _dbProvider.Provide();
+            dbCtx.TmpTextChannels.Add(instance);
+            dbCtx.SaveChanges();
 
             _log.LogInformation("临时文字频道创建成功，{IdentityStr}，房间 ID：{ChannelId}，过期时间：{Now}",
                 identityStr, newChannel.Id, expireTime?.ToString() ?? "永久");

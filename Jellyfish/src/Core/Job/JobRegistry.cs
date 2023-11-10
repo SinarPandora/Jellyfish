@@ -17,9 +17,9 @@ public class JobRegistry : Registry
         ExpireExtendScanJob expireExtendScanJob,
         CleanNonExistTmpTextChannelJob cleanNonExistTmpTextChannelJob)
     {
-        Schedule(teamPlayRoomScanJob).ToRunEvery(1).Minutes();
-        Schedule(cacheSyncJob).ToRunEvery(5).Minutes();
-        Schedule(expireExtendScanJob).ToRunEvery(1).Minutes();
-        Schedule(cleanNonExistTmpTextChannelJob).ToRunEvery(3).Minutes();
+        Schedule(teamPlayRoomScanJob).NonReentrant().ToRunEvery(1).Minutes();
+        Schedule(cacheSyncJob).NonReentrant().ToRunEvery(5).Minutes();
+        Schedule(expireExtendScanJob).NonReentrant().ToRunEvery(1).Minutes();
+        Schedule(cleanNonExistTmpTextChannelJob).NonReentrant().ToRunEvery(3).Minutes();
     }
 }

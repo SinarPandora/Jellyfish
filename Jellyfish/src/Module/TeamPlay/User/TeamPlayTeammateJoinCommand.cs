@@ -14,15 +14,15 @@ namespace Jellyfish.Module.TeamPlay.User;
 public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
 {
     private readonly ILogger<TeamPlayTeammateJoinCommand> _log;
-    private readonly DatabaseContext _dbCtx;
     private readonly KookSocketClient _kook;
+    private readonly DbContextProvider _dbProvider;
 
-    public TeamPlayTeammateJoinCommand(DatabaseContext dbCtx, ILogger<TeamPlayTeammateJoinCommand> log,
-        KookSocketClient kook)
+    public TeamPlayTeammateJoinCommand(ILogger<TeamPlayTeammateJoinCommand> log,
+        KookSocketClient kook, DbContextProvider dbProvider)
     {
-        _dbCtx = dbCtx;
         _log = log;
         _kook = kook;
+        _dbProvider = dbProvider;
     }
 
     public override string Name() => "队友加入组队语音频道指令";
@@ -31,7 +31,8 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
         SocketVoiceChannel channel,
         DateTimeOffset joinAt)
     {
-        var room = _dbCtx.TpRoomInstances.Include(e => e.TmpTextChannel)
+        await using var dbCtx = _dbProvider.Provide();
+        var room = dbCtx.TpRoomInstances.Include(e => e.TmpTextChannel)
             .FirstOrDefault(room => room.VoiceChannelId == channel.Id && room.GuildId == channel.Guild.Id);
 
         if (room?.TmpTextChannel == null) return CommandResult.Continue;

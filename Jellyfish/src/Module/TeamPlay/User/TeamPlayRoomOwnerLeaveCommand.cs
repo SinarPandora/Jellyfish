@@ -12,13 +12,13 @@ namespace Jellyfish.Module.TeamPlay.User;
 /// </summary>
 public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
 {
-    private readonly DatabaseContext _dbCtx;
     private readonly ILogger<TeamPlayRoomOwnerLeaveCommand> _log;
+    private readonly DbContextProvider _dbProvider;
 
-    public TeamPlayRoomOwnerLeaveCommand(DatabaseContext dbCtx, ILogger<TeamPlayRoomOwnerLeaveCommand> log)
+    public TeamPlayRoomOwnerLeaveCommand(ILogger<TeamPlayRoomOwnerLeaveCommand> log, DbContextProvider dbProvider)
     {
-        _dbCtx = dbCtx;
         _log = log;
+        _dbProvider = dbProvider;
     }
 
     public override string Name() => "房主离开语音房间指令";
@@ -26,7 +26,8 @@ public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
     public override async Task<CommandResult> Execute(Cacheable<SocketGuildUser, ulong> user,
         SocketVoiceChannel channel, DateTimeOffset leaveAt)
     {
-        var room = (from instance in _dbCtx.TpRoomInstances
+        await using var dbCtx = _dbProvider.Provide();
+        var room = (from instance in dbCtx.TpRoomInstances
             where instance.GuildId == channel.Guild.Id && instance.VoiceChannelId == channel.Id
             select instance).FirstOrDefault();
 
@@ -35,7 +36,7 @@ public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
         // Remove owner permission
         await channel.RemoveUserPermissionOverrideAsync(user.Value);
         room.OwnerId = 0;
-        _dbCtx.SaveChanges();
+        dbCtx.SaveChanges();
 
         var dmc = await user.Value.CreateDMChannelAsync();
         if (channel.Users.All(u => u.Id == user.Value.Id || (u.IsBot ?? false)))

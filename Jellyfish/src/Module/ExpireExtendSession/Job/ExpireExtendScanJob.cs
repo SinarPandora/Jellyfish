@@ -11,35 +11,39 @@ namespace Jellyfish.Module.ExpireExtendSession.Job;
 /// </summary>
 public class ExpireExtendScanJob : IAsyncJob
 {
-    private readonly DatabaseContext _dbCtx;
+    private readonly DbContextProvider _dbProvider;
     private readonly KookSocketClient _kook;
     private readonly ILogger<ExpireExtendScanJob> _log;
 
-    public ExpireExtendScanJob(DatabaseContext dbCtx, KookSocketClient kook,
-        ILogger<ExpireExtendScanJob> log)
+    public ExpireExtendScanJob(KookSocketClient kook,
+        ILogger<ExpireExtendScanJob> log, DbContextProvider dbProvider)
     {
-        _dbCtx = dbCtx;
         _kook = kook;
         _log = log;
+        _dbProvider = dbProvider;
     }
 
     /// <summary>
     ///     Scan expire extend session
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">Throw when unsupported session found</exception>
-    public Task ExecuteAsync()
+    public async Task ExecuteAsync()
     {
+        await using var dbCtx = _dbProvider.Provide();
         var now = DateTimeOffset.Now;
-        foreach (var session in _dbCtx.ExpireExtendSessions.ToArray())
+        foreach (var session in dbCtx.ExpireExtendSessions.ToArray())
         {
             try
             {
-                return session.TargetType switch
+                switch (session.TargetType)
                 {
-                    ExtendTargetType.TmpTextChannel => HandleTmpTextChannelExpire(session, now),
-                    _ => throw new ArgumentOutOfRangeException(nameof(session.TargetType), session.TargetType,
-                        $"不支持的延长会话类型：{session.TargetType}")
-                };
+                    case ExtendTargetType.TmpTextChannel:
+                        await HandleTmpTextChannelExpire(session, now, dbCtx);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(session.TargetType), session.TargetType,
+                            $"不支持的延长会话类型：{session.TargetType}");
+                }
             }
             catch (Exception e)
             {
@@ -47,19 +51,19 @@ public class ExpireExtendScanJob : IAsyncJob
                     session.TargetType, session.TargetId);
             }
         }
-
-        return Task.CompletedTask;
     }
 
     /// <summary>
     ///     Check and handle if temporary text channel instance expire
     /// </summary>
     /// <param name="session">Expire extend session</param>
-    /// <param name="now"></param>
-    private async Task HandleTmpTextChannelExpire(Data.ExpireExtendSession session, DateTimeOffset now)
+    /// <param name="now">Current datetime</param>
+    /// <param name="dbCtx">Database context</param>
+    private async Task HandleTmpTextChannelExpire(Data.ExpireExtendSession session, DateTimeOffset now,
+        DatabaseContext dbCtx)
     {
         var handled = false;
-        var instance = _dbCtx.TmpTextChannels
+        var instance = dbCtx.TmpTextChannels
             .FirstOrDefault(i => i.Id == session.TargetId);
         if (instance != null)
         {
@@ -78,7 +82,8 @@ public class ExpireExtendScanJob : IAsyncJob
             }
         }
 
-        _dbCtx.ExpireExtendSessions.Remove(session);
+        dbCtx.ExpireExtendSessions.Remove(session);
+        dbCtx.SaveChanges();
         _log.LogInformation("监测到延长会话{Action}，正在清理延长会话：{Id}", handled ? "已结束" : "已失效", session.Id);
     }
 }

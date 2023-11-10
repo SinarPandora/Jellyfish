@@ -16,11 +16,11 @@ namespace Jellyfish.Module.Role;
 public class RoleSettingCommand : GuildMessageCommand
 {
     private readonly Lazy<ImmutableHashSet<string>> _commandNames;
-    private readonly DatabaseContext _dbCtx;
+    private readonly DbContextProvider _dbProvider;
 
-    public RoleSettingCommand(IServiceScopeFactory provider, DatabaseContext dbCtx)
+    public RoleSettingCommand(IServiceScopeFactory provider, DbContextProvider dbProvider)
     {
-        _dbCtx = dbCtx;
+        _dbProvider = dbProvider;
         HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
             """
             可以限制「只有某些角色才能使用某指令」
@@ -80,7 +80,8 @@ public class RoleSettingCommand : GuildMessageCommand
     /// <param name="channel">Current channel</param>
     private async Task ListPermissions(SocketTextChannel channel)
     {
-        var roles = from role in _dbCtx.UserRoles.Include(e => e.CommandPermissions).AsNoTracking()
+        await using var dbCtx = _dbProvider.Provide();
+        var roles = from role in dbCtx.UserRoles.Include(e => e.CommandPermissions).AsNoTracking()
             orderby role.KookId
             where role.GuildId == channel.Guild.Id
             from permission in role.CommandPermissions
@@ -112,10 +113,10 @@ public class RoleSettingCommand : GuildMessageCommand
     /// </summary>
     /// <param name="rawArgs">Raw text args, split with space</param>
     /// <param name="channel">Current channel</param>
-    /// <param name="_dbCtx">Opened database context</param>
+    /// <param name="dbCtx">Opened database context</param>
     /// <returns>Parameters</returns>
     private async Task<(string commandName, string guildRoleName, uint guildRoleId, UserCommandPermission? record)?>
-        ExtractPermissionBindingParameters(string rawArgs, SocketTextChannel channel, DatabaseContext _dbCtx)
+        ExtractPermissionBindingParameters(string rawArgs, SocketTextChannel channel, DatabaseContext dbCtx)
     {
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
         if (args.Length < 2)
@@ -140,7 +141,7 @@ public class RoleSettingCommand : GuildMessageCommand
         }
 
         var record = (
-            from role in _dbCtx.UserRoles.Include(e => e.CommandPermissions)
+            from role in dbCtx.UserRoles.Include(e => e.CommandPermissions)
             from permission in role.CommandPermissions
             where role.KookId == guildRoleId && permission.CommandName == commandName
             select permission
@@ -157,7 +158,8 @@ public class RoleSettingCommand : GuildMessageCommand
     /// <returns>Is task success</returns>
     private async Task<bool> BindingPermission(string rawArgs, SocketTextChannel channel)
     {
-        var parameters = await ExtractPermissionBindingParameters(rawArgs, channel, _dbCtx);
+        await using var dbCtx = _dbProvider.Provide();
+        var parameters = await ExtractPermissionBindingParameters(rawArgs, channel, dbCtx);
 
         if (parameters == null) return false;
 
@@ -169,13 +171,13 @@ public class RoleSettingCommand : GuildMessageCommand
             return true;
         }
 
-        await using var transaction = await _dbCtx.Database.BeginTransactionAsync();
+        await using var transaction = await dbCtx.Database.BeginTransactionAsync();
 
         #region Transaction
 
-        var role = CreateOrGetRole(_dbCtx, guildRoleId, channel.Guild.Id);
-        _dbCtx.UserCommandPermissions.Add(new UserCommandPermission(role.Id, commandName));
-        _dbCtx.SaveChanges();
+        var role = CreateOrGetRole(dbCtx, guildRoleId, channel.Guild.Id);
+        dbCtx.UserCommandPermissions.Add(new UserCommandPermission(role.Id, commandName));
+        dbCtx.SaveChanges();
 
         #endregion
 
@@ -202,7 +204,8 @@ public class RoleSettingCommand : GuildMessageCommand
     /// <returns>Is task success</returns>
     private async Task<bool> UnBindingPermission(string rawArgs, SocketTextChannel channel)
     {
-        var parameters = await ExtractPermissionBindingParameters(rawArgs, channel, _dbCtx);
+        await using var dbCtx = _dbProvider.Provide();
+        var parameters = await ExtractPermissionBindingParameters(rawArgs, channel, dbCtx);
 
         if (parameters == null) return false;
 
@@ -214,8 +217,8 @@ public class RoleSettingCommand : GuildMessageCommand
         }
         else
         {
-            _dbCtx.UserCommandPermissions.Remove(record);
-            _dbCtx.SaveChanges();
+            dbCtx.UserCommandPermissions.Remove(record);
+            dbCtx.SaveChanges();
 
             // Update cache
             var cacheKey = $"{channel.Guild.Id}_{commandName}";
@@ -233,23 +236,23 @@ public class RoleSettingCommand : GuildMessageCommand
     /// <summary>
     ///     Create or get user role in database, use to make sure user role config exists
     /// </summary>
-    /// <param name="_dbCtx">Database context</param>
+    /// <param name="dbCtx">Database context</param>
     /// <param name="guildRoleId">Guild role id</param>
     /// <param name="guildId">Guild id to create role if not exist</param>
     /// <returns>User role object</returns>
-    private static UserRole CreateOrGetRole(DatabaseContext _dbCtx, uint guildRoleId, ulong guildId)
+    private static UserRole CreateOrGetRole(DatabaseContext dbCtx, uint guildRoleId, ulong guildId)
     {
-        var record = (from role in _dbCtx.UserRoles
+        var record = (from role in dbCtx.UserRoles
             where role.KookId == guildRoleId
             select role).FirstOrDefault();
 
         if (record == null)
         {
             record = new UserRole(guildRoleId, guildId);
-            _dbCtx.UserRoles.Add(record);
+            dbCtx.UserRoles.Add(record);
         }
 
-        _dbCtx.SaveChanges();
+        dbCtx.SaveChanges();
 
         return record;
     }

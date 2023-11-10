@@ -9,28 +9,30 @@ namespace Jellyfish.Core.Cache;
 public class CacheLoader
 {
     private readonly ILogger<CacheLoader> _log;
-    private readonly DatabaseContext _dbCtx;
+    private readonly DbContextProvider _dbProvider;
 
-    public CacheLoader(ILogger<CacheLoader> log, DatabaseContext dbCtx)
+    public CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
     {
         _log = log;
-        _dbCtx = dbCtx;
+        _dbProvider = dbProvider;
     }
 
     public async Task Load()
     {
+        await using var dbCtx = _dbProvider.Provide();
         _log.LogInformation("开始加载应用缓存");
-        await LoadPermissions();
-        LoadTeamPlayConfigs();
+        await LoadPermissions(dbCtx);
+        LoadTeamPlayConfigs(dbCtx);
         _log.LogInformation("应用缓存加载完成！");
     }
 
     /// <summary>
     ///     Load permissions
     /// </summary>
-    private async Task LoadPermissions()
+    /// <param name="dbCtx">Database Context</param>
+    private static async Task LoadPermissions(DatabaseContext dbCtx)
     {
-        var roles = await _dbCtx.UserRoles
+        var roles = await dbCtx.UserRoles
             .Include(e => e.CommandPermissions)
             .AsNoTracking()
             .ToListAsync();
@@ -53,9 +55,10 @@ public class CacheLoader
     /// <summary>
     ///     Load team play configs
     /// </summary>
-    private void LoadTeamPlayConfigs()
+    /// <param name="dbCtx">Database Context</param>
+    private static void LoadTeamPlayConfigs(DatabaseContext dbCtx)
     {
-        _dbCtx.TpConfigs
+        dbCtx.TpConfigs
             .Where(e => e.Enabled)
             .AsNoTracking()
             .AsEnumerable()

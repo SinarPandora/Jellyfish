@@ -13,16 +13,16 @@ namespace Jellyfish.Module.TeamPlay.User;
 /// </summary>
 public class TeamPlayTeammateLeaveCommand : UserDisconnectEventCommand
 {
-    private readonly DatabaseContext _dbCtx;
     private readonly ILogger<TeamPlayTeammateLeaveCommand> _log;
     private readonly KookSocketClient _kook;
+    private readonly DbContextProvider _dbProvider;
 
-    public TeamPlayTeammateLeaveCommand(DatabaseContext dbCtx, ILogger<TeamPlayTeammateLeaveCommand> log,
-        KookSocketClient kook)
+    public TeamPlayTeammateLeaveCommand(ILogger<TeamPlayTeammateLeaveCommand> log,
+        KookSocketClient kook, DbContextProvider dbProvider)
     {
-        _dbCtx = dbCtx;
         _log = log;
         _kook = kook;
+        _dbProvider = dbProvider;
     }
 
     public override string Name() => "队友退出组队语音频道指令";
@@ -31,7 +31,8 @@ public class TeamPlayTeammateLeaveCommand : UserDisconnectEventCommand
         SocketVoiceChannel channel,
         DateTimeOffset leaveAt)
     {
-        var room = _dbCtx.TpRoomInstances.Include(e => e.TmpTextChannel)
+        await using var dbCtx = _dbProvider.Provide();
+        var room = dbCtx.TpRoomInstances.Include(e => e.TmpTextChannel)
             .FirstOrDefault(room => room.VoiceChannelId == channel.Id && room.GuildId == channel.Guild.Id);
 
         if (room?.TmpTextChannel == null || !channel.HasPassword) return CommandResult.Continue;

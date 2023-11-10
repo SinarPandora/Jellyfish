@@ -28,16 +28,16 @@ public class TeamPlayRoomService
 
     #endregion
 
-    private readonly DatabaseContext _dbCtx;
     private readonly ILogger<TeamPlayRoomService> _log;
     private readonly TmpTextChannelService _tmpTextChannelService;
+    private readonly DbContextProvider _dbProvider;
 
-    public TeamPlayRoomService(DatabaseContext dbCtx, ILogger<TeamPlayRoomService> log,
-        TmpTextChannelService tmpTextChannelService)
+    public TeamPlayRoomService(ILogger<TeamPlayRoomService> log,
+        TmpTextChannelService tmpTextChannelService, DbContextProvider dbProvider)
     {
-        _dbCtx = dbCtx;
         _log = log;
         _tmpTextChannelService = tmpTextChannelService;
+        _dbProvider = dbProvider;
     }
 
     /// <summary>
@@ -77,7 +77,8 @@ public class TeamPlayRoomService
             roomName = $"🔐{roomName}";
         }
 
-        if (_dbCtx.TpRoomInstances.Any(e => e.OwnerId == user.Id))
+        await using var dbCtx = _dbProvider.Provide();
+        if (dbCtx.TpRoomInstances.Any(e => e.OwnerId == user.Id))
         {
             _log.LogInformation("创建频道 {RoomName} 失败，用户 {DisplayName}#{UserId} 已加入其他语音频道", roomName, user.DisplayName,
                 user.Id);
@@ -150,18 +151,20 @@ public class TeamPlayRoomService
                 ownerId: user.Id,
                 commandText: args.RawCommand
             );
-            _dbCtx.TpRoomInstances.Add(instance);
-            _dbCtx.SaveChanges();
+            dbCtx.TpRoomInstances.Add(instance);
+            dbCtx.SaveChanges();
 
             _log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
 
-            _ = CreateTemporaryTextChannel(
+            await CreateTemporaryTextChannel(
                 new TmpChannel.Core.Args.CreateTextChannelArgs(
                     (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
                     parentChannel.CategoryId
                 ),
                 user, instance, isVoiceChannelHasPassword, noticeChannel
             );
+
+            dbCtx.SaveChanges();
 
             // Send post messages
             await SendRoomUpdateWizardToDmcAsync(
@@ -232,8 +235,7 @@ public class TeamPlayRoomService
     /// <param name="room">Current team play room instance</param>
     /// <param name="isVoiceChannelHasPassword">Is voice channel has password</param>
     /// <param name="noticeChannel">Notice channel</param>
-    private async Task CreateTemporaryTextChannel(
-        TmpChannel.Core.Args.CreateTextChannelArgs args,
+    private async Task CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
         SocketGuildUser creator,
         TpRoomInstance room,
         bool isVoiceChannelHasPassword,
@@ -259,7 +261,6 @@ public class TeamPlayRoomService
             async (instance, newChannel) =>
             {
                 room.TmpTextChannelId = instance.Id;
-                _dbCtx.SaveChanges();
 
                 await newChannel.SendSuccessCardAsync(
                     $"""
