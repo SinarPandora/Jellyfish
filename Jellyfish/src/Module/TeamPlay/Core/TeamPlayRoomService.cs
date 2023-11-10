@@ -266,6 +266,7 @@ public class TeamPlayRoomService
                      {MentionUtils.KMarkdownMentionUser(creator.Id)}
                      ---
                      欢迎光临！这是属于组队房间「{room.RoomName}」的专属临时文字频道！
+                     （若语音房间设置了密码，该频道将改为仅语音内玩家可见）
                      ---
                      当语音或文字房间十分钟内均无人使用时，组队房间将被解散。
                      """, false);

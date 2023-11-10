@@ -38,6 +38,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// </summary>
     public async Task ExecuteAsync()
     {
+        _log.LogInformation("组队房间扫描任务开始");
         var now = DateTime.Now;
         var configs = _dbCtx.TpConfigs
             .Include(e => e.RoomInstances)
@@ -57,6 +58,8 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 _dbCtx.SaveChanges(); // Save immediately for each room
             }
         }
+
+        _log.LogInformation("组队房间扫描任务结束");
     }
 
     /// <summary>
@@ -127,7 +130,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
         }
         catch (Exception e)
         {
-            _log.LogError(e, "尝试更新房间失败，房间名：{RoomName}", room.RoomName);
+            _log.LogError(e, "组队房间扫描任务失败，房间名：{RoomName}", room.RoomName);
         }
     }
 
@@ -142,9 +145,10 @@ public class TeamPlayRoomScanJob : IAsyncJob
     {
         var cachedGuild = voiceChannel.Guild;
         var everyOneRole = cachedGuild.EveryoneRole;
+        var everyoneOverride = textChannel.GetPermissionOverwrite(everyOneRole);
         switch (voiceChannel.HasPassword)
         {
-            case true when textChannel.GetPermissionOverwrite(everyOneRole) == null:
+            case true when everyoneOverride is not { ViewChannel: PermValue.Deny }:
             {
                 // Sync voice member permission to text channel, then hide the text channel
                 foreach (var user in users)
@@ -158,7 +162,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 await textChannel.OverrideRolePermissionAsync(everyOneRole, r => r.Modify(viewChannel: PermValue.Deny));
                 break;
             }
-            case false when textChannel.GetPermissionOverwrite(everyOneRole) != null:
+            case false when everyoneOverride is { ViewChannel: PermValue.Deny }:
             {
                 // Remove all member override on bound text channel, and show the text channel for all user again
                 await textChannel.SyncPermissionsAsync();
@@ -232,7 +236,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
 
         if (currentName != voiceChannel.Name)
         {
-            _log.LogInformation("监测到房间名称发生变化，尝试更新房间名");
+            _log.LogInformation("监测到房间 {RoomName}#{Id} 名称发生变化，尝试更新房间名", room.RoomName, room.Id);
             await voiceChannel.ModifyAsync(v => v.Name = currentName);
             if (textChannel != null)
             {
@@ -242,6 +246,8 @@ public class TeamPlayRoomScanJob : IAsyncJob
                     await textChannel.ModifyAsync(c => c.Name = newTextChannelName);
                 }
             }
+
+            _log.LogInformation("房间 {RoomName}#{Id} 名称已更新为 {NewName}", room.RoomName, room.Id, currentName);
         }
 
         room.RoomName = currentName;

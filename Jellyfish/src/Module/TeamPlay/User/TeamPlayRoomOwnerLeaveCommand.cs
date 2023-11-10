@@ -13,10 +13,12 @@ namespace Jellyfish.Module.TeamPlay.User;
 public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
 {
     private readonly DatabaseContext _dbCtx;
+    private readonly ILogger<TeamPlayRoomOwnerLeaveCommand> _log;
 
-    public TeamPlayRoomOwnerLeaveCommand(DatabaseContext dbCtx)
+    public TeamPlayRoomOwnerLeaveCommand(DatabaseContext dbCtx, ILogger<TeamPlayRoomOwnerLeaveCommand> log)
     {
         _dbCtx = dbCtx;
+        _log = log;
     }
 
     public override string Name() => "房主离开语音房间指令";
@@ -44,6 +46,8 @@ public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
         {
             await dmc.SendInfoCardAsync($"您已离开当前房间 {room.RoomName}，您的房主权限将稍后传递给房间内的下一个人，感谢您的使用", false);
         }
+
+        _log.LogInformation("房主 {UserName} 已离开房间 {RoomName}#{Id}", user.Value.DisplayName(), room.RoomName, room.Id);
 
         return CommandResult.Continue; // This is a middleware command, so make it continue event done
     }
