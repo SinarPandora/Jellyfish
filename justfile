@@ -1,6 +1,7 @@
 set dotenv-load
 
-container_name := "jellyfish"
+version := "1.2.0"
+container_name := "jellyfish" + "_" + version
 postgres_container_name := "jellyfish_postgres_container"
 
 migrate:
