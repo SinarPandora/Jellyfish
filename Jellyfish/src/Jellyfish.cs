@@ -85,6 +85,8 @@ public static class JellyFish
     [Conditional("DEBUG")]
     private static void InjectDbContextForMigration(ContainerBuilder container)
     {
-        container.Register<DatabaseContext>(provider => provider.Resolve<DbContextProvider>().Provide());
+        container.Register<DatabaseContext>(provider => provider.Resolve<DbContextProvider>().Provide())
+            .InstancePerDependency()
+            .ExternallyOwned();
     }
 }
