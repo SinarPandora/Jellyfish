@@ -282,9 +282,9 @@ public static class KookCoreApiHelper
     /// </summary>
     /// <param name="user">User object</param>
     /// <returns>Display name</returns>
-    public static string DisplayName(this IGuildUser user)
+    public static string DisplayName(this IUser user)
     {
-        return user is SocketGuildUser guildUser
+        return user is IGuildUser guildUser
             ? guildUser.Nickname ?? guildUser.Username
             : user.Username;
     }

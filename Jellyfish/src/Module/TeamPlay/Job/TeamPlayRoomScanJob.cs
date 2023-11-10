@@ -71,7 +71,13 @@ public class TeamPlayRoomScanJob : IAsyncJob
         var textChannel = room.TmpTextChannel != null ? guild.GetTextChannel(room.TmpTextChannel.ChannelId) : null;
         try
         {
-            // 1. If voice channel does not exist, clean the room instance
+            // 1. Sync text channel status to team play room instance
+            if (textChannel == null)
+            {
+                room.TmpTextChannelId = null;
+            }
+
+            // 2. If voice channel does not exist, clean the room instance
             if (voiceChannel == null)
             {
                 if (textChannel != null)
@@ -83,15 +89,15 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 return;
             }
 
-            // 2. If no user in the room
-            var users = await voiceChannel.GetConnectedUsersAsync();
+            // 3. If no user in the room
+            var users = await voiceChannel.GetConnectedUsersAsync()!;
             if (users.All(u => u.IsBot ?? false))
             {
                 var needCleanup = textChannel == null || await IsLatestMessageBefore(textChannel, now,
                     room.CreateTime.AddMinutes(RoomDoesNotUsedDuration) < now
-                        // 3. If room never used in 5 minutes
+                        // 4. If room never used in 5 minutes
                         ? RoomDoesNotUsedDuration
-                        // 4. If no message in text channel during 20 minutes
+                        // 5. If no message in text channel during 20 minutes
                         : TextChannelExpireDuration);
 
                 if (needCleanup)
@@ -101,18 +107,69 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 }
             }
 
-            // 5. Check if owner leave
-            else if (users.Count > 0 && users.All(u => u.Id != room.OwnerId))
+            // 6. Check if owner leave
+            else if (users.IsNotEmpty() && users.All(u => u.Id != room.OwnerId))
             {
                 await ElectNewRoomOwner(room, users, voiceChannel);
+                if (textChannel != null)
+                {
+                    // 7. Sync member permission for private text channel (which bound voice channel has password)
+                    await SyncPrivateTextChannelMemberPermission(
+                        voiceChannel,
+                        textChannel,
+                        users.Where(u => !u.IsBot ?? false).ToArray());
+                }
             }
 
-            // 6. Check room name with 🔐locked icon if it has password(and also sync the name for text channel)
+            // 8. Check room name with 🔐locked icon if it has password (and also sync the name for text channel)
             await RefreshChannelNames(room, voiceChannel, textChannel);
         }
         catch (Exception e)
         {
             _log.LogError(e, "尝试清理房间失败，房间名：{RoomName}", room.RoomName);
+        }
+    }
+
+    /// <summary>
+    ///     If the bound voice room comes with a password， sync member permission for text channel
+    /// </summary>
+    /// <param name="voiceChannel">Voice channel</param>
+    /// <param name="textChannel">Target text channel</param>
+    /// <param name="users">Users in voice room</param>
+    private static async Task SyncPrivateTextChannelMemberPermission(SocketVoiceChannel voiceChannel,
+        IGuildChannel textChannel, IEnumerable<SocketGuildUser> users)
+    {
+        var cachedGuild = voiceChannel.Guild;
+        var everyOneRole = cachedGuild.EveryoneRole;
+        switch (voiceChannel.HasPassword)
+        {
+            case true when textChannel.GetPermissionOverwrite(everyOneRole) == null:
+            {
+                // Sync voice member permission to text channel, then hide the text channel
+                foreach (var user in users)
+                {
+                    await textChannel.OverrideUserPermissionAsync(user, r => r.Modify(
+                        viewChannel: PermValue.Allow,
+                        mentionEveryone: PermValue.Allow
+                    ));
+                }
+
+                await textChannel.OverrideRolePermissionAsync(everyOneRole, r => r.Modify(viewChannel: PermValue.Deny));
+                break;
+            }
+            case false when textChannel.GetPermissionOverwrite(everyOneRole) != null:
+            {
+                // Remove all member override on bound text channel, and show the text channel for all user again
+                await textChannel.RemoveRolePermissionOverrideAsync(everyOneRole);
+                // For keeping fast, use role cache here
+                foreach (var permission in textChannel.UserPermissionOverwrites)
+                {
+                    var user = cachedGuild.GetUser(permission.Target.Id);
+                    await textChannel.RemoveUserPermissionOverrideAsync(user);
+                }
+
+                break;
+            }
         }
     }
 
@@ -146,7 +203,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// <param name="now"></param>
     /// <param name="durationInMinute"></param>
     /// <returns></returns>
-    private static async Task<bool> IsLatestMessageBefore(SocketTextChannel textChannel, DateTime now,
+    private static async Task<bool> IsLatestMessageBefore(IMessageChannel textChannel, DateTime now,
         int durationInMinute)
     {
         var messages = await textChannel.GetMessagesAsync(1).FirstAsync();
@@ -205,7 +262,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// <param name="instance">The room instance</param>
     /// <param name="users">All users in the room</param>
     /// <param name="voiceChannel">The voice channel</param>
-    private async Task ElectNewRoomOwner(TpRoomInstance instance, IEnumerable<SocketGuildUser> users,
+    private async Task ElectNewRoomOwner(TpRoomInstance instance, IEnumerable<IGuildUser> users,
         IVoiceChannel voiceChannel)
     {
         // If room owner not in the room, switch owner
