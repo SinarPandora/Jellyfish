@@ -111,22 +111,23 @@ public class TeamPlayRoomScanJob : IAsyncJob
             else if (users.IsNotEmpty() && users.All(u => u.Id != room.OwnerId))
             {
                 await ElectNewRoomOwner(room, users, voiceChannel);
-                if (textChannel != null)
-                {
-                    // 7. Sync member permission for private text channel (which bound voice channel has password)
-                    await SyncPrivateTextChannelMemberPermission(
-                        voiceChannel,
-                        textChannel,
-                        users.Where(u => !u.IsBot ?? false).ToArray());
-                }
             }
 
-            // 8. Check room name with 🔐locked icon if it has password (and also sync the name for text channel)
+            // 7. Check room name with 🔐locked icon if it has password (and also sync the name for text channel)
             await RefreshChannelNames(room, voiceChannel, textChannel);
+
+            // 8. Sync member permission for private text channel (which bound voice channel has password)
+            if (users.IsNotEmpty() && textChannel != null)
+            {
+                await SyncPrivateTextChannelMemberPermission(
+                    voiceChannel,
+                    textChannel,
+                    users.Where(u => !u.IsBot ?? false).ToArray());
+            }
         }
         catch (Exception e)
         {
-            _log.LogError(e, "尝试清理房间失败，房间名：{RoomName}", room.RoomName);
+            _log.LogError(e, "尝试更新房间失败，房间名：{RoomName}", room.RoomName);
         }
     }
 
@@ -137,7 +138,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// <param name="textChannel">Target text channel</param>
     /// <param name="users">Users in voice room</param>
     private static async Task SyncPrivateTextChannelMemberPermission(SocketVoiceChannel voiceChannel,
-        IGuildChannel textChannel, IEnumerable<SocketGuildUser> users)
+        INestedChannel textChannel, IEnumerable<SocketGuildUser> users)
     {
         var cachedGuild = voiceChannel.Guild;
         var everyOneRole = cachedGuild.EveryoneRole;
@@ -160,14 +161,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
             case false when textChannel.GetPermissionOverwrite(everyOneRole) != null:
             {
                 // Remove all member override on bound text channel, and show the text channel for all user again
-                await textChannel.RemoveRolePermissionOverrideAsync(everyOneRole);
-                // For keeping fast, use role cache here
-                foreach (var permission in textChannel.UserPermissionOverwrites)
-                {
-                    var user = cachedGuild.GetUser(permission.Target.Id);
-                    await textChannel.RemoveUserPermissionOverrideAsync(user);
-                }
-
+                await textChannel.SyncPermissionsAsync();
                 break;
             }
         }

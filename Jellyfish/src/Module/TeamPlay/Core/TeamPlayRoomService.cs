@@ -65,7 +65,8 @@ public class TeamPlayRoomService
             : args.RoomName ?? $"{user.DisplayName}的房间";
         var roomNameWithoutIcon = roomName;
 
-        if (args.Password.IsNotEmpty())
+        var isVoiceChannelHasPassword = args.Password.IsNotEmpty();
+        if (isVoiceChannelHasPassword)
         {
             if (args.Password.Length > 12 || !long.TryParse(args.Password, out _))
             {
@@ -120,7 +121,7 @@ public class TeamPlayRoomService
                 r.CategoryId = parentChannel.CategoryId;
             });
 
-            if (args.Password.IsNotEmpty())
+            if (isVoiceChannelHasPassword)
             {
                 _log.LogInformation("检测到房间 {RoomName} 带有初始密码，尝试设置密码", roomName);
                 await room.ModifyAsync(v => v.Password = args.Password);
@@ -156,13 +157,10 @@ public class TeamPlayRoomService
 
             _ = CreateTemporaryTextChannel(
                 new TmpChannel.Core.Args.CreateTextChannelArgs(
-                    "💬" + roomNameWithoutIcon,
+                    (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
                     parentChannel.CategoryId
                 ),
-                user,
-                instance,
-                args.Password.IsNotEmpty(),
-                noticeChannel
+                user, instance, isVoiceChannelHasPassword, noticeChannel
             );
 
             // Send post messages
