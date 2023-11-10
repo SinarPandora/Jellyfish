@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System.Diagnostics;
+using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Jellyfish.Core.Data;
 using Jellyfish.Core.Enum;
@@ -52,6 +53,8 @@ public static class JellyFish
                         .Options);
                 }).SingleInstance();
 
+                InjectDbContextForMigration(container);
+
                 // Binding other instances
                 AppContext.BindAll(container);
             });
@@ -74,5 +77,14 @@ public static class JellyFish
             // Flush log buffer when application shutting down
             NLog.LogManager.Shutdown();
         }
+    }
+
+    /// <summary>
+    ///     Enable migration inject only on dev
+    /// </summary>
+    [Conditional("DEBUG")]
+    private static void InjectDbContextForMigration(ContainerBuilder container)
+    {
+        container.Register<DatabaseContext>(provider => provider.Resolve<DbContextProvider>().Provide());
     }
 }
