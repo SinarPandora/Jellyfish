@@ -88,7 +88,7 @@ public class TeamPlayRoomService
 
         var voiceCategoryId = GetVoiceCategoryId(tpConfig, user.Guild);
         var textCategoryId = GetTextCategoryId(tpConfig, user.Guild);
-        if (!voiceCategoryId.HasValue || !textCategoryId.HasValue)
+        if (!voiceCategoryId.HasValue)
         {
             _log.LogError("{TpConfigId}：{TpConfigName} 所对应的父频道未找到，请检查错误日志并更新频道配置", tpConfig.Id, tpConfig.Name);
             await noticeChannel.SendErrorCardAsync(ParentChannelNotFound, true);
@@ -160,9 +160,9 @@ public class TeamPlayRoomService
             await CreateTemporaryTextChannel(
                 new TmpChannel.Core.Args.CreateTextChannelArgs(
                     (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
-                    textCategoryId.Value
+                    textCategoryId ?? voiceCategoryId
                 ),
-                user, instance, isVoiceChannelHasPassword, noticeChannel
+                user, instance, room, isVoiceChannelHasPassword, noticeChannel
             );
 
             dbCtx.SaveChanges();
@@ -245,7 +245,7 @@ public class TeamPlayRoomService
     /// </summary>
     /// <param name="room">New voice channel</param>
     /// <returns>Kook card object</returns>
-    public static async Task<Card> CreateInviteCardAsync(RestVoiceChannel room)
+    public static async Task<Card> CreateInviteCardAsync(IVoiceChannel room)
     {
         var invite = await room.CreateInviteAsync(InviteMaxAge.NeverExpires);
         var card = new CardBuilder();
@@ -280,11 +280,13 @@ public class TeamPlayRoomService
     /// <param name="args">Channel create args</param>
     /// <param name="creator">Team play room creator</param>
     /// <param name="room">Current team play room instance</param>
+    /// <param name="voiceChannel">Current voice channel</param>
     /// <param name="isVoiceChannelHasPassword">Is voice channel has password</param>
     /// <param name="noticeChannel">Notice channel</param>
     private async Task CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
         SocketGuildUser creator,
         TpRoomInstance room,
+        IVoiceChannel voiceChannel,
         bool isVoiceChannelHasPassword,
         IMessageChannel noticeChannel)
     {
@@ -318,6 +320,9 @@ public class TeamPlayRoomService
                      ---
                      当语音或文字房间十分钟内均无人使用时，组队房间将被解散。
                      """, false);
+
+                await newChannel.SendCardAsync(await CreateInviteCardAsync(voiceChannel));
+                await newChannel.SendTextAsync("👍🏻还未加入组队语音？点击上方「加入」按钮进入对应语音房间");
             },
             _ => noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false));
     }

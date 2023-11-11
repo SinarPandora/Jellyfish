@@ -280,13 +280,19 @@ public class TeamPlayManageService
                      2. 用户发送指令创建房间：`/组队 XP1700开放`
                      3. 最终房间名为：`【上分】XP1700开放`
                      若房间重名，将在房间后面添加序号来进行区分
-
                      ---
                      **设置默认人数：**
                      > `!组队 默认人数 {config.Name} [数字]`
 
                      设定创建语音房间的默认人数，输入 0 代表人数无限
                      **默认人数无限**
+                     ---
+                     **设置房间所在分组**
+                     > `!组队 临时语音频道分组 [配置名称] [#引用现有文字频道]`
+                     > `!组队 临时文字频道分组 [配置名称] [#引用现有文字频道]`
+
+                     [#引用现有文字频道]：指的是一个文字频道的 Kook 引用，用于获取其所属的分类频道（因为 Kook 无法直接引用分类频道）
+                     默认语音房间将创建在上一步中绑定的语音所在分组，文字房间将创建在上一步中绑定的文字房间所在分组。
                      """, true);
             })
             .WithSize(CardSize.Large)
@@ -333,7 +339,7 @@ public class TeamPlayManageService
 
         config.RoomNamePattern = pattern;
         dbCtx.SaveChanges();
-        AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{args[0]}"].RoomNamePattern = pattern;
+        AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].RoomNamePattern = pattern;
         await channel.SendSuccessCardAsync($"更改房间名格式成功，新房间名称格式为：{pattern}", false);
         return true;
     }
@@ -382,6 +388,83 @@ public class TeamPlayManageService
             false
         );
 
+        return true;
+    }
+
+    /// <summary>
+    ///     Configure the category channel for team play room (voice or text channel)
+    /// </summary>
+    /// <param name="channel">Current channel</param>
+    /// <param name="rawArgs">Command args</param>
+    /// <param name="channelType">Target channel type</param>
+    /// <returns>Is task success</returns>
+    public async Task<bool> SetCategoryChannel(SocketTextChannel channel, string rawArgs, ChannelType channelType)
+    {
+        var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
+
+        if (args.Length < 2)
+        {
+            await channel.SendErrorCardAsync(
+                $"""
+                 参数不足！举例：`!组队 临时{(channelType == ChannelType.Voice ? "语音" : "文字")}频道分组 #引用现有文字频道`
+                  引用的频道必须是一个 Kook 引用（在消息中显示为蓝色）
+                 """,
+                true);
+            return false;
+        }
+
+        var configName = args[0];
+        await using var dbCtx = _dbProvider.Provide();
+
+        var tpConfig =
+            (from c in dbCtx.TpConfigs
+                where c.GuildId == channel.Guild.Id && c.Name == configName
+                select c).FirstOrDefault();
+
+        if (tpConfig == null)
+        {
+            await channel.SendErrorCardAsync("配置不存在，您可以发送：`!组队 列表` 查看现有配置", true);
+            return false;
+        }
+
+        var rawMention = args[1];
+
+        if (!rawMention.StartsWith("(chn)"))
+        {
+            await channel.SendErrorCardAsync("请在指令中引用现有文字频道，具体内容可以参考：`!组队 帮助`", true);
+            return false;
+        }
+
+
+        var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
+        if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var textChannelId))
+        {
+            await channel.SendErrorCardAsync("现有文字频道引用应是一个频道引用（蓝色文本），具体内容可以参考：`!组队 帮助`", true);
+            return false;
+        }
+
+        var categoryId = channel.Guild.GetTextChannel(textChannelId).CategoryId;
+
+        if (!categoryId.HasValue)
+        {
+            await channel.SendErrorCardAsync("指定的文字频道不属于任何分组，为确保频道列表简洁，请重新选择一个带有分组的文字频道", true);
+            return false;
+        }
+
+        if (channelType == ChannelType.Voice)
+        {
+            tpConfig.VoiceCategoryId = categoryId;
+            dbCtx.SaveChanges();
+            AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].VoiceCategoryId = categoryId;
+        }
+        else
+        {
+            tpConfig.TextCategoryId = categoryId;
+            dbCtx.SaveChanges();
+            AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].TextCategoryId = categoryId;
+        }
+
+        await channel.SendSuccessCardAsync($"临时{(channelType == ChannelType.Voice ? "语音" : "文字")}频道分组配置成功！", false);
         return true;
     }
 }
