@@ -7,7 +7,7 @@ namespace Jellyfish.Util;
 /// </summary>
 public static class AutoRecallMessageHelper
 {
-    public static readonly TimeSpan DefaultRecallTimeout = TimeSpan.FromSeconds(20);
+    public static readonly TimeSpan DefaultRecallTimeout = TimeSpan.FromSeconds(30);
 
     /// <summary>
     ///     Send card to channel, then recall it after reached timeout
