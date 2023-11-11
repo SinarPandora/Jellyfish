@@ -141,12 +141,11 @@ public class TeamPlayRoomService
 
             _log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), room.Name);
 
+            var moveUserTask = Task.CompletedTask;
             if (user.VoiceChannel != null)
             {
-                await guild.MoveToRoomAsync(user.Id, room);
+                moveUserTask = guild.MoveToRoomAsync(user.Id, room);
             }
-
-            _log.LogInformation("移动成功，用户已移动到{RoomName}", room.Name);
 
             var instance = new TpRoomInstance(
                 tpConfigId: tpConfig.Id,
@@ -169,6 +168,7 @@ public class TeamPlayRoomService
                 user, instance, room, isVoiceChannelHasPassword, noticeChannel
             );
 
+            await moveUserTask;
             dbCtx.SaveChanges();
 
             // Send post messages
