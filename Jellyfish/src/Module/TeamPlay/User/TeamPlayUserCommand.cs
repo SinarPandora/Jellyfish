@@ -140,7 +140,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
             async (_, room) =>
             {
                 await channel.SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
-                await channel.SendTextAsync($"{MentionUtils.KMarkdownMentionUser(user.Id)} 👍🏻请点击上方「加入」按钮进入房间");
+                await channel.SendTextAsync($"{MentionUtils.KMarkdownMentionUser(user.Id)} 👍🏻请点击上方按钮进入房间");
             });
 
         if (!isSuccess)
