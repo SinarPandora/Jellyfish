@@ -14,12 +14,7 @@ namespace Jellyfish.Module.TeamPlay.Job;
 /// </summary>
 public class TeamPlayRoomScanJob : IAsyncJob
 {
-    #region CONST
-
     private const int TextChannelExpireDuration = 20;
-    private const int RoomDoesNotUsedDuration = 5;
-
-    #endregion
 
     private readonly ILogger<TeamPlayRoomScanJob> _log;
     private readonly KookSocketClient _kook;
@@ -99,11 +94,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
             if (users.All(u => u.IsBot ?? false))
             {
                 var needCleanup = textChannel == null || await IsLatestMessageBefore(textChannel, now,
-                    room.CreateTime.AddMinutes(RoomDoesNotUsedDuration) < now
-                        // 4. If room never used in 5 minutes
-                        ? RoomDoesNotUsedDuration
-                        // 5. If no message in text channel during 20 minutes
-                        : TextChannelExpireDuration);
+                    TextChannelExpireDuration);
 
                 if (needCleanup)
                 {
