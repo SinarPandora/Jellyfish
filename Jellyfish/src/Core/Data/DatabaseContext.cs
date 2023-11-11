@@ -126,20 +126,19 @@ public class DatabaseContext : DbContext
         var entities = ChangeTracker.Entries().ToList();
 
         foreach (var entry in entities)
-            if (entry.State == EntityState.Added)
+        {
+            if (entry.State != EntityState.Added && entry.State != EntityState.Modified) continue;
+            var actionTimestamp = DateTime.Now;
+            if (entry.Metadata.FindProperty(UpdateTimeProp) != null)
             {
-                if (entry.Metadata.FindProperty(CreateTimeProp) != null)
-                {
-                    Entry(entry.Entity).Property(CreateTimeProp).CurrentValue = DateTime.Now;
-                }
+                Entry(entry.Entity).Property(UpdateTimeProp).CurrentValue = actionTimestamp;
             }
-            else if (entry.State == EntityState.Modified)
+
+            if (entry.State == EntityState.Added && entry.Metadata.FindProperty(CreateTimeProp) != null)
             {
-                if (entry.Metadata.FindProperty(UpdateTimeProp) != null)
-                {
-                    Entry(entry.Entity).Property(UpdateTimeProp).CurrentValue = DateTime.Now;
-                }
+                Entry(entry.Entity).Property(CreateTimeProp).CurrentValue = actionTimestamp;
             }
+        }
 
         return base.SaveChanges();
     }
