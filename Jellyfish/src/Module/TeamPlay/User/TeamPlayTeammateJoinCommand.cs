@@ -43,6 +43,9 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
         var restTextChannel = await restGuild.GetTextChannelAsync(tmpInstance.ChannelId);
         if (restTextChannel == null) return CommandResult.Done;
 
+
+        if (restTextChannel.GetPermissionOverwrite(user.Value) != null) return CommandResult.Done;
+
         if (channel.HasPassword)
         {
             // If voice room has password, grant text room access permission to user
@@ -50,7 +53,16 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
                 viewChannel: PermValue.Allow,
                 mentionEveryone: PermValue.Allow
             ));
-            _log.LogInformation("加入组队房间 {TpRoomName} 的用户：{Name}:{Id}，已获得文字房间 {TextRoomName} 的访问权限",
+            _log.LogInformation("加入语音房间 {TpRoomName} 的用户：{Name}:{Id}，已获得文字房间 {TextRoomName} 的访问权限",
+                room.RoomName, user.Value.DisplayName(), user.Id, restTextChannel.Name
+            );
+        }
+        else
+        {
+            await restTextChannel.OverrideUserPermissionAsync(user.Value, p => p.Modify(
+                sendMessages: PermValue.Allow
+            ));
+            _log.LogInformation("加入语音房间 {TpRoomName} 的用户：{Name}:{Id}，已在文字房间 {TextRoomName} 中被标记",
                 room.RoomName, user.Value.DisplayName(), user.Id, restTextChannel.Name
             );
         }
