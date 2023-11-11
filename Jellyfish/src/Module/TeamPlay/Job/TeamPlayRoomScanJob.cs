@@ -200,9 +200,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
     {
         var messages = await textChannel.GetMessagesAsync(1).FirstAsync();
         var lastMessage = messages.IsNotEmpty() ? messages.First() : null;
-        return lastMessage != null &&
-               (lastMessage.EditedTimestamp ?? lastMessage.Timestamp)
-               .AddMinutes(durationInMinute) < now;
+        return lastMessage == null || lastMessage.Timestamp.AddMinutes(durationInMinute) < now;
     }
 
     /// <summary>
@@ -215,36 +213,35 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// <param name="textChannel">Bound text channel</param>
     private async Task RefreshChannelNames(TpRoomInstance room, IVoiceChannel voiceChannel, ITextChannel? textChannel)
     {
-        var currentName = voiceChannel.Name;
-        if (voiceChannel.HasPassword)
+        var cleanName = voiceChannel.Name;
+        if (cleanName.StartsWith("🔐"))
         {
-            if (!currentName.StartsWith("🔐"))
-            {
-                currentName = "🔐" + currentName;
-            }
+            cleanName = cleanName.ReplaceFirst("🔐", string.Empty);
         }
-        else if (currentName.StartsWith("🔐"))
+        else if (cleanName.StartsWith("🔊"))
         {
-            currentName = currentName.ReplaceFirst("🔐", string.Empty);
+            cleanName = cleanName.ReplaceFirst("🔊", string.Empty);
         }
 
-        if (currentName != voiceChannel.Name)
+        var newName = (voiceChannel.HasPassword ? "🔐" : "🔊") + cleanName;
+
+        if (newName != voiceChannel.Name)
         {
             _log.LogInformation("监测到房间 {RoomName}#{Id} 名称发生变化，尝试更新房间名", room.RoomName, room.Id);
-            await voiceChannel.ModifyAsync(v => v.Name = currentName);
+            await voiceChannel.ModifyAsync(v => v.Name = newName);
             if (textChannel != null)
             {
-                var newTextChannelName = currentName.StartsWith("🔐") ? currentName : "💬" + currentName;
+                var newTextChannelName = (voiceChannel.HasPassword ? "🔐" : "💬") + cleanName;
                 if (newTextChannelName != textChannel.Name)
                 {
                     await textChannel.ModifyAsync(c => c.Name = newTextChannelName);
                 }
             }
 
-            _log.LogInformation("房间 {RoomName}#{Id} 名称已更新为 {NewName}", room.RoomName, room.Id, currentName);
+            _log.LogInformation("房间 {RoomName}#{Id} 名称已更新为 {NewName}", room.RoomName, room.Id, newName);
         }
 
-        room.RoomName = currentName;
+        room.RoomName = newName;
     }
 
     /// <summary>

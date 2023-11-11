@@ -76,6 +76,10 @@ public class TeamPlayRoomService
 
             roomName = $"🔐{roomName}";
         }
+        else
+        {
+            roomName = $"🔊{roomName}";
+        }
 
         await using var dbCtx = _dbProvider.Provide();
         if (dbCtx.TpRoomInstances.Any(e => e.OwnerId == user.Id))
