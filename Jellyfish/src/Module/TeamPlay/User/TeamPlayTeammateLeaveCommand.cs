@@ -46,6 +46,9 @@ public class TeamPlayTeammateLeaveCommand : UserDisconnectEventCommand
         _log.LogInformation("已移除属于 {UserName} 私有组队房间 {RoomName}#{RoomId} 的文字频道访问权限",
             user.Value.DisplayName(), room.RoomName, room.Id);
 
+        room.UpdateTime = DateTime.Now;
+        dbCtx.SaveChanges();
+
         return CommandResult.Continue; // This is a middleware command, so make it continue event done
     }
 }
