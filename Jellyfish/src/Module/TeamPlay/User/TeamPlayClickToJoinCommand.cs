@@ -29,7 +29,15 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
 
         if (tpConfig == null) return CommandResult.Continue;
         await _service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
-            (_, _) => Task.CompletedTask);
+            async (_, room) =>
+            {
+                if (tpConfig.TextChannelId.HasValue)
+                {
+                    await channel.Guild
+                        .GetTextChannel(tpConfig.TextChannelId.Value)
+                        .SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
+                }
+            });
         return CommandResult.Done;
     }
 }
