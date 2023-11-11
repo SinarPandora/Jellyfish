@@ -41,16 +41,20 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
         var tmpInstance = room.TmpTextChannel;
         var restGuild = await _kook.Rest.GetGuildAsync(channel.Guild.Id);
         var restTextChannel = await restGuild.GetTextChannelAsync(tmpInstance.ChannelId);
-        if (restTextChannel == null || !channel.HasPassword) return CommandResult.Done;
+        if (restTextChannel == null) return CommandResult.Done;
 
-        // If voice room has password, grant text room access permission to user
-        await restTextChannel.OverrideUserPermissionAsync(user.Value, p => p.Modify(
-            viewChannel: PermValue.Allow,
-            mentionEveryone: PermValue.Allow
-        ));
-        _log.LogInformation("加入组队房间 {TpRoomName} 的用户：{Name}:{Id}，已获得文字房间 {TextRoomName} 的访问权限",
-            room.RoomName, user.Value.DisplayName(), user.Id, restTextChannel.Name
-        );
+        if (channel.HasPassword)
+        {
+            // If voice room has password, grant text room access permission to user
+            await restTextChannel.OverrideUserPermissionAsync(user.Value, p => p.Modify(
+                viewChannel: PermValue.Allow,
+                mentionEveryone: PermValue.Allow
+            ));
+            _log.LogInformation("加入组队房间 {TpRoomName} 的用户：{Name}:{Id}，已获得文字房间 {TextRoomName} 的访问权限",
+                room.RoomName, user.Value.DisplayName(), user.Id, restTextChannel.Name
+            );
+        }
+
         await restTextChannel.SendSuccessCardAsync($"欢迎 {MentionUtils.KMarkdownMentionUser(user.Id)} 加入组队房间！",
             false);
 

@@ -86,8 +86,9 @@ public class TeamPlayRoomService
             return false;
         }
 
-        var parentChannel = guild.GetVoiceChannel(tpConfig.VoiceChannelId.Value);
-        if (parentChannel == null)
+        var voiceCategoryId = GetVoiceCategoryId(tpConfig, user.Guild);
+        var textCategoryId = GetTextCategoryId(tpConfig, user.Guild);
+        if (!voiceCategoryId.HasValue || !textCategoryId.HasValue)
         {
             _log.LogError("{TpConfigId}：{TpConfigName} 所对应的父频道未找到，请检查错误日志并更新频道配置", tpConfig.Id, tpConfig.Name);
             await noticeChannel.SendErrorCardAsync(ParentChannelNotFound, true);
@@ -119,7 +120,7 @@ public class TeamPlayRoomService
             {
                 r.VoiceQuality = guild.GetHighestVoiceQuality();
                 r.UserLimit = memberLimit;
-                r.CategoryId = parentChannel.CategoryId;
+                r.CategoryId = voiceCategoryId.Value;
             });
 
             if (isVoiceChannelHasPassword)
@@ -159,7 +160,7 @@ public class TeamPlayRoomService
             await CreateTemporaryTextChannel(
                 new TmpChannel.Core.Args.CreateTextChannelArgs(
                     (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
-                    parentChannel.CategoryId
+                    textCategoryId.Value
                 ),
                 user, instance, isVoiceChannelHasPassword, noticeChannel
             );
@@ -181,6 +182,52 @@ public class TeamPlayRoomService
             await noticeChannel.SendErrorCardAsync(ErrorMessages.ApiFailed, true);
             return false;
         }
+    }
+
+    /// <summary>
+    ///     Using the configured voice channel category id,
+    ///     if category does not find, using the category of bound voice channel
+    /// </summary>
+    /// <param name="config">Team play config</param>
+    /// <param name="guild">Current guild</param>
+    /// <returns>Nullable category channel id</returns>
+    private static ulong? GetVoiceCategoryId(TpConfig config, SocketGuild guild)
+    {
+        if (config.VoiceCategoryId.HasValue)
+        {
+            var category = guild.GetCategoryChannel(config.VoiceCategoryId.Value);
+            if (category != null)
+            {
+                return category.Id;
+            }
+        }
+
+        if (!config.VoiceChannelId.HasValue) return null;
+        var parent = guild.GetVoiceChannel(config.VoiceChannelId.Value);
+        return parent?.CategoryId;
+    }
+
+    /// <summary>
+    ///     Using the configured text channel category id,
+    ///     if category does not find, using the category of bound text channel
+    /// </summary>
+    /// <param name="config">Team play config</param>
+    /// <param name="guild">Current guild</param>
+    /// <returns>Nullable category channel id</returns>
+    private static ulong? GetTextCategoryId(TpConfig config, SocketGuild guild)
+    {
+        if (config.TextCategoryId.HasValue)
+        {
+            var category = guild.GetCategoryChannel(config.TextCategoryId.Value);
+            if (category != null)
+            {
+                return category.Id;
+            }
+        }
+
+        if (!config.TextChannelId.HasValue) return null;
+        var parent = guild.GetTextChannel(config.TextChannelId.Value);
+        return parent?.CategoryId;
     }
 
     /// <summary>

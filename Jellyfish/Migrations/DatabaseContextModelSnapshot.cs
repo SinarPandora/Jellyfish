@@ -208,10 +208,6 @@ namespace Jellyfish.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<decimal?>("CategoryId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("category_id");
-
                     b.Property<DateTime>("CreateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp")
@@ -241,6 +237,10 @@ namespace Jellyfish.Migrations
                         .HasColumnType("text")
                         .HasColumnName("room_name_pattern");
 
+                    b.Property<decimal?>("TextCategoryId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("text_category_id");
+
                     b.Property<decimal?>("TextChannelId")
                         .HasColumnType("numeric(20,0)")
                         .HasColumnName("text_channel_id");
@@ -250,6 +250,10 @@ namespace Jellyfish.Migrations
                         .HasColumnType("timestamp")
                         .HasColumnName("update_time")
                         .HasDefaultValueSql("current_timestamp");
+
+                    b.Property<decimal?>("VoiceCategoryId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("voice_category_id");
 
                     b.Property<decimal?>("VoiceChannelId")
                         .HasColumnType("numeric(20,0)")

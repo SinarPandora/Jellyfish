@@ -5,13 +5,19 @@
 namespace Jellyfish.Migrations
 {
     /// <inheritdoc />
-    public partial class AddIndividualCategoryIdForTPConfig : Migration
+    public partial class AddIndividualCategoryIdsForTPConfig : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<decimal>(
-                name: "category_id",
+                name: "text_category_id",
+                table: "tp_configs",
+                type: "numeric(20,0)",
+                nullable: true);
+
+            migrationBuilder.AddColumn<decimal>(
+                name: "voice_category_id",
                 table: "tp_configs",
                 type: "numeric(20,0)",
                 nullable: true);
@@ -21,7 +27,11 @@ namespace Jellyfish.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "category_id",
+                name: "text_category_id",
+                table: "tp_configs");
+
+            migrationBuilder.DropColumn(
+                name: "voice_category_id",
                 table: "tp_configs");
         }
     }
