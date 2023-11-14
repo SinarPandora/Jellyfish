@@ -9,7 +9,7 @@ namespace Jellyfish.Client.SendouInk.Response;
 [UsedImplicitly]
 public class BuildAdoptWeapon
 {
-    [AliasAs("maxPower")] public uint MaxPower { get; set; }
-    [AliasAs("minRank")] public uint MinRank { get; set; }
+    [AliasAs("maxPower")] public double? MaxPower { get; set; }
+    [AliasAs("minRank")] public uint? MinRank { get; set; }
     [AliasAs("weaponSplId")] public uint WeaponSplId { get; set; }
 }

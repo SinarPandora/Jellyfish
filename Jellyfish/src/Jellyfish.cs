@@ -34,7 +34,10 @@ public static class JellyFish
             builder.Services.AddSwaggerGen();
 
             // Init Refit Clients
-            builder.Services.AddRefitClient<ISendouInkApi>()
+            builder.Services.AddRefitClient<ISendouInkApi>(new RefitSettings
+                {
+                    ContentSerializer = new NewtonsoftJsonContentSerializer()
+                })
                 .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://sendou.ink"));
 
             // NLog: Setup NLog for Dependency injection

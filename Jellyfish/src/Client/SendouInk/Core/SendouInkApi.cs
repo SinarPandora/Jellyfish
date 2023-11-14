@@ -18,10 +18,10 @@ public interface ISendouInkApi
     /// <param name="data">Query data</param>
     /// <returns>Suite builds</returns>
     [Get("/builds/{slug}")]
-    Task<BuildsRecord> GetSuiteBuilds(
+    Task<ApiResponse<BuildsRecord>> GetSuiteBuilds(
         [AliasAs("slug")] string weaponSlug,
         [AliasAs("f")] string? filterJsonStr = null,
         uint limit = 24,
-        string data = "features/builds/routes/builds.$slug"
+        [AliasAs("_data")] string data = "features/builds/routes/builds.$slug"
     );
 }
