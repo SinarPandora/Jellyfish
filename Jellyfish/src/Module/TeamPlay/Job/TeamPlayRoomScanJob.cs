@@ -89,10 +89,22 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 return;
             }
 
-            // 3. If no user in the room
+            // 3. Check if any user in room
             var users = await voiceChannel.GetConnectedUsersAsync()!;
-            if (users.All(u => u.IsBot ?? false))
+            if (users.Any(u => !(u.IsBot ?? false)))
             {
+                // 4. Refresh the update time to delay the room cleanup
+                room.UpdateTime = DateTime.Now;
+
+                // 5. Check if owner leave
+                if (users.All(u => u.Id != room.OwnerId))
+                {
+                    await ElectNewRoomOwner(room, users, voiceChannel);
+                }
+            }
+            else
+            {
+                // 6. If no user in the room
                 var needCleanup = textChannel == null || await IsLatestMessageBefore(textChannel, now,
                     TextChannelExpireDuration);
 
@@ -101,12 +113,6 @@ public class TeamPlayRoomScanJob : IAsyncJob
                     await CleanUpTeamPlayRoom(guild, room, textChannel, voiceChannel, dbCtx);
                     return; // Break the method
                 }
-            }
-
-            // 6. Check if owner leave
-            else if (users.IsNotEmpty() && users.All(u => u.Id != room.OwnerId))
-            {
-                await ElectNewRoomOwner(room, users, voiceChannel);
             }
 
             // 7. Check room name with 🔐locked icon if it has password (and also sync the name for text channel)
