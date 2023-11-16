@@ -55,6 +55,9 @@ public class TeamPlayRoomScanJob : IAsyncJob
             }
         }
 
+        // Remove expired creation locks
+        Locks.RoomCreationLock.RemoveWhere(pair => pair.Value.AddSeconds(10) < now);
+
         _log.LogInformation("组队房间扫描任务结束");
     }
 

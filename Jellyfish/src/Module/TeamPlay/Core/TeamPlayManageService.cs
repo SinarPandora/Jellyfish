@@ -249,7 +249,7 @@ public class TeamPlayManageService
             _log.LogWarning("组队配置缓存缺失，可能是一个 bug。配置键：{GuildId}_{Name}", channel.Guild.Id, name);
         }
 
-        await channel.SendErrorCardAsync($"规则 {name} 删除成功！已创建的房间将保留直到无人使用", false);
+        await channel.SendSuccessCardAsync($"规则 {name} 删除成功！已创建的房间将保留直到无人使用", false);
         return true;
     }
 

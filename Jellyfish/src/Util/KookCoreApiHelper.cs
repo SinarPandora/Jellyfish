@@ -50,7 +50,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -87,7 +87,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -130,7 +130,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -166,7 +166,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -200,7 +200,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -232,7 +232,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -265,7 +265,8 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator =
+                    PollyHelper.ProgressiveDelayGenerator(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(1)),
                 OnRetry = args =>
                 {
                     Log.Warn(args.Outcome.Exception,

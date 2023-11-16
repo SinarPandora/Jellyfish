@@ -53,6 +53,8 @@ public class TeamPlayRoomService
         IMessageChannel? noticeChannel,
         Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
     {
+        if (IsUserBeLockedByCreationLock(user.Id)) return true;
+
         var tpConfig = args.Config;
         if (!tpConfig.VoiceChannelId.HasValue) return false;
 
@@ -184,6 +186,25 @@ public class TeamPlayRoomService
             await noticeChannel.SendErrorCardAsync(ErrorMessages.ApiFailed, true);
             return false;
         }
+    }
+
+    /// <summary>
+    ///     Check if user is currently locked by CreationLock
+    ///     Lock duration: 10s for each user
+    /// </summary>
+    /// <param name="userId">Action user Id</param>
+    /// <returns>If is locked</returns>
+    private static bool IsUserBeLockedByCreationLock(ulong userId)
+    {
+        if (Locks.RoomCreationLock.TryGetValue(userId, out var timestamp))
+        {
+            if (timestamp.AddSeconds(10) > DateTime.Now) return true;
+
+            Locks.RoomCreationLock.Remove(userId, out _);
+        }
+        else Locks.RoomCreationLock[userId] = DateTime.Now;
+
+        return false;
     }
 
     /// <summary>
