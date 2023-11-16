@@ -112,4 +112,15 @@ public static class Constants
         { "splatana-wiper", new[] { "8010", "雨刷刮水刀", "刮水刀" } },
         { "splatana-wiper-deco", new[] { "8011", "雨刷刮水刀装饰", "贴牌刮水刀" } },
     };
+
+    /// <summary>
+    ///     Suite build adopt game mode
+    /// </summary>
+    public static Dictionary<string, string> BuildAdoptModes = new()
+    {
+        { "SZ", "区域" },
+        { "TC", "塔楼" },
+        { "RM", "鱼虎" },
+        { "CB", "蛤蜊" },
+    };
 }

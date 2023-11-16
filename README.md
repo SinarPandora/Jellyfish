@@ -10,11 +10,12 @@
 * [NLog](https://nlog-project.org/)
 * [EntityFrameworkCore](https://docs.microsoft.com/zh-cn/ef/core/)
 * [Newtonsoft.Json](https://www.newtonsoft.com/json)
-* [易有云](https://doc.linkease.com/)
 * [Z.ExtensionMethods](https://csharp-extension.com/)
 * [FluentScheduler](https://fluentscheduler.github.io/creating-schedules/)
 * [Polly](https://www.thepollyproject.org/)
 * [Autofac](https://autofac.org/)
+* [Refit](https://reactiveui.github.io/refit)
+* [Fluid](https://github.com/sebastienros/fluid)
 
 ### Kook 开发者文档
 

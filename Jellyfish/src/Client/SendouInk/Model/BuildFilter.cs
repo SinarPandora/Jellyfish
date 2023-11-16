@@ -4,7 +4,7 @@ using Refit;
 namespace Jellyfish.Client.SendouInk.Model;
 
 /// <summary>
-///     Suite filter
+///     Suite build filter
 /// </summary>
 [UsedImplicitly]
 public class BuildFilter

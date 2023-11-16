@@ -6,7 +6,7 @@ using Refit;
 namespace Jellyfish.Client.SendouInk.Response;
 
 /// <summary>
-///     Suite data
+///     Suite build data
 /// </summary>
 [UsedImplicitly]
 public class SuiteBuild

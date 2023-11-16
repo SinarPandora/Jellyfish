@@ -14,14 +14,14 @@ public interface ISendouInkApi
     /// </summary>
     /// <param name="weaponSlug">Weapon slug</param>
     /// <param name="filterJsonStr">Build filter in json string</param>
-    /// <param name="limit">Per page limit, 24 as first page, 48 to load 2 page together, and so on</param>
+    /// <param name="limit">Per page limit, 5 as first page, 10 to load 2 pages together, and so on</param>
     /// <param name="data">Query data</param>
     /// <returns>Suite builds</returns>
     [Get("/builds/{slug}")]
     Task<ApiResponse<BuildsRecord>> GetSuiteBuilds(
         [AliasAs("slug")] string weaponSlug,
         [AliasAs("f")] string? filterJsonStr = null,
-        uint limit = 24,
+        uint limit = 5,
         [AliasAs("_data")] string data = "features/builds/routes/builds.$slug"
     );
 }
