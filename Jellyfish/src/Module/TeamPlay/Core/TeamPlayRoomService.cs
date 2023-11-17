@@ -198,7 +198,7 @@ public class TeamPlayRoomService
     {
         if (Locks.RoomCreationLock.TryGetValue(userId, out var timestamp))
         {
-            if (timestamp.AddSeconds(10) > DateTime.Now) return true;
+            if (timestamp.AddSeconds(Locks.RoomCreationLockTimeout) > DateTime.Now) return true;
 
             Locks.RoomCreationLock.Remove(userId, out _);
         }

@@ -11,4 +11,9 @@ public abstract class Locks
     ///     Room creation lock
     /// </summary>
     public static readonly ConcurrentDictionary<ulong, DateTime> RoomCreationLock = new();
+
+    /// <summary>
+    ///     Room creation lock timeout
+    /// </summary>
+    public const int RoomCreationLockTimeout = 20;
 }
