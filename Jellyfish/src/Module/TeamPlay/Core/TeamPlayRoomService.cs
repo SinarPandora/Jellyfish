@@ -160,12 +160,12 @@ public class TeamPlayRoomService
 
             _log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
 
-            await CreateTemporaryTextChannel(
+            _ = CreateTemporaryTextChannel(
                 new TmpChannel.Core.Args.CreateTextChannelArgs(
                     (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
                     textCategoryId ?? voiceCategoryId
                 ),
-                user, instance, room, isVoiceChannelHasPassword, noticeChannel
+                user, instance.Id, room, isVoiceChannelHasPassword, noticeChannel
             );
 
             await moveUserTask;
@@ -302,13 +302,13 @@ public class TeamPlayRoomService
     /// </summary>
     /// <param name="args">Channel create args</param>
     /// <param name="creator">Team play room creator</param>
-    /// <param name="room">Current team play room instance</param>
+    /// <param name="roomInstanceId">Current team play room instance id</param>
     /// <param name="voiceChannel">Current voice channel</param>
     /// <param name="isVoiceChannelHasPassword">Is voice channel has password</param>
     /// <param name="noticeChannel">Notice channel</param>
     private async Task CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
         SocketGuildUser creator,
-        TpRoomInstance room,
+        long roomInstanceId,
         IVoiceChannel voiceChannel,
         bool isVoiceChannelHasPassword,
         IMessageChannel noticeChannel)
@@ -332,13 +332,16 @@ public class TeamPlayRoomService
             },
             async (instance, newChannel) =>
             {
-                room.TmpTextChannelId = instance.Id;
+                await using var dbCtx = _dbProvider.Provide();
+                var tpRoomInstance = dbCtx.TpRoomInstances.First(i => i.Id == roomInstanceId);
+                tpRoomInstance.TmpTextChannelId = instance.Id;
+                dbCtx.SaveChanges();
 
                 await newChannel.SendSuccessCardAsync(
                     $"""
                      {MentionUtils.KMarkdownMentionUser(creator.Id)}
                      ---
-                     欢迎光临！这是属于组队房间「{room.RoomName}」的专属临时文字频道！
+                     欢迎光临！这是属于组队房间「{tpRoomInstance.RoomName}」的专属临时文字频道！
                      （若语音房间设置了密码，该频道将改为仅语音内玩家可见）
                      ---
                      当语音及文字房间二十分钟内均无人使用时，组队房间将被解散。

@@ -266,7 +266,7 @@ public static class KookCoreApiHelper
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
                 DelayGenerator =
-                    PollyHelper.ProgressiveDelayGenerator(TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(1)),
+                    PollyHelper.ProgressiveDelayGenerator(TimeSpan.FromSeconds(5), TimeSpan.Zero),
                 OnRetry = args =>
                 {
                     Log.Warn(args.Outcome.Exception,
