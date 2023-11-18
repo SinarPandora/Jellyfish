@@ -31,10 +31,11 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
         await _service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
             async (_, room) =>
             {
-                if (tpConfig.TextChannelId.HasValue)
+                var notifyChannelId = tpConfig.CreationNotifyChannelId ?? tpConfig.TextCategoryId;
+                if (notifyChannelId.HasValue)
                 {
                     await channel.Guild
-                        .GetTextChannel(tpConfig.TextChannelId.Value)
+                        .GetTextChannel(notifyChannelId.Value)
                         .SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
                 }
             });

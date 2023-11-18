@@ -185,40 +185,69 @@ public class TeamPlayManageService
     /// </summary>
     /// <param name="channel">Channel to binding</param>
     /// <param name="msg">Current binding message</param>
-    /// <param name="name">Config name</param>
+    /// <param name="rawArgs">Command args</param>
     /// <returns>Is task success</returns>
-    public async Task<bool> BindingTextChannel(SocketTextChannel channel, SocketMessage msg, string name)
+    public async Task<bool> BindingTextChannel(SocketTextChannel channel, SocketMessage msg, string rawArgs)
     {
+        var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
+
+        if (args.Length < 2)
+        {
+            await channel.SendErrorCardAsync(
+                $"""
+                 参数不足！举例：`!组队 绑定文字频道 配置名称 #引用现有文字频道`
+                  引用的频道必须是一个 Kook 引用（在消息中显示为蓝色）
+                 """,
+                true);
+            return false;
+        }
+
+        var configName = args[0];
+        var rawMention = args[1];
+
+        if (!rawMention.StartsWith("(chn)"))
+        {
+            await channel.SendErrorCardAsync("请在指令中引用现有文字频道，具体内容可以参考：`!组队 帮助`", true);
+            return false;
+        }
+
+        var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
+        if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var bindingChannelId))
+        {
+            await channel.SendErrorCardAsync("现有文字频道引用应是一个频道引用（蓝色文本），具体内容可以参考：`!组队 帮助`", true);
+            return false;
+        }
+
+        var bindingChannelName = channel.Guild.GetTextChannel(bindingChannelId).Name;
+
         await using var dbCtx = _dbProvider.Provide();
-        _log.LogInformation("已收到名为 {Name} 的文字频道绑定请求，执行进一步操作", name);
+        _log.LogInformation("已收到名为 {Name} 的文字频道绑定请求，执行进一步操作", configName);
         var config = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
-            .FirstOrDefault(e => e.Name == name);
+            .FirstOrDefault(e => e.Name == configName);
         if (config == null)
         {
-            config = new TpConfig(name, channel.Guild.Id)
+            config = new TpConfig(configName, channel.Guild.Id)
             {
-                TextChannelId = channel.Id
+                TextChannelId = bindingChannelId
             };
             dbCtx.TpConfigs.Add(config);
         }
         else
         {
-            config.TextChannelId = channel.Id;
+            config.TextChannelId = bindingChannelId;
         }
 
         // Refresh voice quality when updating
         dbCtx.SaveChanges();
-        AppCaches.TeamPlayConfigs.AddOrUpdate($"{channel.Guild.Id}_{name}", config);
+        AppCaches.TeamPlayConfigs.AddOrUpdate($"{channel.Guild.Id}_{configName}", config);
         await channel.SendSuccessCardAsync(
-            $"""
-             绑定成功！当前频道已与组队配置 {name} 绑定
-             您可以使用 !组队
-             """, true
+            $"绑定成功！{MentionUtils.KMarkdownMentionChannel(bindingChannelId)}已与组队配置 {configName} 绑定", true
         );
 
         _log.LogInformation("成功绑定 {Name} 到 {ChannelName}：{ChannelId}，ID：{ConfigId}",
-            name, channel.Name, channel.Id, config.Id);
-        _ = channel.DeleteMessageWithTimeoutAsync(msg.Id);
+            configName, bindingChannelName, bindingChannelId, config.Id);
+
+        await SendFurtherConfigIntroMessage(channel, config);
         return true;
     }
 
@@ -287,9 +316,14 @@ public class TeamPlayManageService
                      设定创建语音房间的默认人数，输入 0 代表人数无限
                      **默认人数无限**
                      ---
+                     **设置通知文字频道**
+                     > `!组队 通知文字频道 {config.Name} [#引用现有文字频道]`
+
+                     设置后，通过语音频道自动创建的房间将会向该频道发送通知（若未设置则使用指令文字频道）
+                     ---
                      **设置房间所在分组**
-                     > `!组队 临时语音频道分组 [配置名称] [#引用现有文字频道]`
-                     > `!组队 临时文字频道分组 [配置名称] [#引用现有文字频道]`
+                     > `!组队 临时语音频道分组 {config.Name} [#引用现有文字频道]`
+                     > `!组队 临时文字频道分组 {config.Name} [#引用现有文字频道]`
 
                      [#引用现有文字频道]：指的是一个文字频道的 Kook 引用，用于获取其所属的分类频道（因为 Kook 无法直接引用分类频道）
                      默认语音房间将创建在上一步中绑定的语音所在分组，文字房间将创建在上一步中绑定的文字房间所在分组。
@@ -313,7 +347,6 @@ public class TeamPlayManageService
             await channel.SendErrorCardAsync($"参数不足！举例：`!组队 房间名格式 上分 【上分】{UserInjectKeyword}`", true);
             return false;
         }
-
 
         var configName = args[0];
         var pattern = args[1];
@@ -398,15 +431,24 @@ public class TeamPlayManageService
     /// <param name="rawArgs">Command args</param>
     /// <param name="channelType">Target channel type</param>
     /// <returns>Is task success</returns>
-    public async Task<bool> SetCategoryChannel(SocketTextChannel channel, string rawArgs, ChannelType channelType)
+    public async Task<bool> SetCategoryChannel(SocketTextChannel channel, string rawArgs,
+        AdditionChannelType channelType)
     {
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
+
+        var channelTypeName = channelType switch
+        {
+            AdditionChannelType.TmpTextCategoryInto => "文字频道分组",
+            AdditionChannelType.TmpVoiceCategoryInto => "语音频道分组",
+            AdditionChannelType.CreationNotify => "通知文字频道",
+            _ => throw new ArgumentOutOfRangeException(nameof(channelType), channelType, "内部错误，使用了无法处理的枚举值")
+        };
 
         if (args.Length < 2)
         {
             await channel.SendErrorCardAsync(
                 $"""
-                 参数不足！举例：`!组队 临时{(channelType == ChannelType.Voice ? "语音" : "文字")}频道分组 #引用现有文字频道`
+                 参数不足！举例：`!组队 {channelTypeName} 配置名称 #引用现有文字频道`
                   引用的频道必须是一个 Kook 引用（在消息中显示为蓝色）
                  """,
                 true);
@@ -435,7 +477,6 @@ public class TeamPlayManageService
             return false;
         }
 
-
         var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
         if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var textChannelId))
         {
@@ -443,28 +484,37 @@ public class TeamPlayManageService
             return false;
         }
 
-        var categoryId = channel.Guild.GetTextChannel(textChannelId).CategoryId;
-
-        if (!categoryId.HasValue)
+        if (channelType == AdditionChannelType.CreationNotify)
         {
-            await channel.SendErrorCardAsync("指定的文字频道不属于任何分组，为确保频道列表简洁，请重新选择一个带有分组的文字频道", true);
-            return false;
-        }
-
-        if (channelType == ChannelType.Voice)
-        {
-            tpConfig.VoiceCategoryId = categoryId;
+            tpConfig.CreationNotifyChannelId = textChannelId;
             dbCtx.SaveChanges();
-            AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].VoiceCategoryId = categoryId;
+            AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].CreationNotifyChannelId = textChannelId;
         }
         else
         {
-            tpConfig.TextCategoryId = categoryId;
-            dbCtx.SaveChanges();
-            AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].TextCategoryId = categoryId;
+            var categoryId = channel.Guild.GetTextChannel(textChannelId).CategoryId;
+
+            if (!categoryId.HasValue)
+            {
+                await channel.SendErrorCardAsync("指定的文字频道不属于任何分组，为确保频道列表简洁，请重新选择一个带有分组的文字频道", true);
+                return false;
+            }
+
+            if (channelType == AdditionChannelType.TmpTextCategoryInto)
+            {
+                tpConfig.TextCategoryId = categoryId;
+                dbCtx.SaveChanges();
+                AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].TextCategoryId = categoryId;
+            }
+            else
+            {
+                tpConfig.VoiceCategoryId = categoryId;
+                dbCtx.SaveChanges();
+                AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].VoiceCategoryId = categoryId;
+            }
         }
 
-        await channel.SendSuccessCardAsync($"临时{(channelType == ChannelType.Voice ? "语音" : "文字")}频道分组配置成功！", false);
+        await channel.SendSuccessCardAsync($"{channelTypeName}配置成功！", false);
         return true;
     }
 }

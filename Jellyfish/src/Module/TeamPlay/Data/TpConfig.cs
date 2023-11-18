@@ -20,6 +20,7 @@ public class TpConfig : TrackableEntity
     public ulong? TextChannelId { get; set; }
     public ulong? VoiceCategoryId { get; set; }
     public ulong? TextCategoryId { get; set; }
+    public ulong? CreationNotifyChannelId { get; set; }
     public ulong GuildId { get; set; }
     public string? RoomNamePattern { get; set; }
     public int DefaultMemberLimit { get; set; }

@@ -1,7 +1,6 @@
 using Jellyfish.Core.Command;
 using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Util;
-using Kook;
 using Kook.WebSocket;
 
 namespace Jellyfish.Module.TeamPlay.Manage;
@@ -27,9 +26,10 @@ public class TeamPlayManageCommand : GuildMessageCommand
             $"""
              1. 列表：列出全部的组队配置
              2. 配置 [配置名称]：调整指定组队配置
-             3. 绑定文字频道 [配置名称]：在目标频道中使用，设置后，该频道发送的组队质量会使用该配置创建语音频道
-             4. 临时语音频道分组 [配置名称] [#引用现有文字频道]：设置临时语音房间在指定分组下创建
-             5. 临时文字频道分组 [配置名称] [#引用现有文字频道]：设置临时文字房间在指定分组下创建
+             3. 绑定文字频道 [配置名称] [#引用现有文字频道]：设置后，该频道发送的组队指令会使用该配置创建语音频道
+             3. 通知文字频道 [配置名称] [#引用现有文字频道]：设置后，通过语音频道自动创建的房间将会向该频道发送通知（若未设置则使用指令文字频道）
+             4. 语音频道分组 [配置名称] [#引用现有文字频道]：设置临时语音房间在指定分组下创建
+             5. 文字频道分组 [配置名称] [#引用现有文字频道]：设置临时文字房间在指定分组下创建
              4. 房间名格式 [配置名称] [名称格式]：修改语音房间名称格式，使用 {TeamPlayManageService.UserInjectKeyword} 代表用户输入的内容
              5. 默认人数 [配置名称] [数字]：设定创建语音房间的默认人数，输入 0 代表人数无限
              6. 删除 [配置名称]：删除指定配置
@@ -56,16 +56,21 @@ public class TeamPlayManageCommand : GuildMessageCommand
             isSuccess = await _service.SendBindingWizard(user, channel, args[2..].TrimStart());
         else if (args.StartsWith("绑定文字频道"))
             isSuccess = await _service.BindingTextChannel(channel, msg, args[6..].TrimStart());
+        else if (args.StartsWith("通知文字频道"))
+            isSuccess = await _service.SetCategoryChannel(channel, args[6..].TrimStart(),
+                AdditionChannelType.CreationNotify);
         else if (args.StartsWith("房间名格式"))
             isSuccess = await _service.SetRoomPattern(channel, args[5..].TrimStart());
         else if (args.StartsWith("默认人数"))
             isSuccess = await _service.SetDefaultMemberCount(channel, args[4..].TrimStart());
         else if (args.StartsWith("删除"))
             isSuccess = await _service.RemoveConfig(channel, args[2..].TrimStart());
-        else if (args.StartsWith("临时语音频道分组"))
-            isSuccess = await _service.SetCategoryChannel(channel, args[8..].TrimStart(), ChannelType.Voice);
-        else if (args.StartsWith("临时文字频道分组"))
-            isSuccess = await _service.SetCategoryChannel(channel, args[8..].TrimStart(), ChannelType.Text);
+        else if (args.StartsWith("语音频道分组"))
+            isSuccess = await _service.SetCategoryChannel(channel, args[6..].TrimStart(),
+                AdditionChannelType.TmpVoiceCategoryInto);
+        else if (args.StartsWith("文字频道分组"))
+            isSuccess = await _service.SetCategoryChannel(channel, args[6..].TrimStart(),
+                AdditionChannelType.TmpTextCategoryInto);
         else if (args.StartsWith("列表"))
             await _service.ListConfigs(channel);
         else
