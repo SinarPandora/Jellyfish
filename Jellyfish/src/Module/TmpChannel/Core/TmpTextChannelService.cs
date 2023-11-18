@@ -88,11 +88,7 @@ public class TmpTextChannelService
         ulong? categoryId, DatabaseContext dbCtx)
     {
         var restGuild = await _kook.Rest.GetGuildAsync(guild.Id);
-        var existingChannelIds =
-            (from channel in dbCtx.TmpTextChannels
-                where channel.GuildId == guild.Id && channel.Name == name
-                select channel.ChannelId)
-            .ToHashSet();
+        var existingChannelIds = GetExistingChannelIdsByName(guild, name, dbCtx);
         return await new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions
             {
@@ -105,11 +101,7 @@ public class TmpTextChannelService
                     _log.LogWarning(args.Outcome.Exception,
                         "创建文字频道 API 调用失败一次，频道名：{Name}，所属分组 Id：{CategoryId}，重试次数：{ArgsAttemptNumber}",
                         name, categoryId, args.AttemptNumber);
-                    existingChannelIds =
-                        (from channel in dbCtx.TmpTextChannels
-                            where channel.GuildId == guild.Id && channel.Name == name
-                            select channel.ChannelId)
-                        .ToHashSet();
+                    existingChannelIds = GetExistingChannelIdsByName(guild, name, dbCtx);
                     return ValueTask.CompletedTask;
                 }
             })
@@ -126,5 +118,22 @@ public class TmpTextChannelService
 
                 return existingChannel ?? await restGuild.CreateTextChannelAsync(name, c => c.CategoryId = categoryId);
             });
+    }
+
+    /// <summary>
+    ///     Get existing channels' id as hash-set by channel name.
+    ///     A known channel that is used to avoid duplicate names,
+    ///     during a failed retry process is misidentified as a newly created channel
+    /// </summary>
+    /// <param name="guild">Current guild</param>
+    /// <param name="name">Channel name</param>
+    /// <param name="dbCtx">Current database context</param>
+    /// <returns>Channel ids in hash-set</returns>
+    private static HashSet<ulong> GetExistingChannelIdsByName(SocketGuild guild, string name, DatabaseContext dbCtx)
+    {
+        return (from channel in dbCtx.TmpTextChannels
+                where channel.GuildId == guild.Id && channel.Name == name
+                select channel.ChannelId)
+            .ToHashSet();
     }
 }
