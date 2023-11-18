@@ -3,6 +3,8 @@ using Jellyfish.Module.TmpChannel.Data;
 using Jellyfish.Util;
 using Kook.Rest;
 using Kook.WebSocket;
+using Polly;
+using Polly.Retry;
 
 namespace Jellyfish.Module.TmpChannel.Core;
 
@@ -13,11 +15,14 @@ public class TmpTextChannelService
 {
     private readonly ILogger<TmpTextChannelService> _log;
     private readonly DbContextProvider _dbProvider;
+    private readonly KookSocketClient _kook;
 
-    public TmpTextChannelService(ILogger<TmpTextChannelService> log, DbContextProvider dbProvider)
+    public TmpTextChannelService(ILogger<TmpTextChannelService> log, DbContextProvider dbProvider,
+        KookSocketClient kook)
     {
         _log = log;
         _dbProvider = dbProvider;
+        _kook = kook;
     }
 
 
@@ -42,7 +47,8 @@ public class TmpTextChannelService
 
         try
         {
-            var newChannel = await creator.Guild.CreateTextChannelAsync(args.Name, args.CategoryId);
+            await using var dbCtx = _dbProvider.Provide();
+            var newChannel = await CreateTmpTextChannelAsync(creator.Guild, args.Name, args.CategoryId, dbCtx);
 
             _log.LogInformation("开始设置临时文字频道 {IdentityStr} 权限", identityStr);
             await permissionSetupFn(newChannel);
@@ -56,7 +62,6 @@ public class TmpTextChannelService
                 expireTime: expireTime
             );
 
-            await using var dbCtx = _dbProvider.Provide();
             dbCtx.TmpTextChannels.Add(instance);
             dbCtx.SaveChanges();
 
@@ -69,5 +74,50 @@ public class TmpTextChannelService
             _log.LogError(e, "临时文字频道创建失败，{IdentityStr}", identityStr);
             await onError(e);
         }
+    }
+
+    /// <summary>
+    ///     Create temp text channel in kook
+    /// </summary>
+    /// <param name="guild">Current guild</param>
+    /// <param name="name"></param>
+    /// <param name="categoryId">Category to place the text channel, default is null</param>
+    /// <param name="dbCtx">Active database context</param>
+    /// <returns>Created room</returns>
+    private async Task<RestTextChannel> CreateTmpTextChannelAsync(SocketGuild guild, string name,
+        ulong? categoryId, DatabaseContext dbCtx)
+    {
+        var restGuild = await _kook.Rest.GetGuildAsync(guild.Id);
+        var existingChannelIds =
+            (from channel in dbCtx.TmpTextChannels
+                where channel.GuildId == guild.Id && channel.Name == name
+                select channel.ChannelId)
+            .ToHashSet();
+        return await new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                MaxRetryAttempts = 2,
+                DelayGenerator =
+                    PollyHelper.ProgressiveDelayGenerator(TimeSpan.FromSeconds(3), TimeSpan.FromMinutes(1)),
+                OnRetry = args =>
+                {
+                    _log.LogWarning(args.Outcome.Exception,
+                        "创建文字频道 API 调用失败一次，频道名：{Name}，所属分类 Id：{CategoryId}，重试次数：{ArgsAttemptNumber}",
+                        name, categoryId, args.AttemptNumber);
+                    return ValueTask.CompletedTask;
+                }
+            })
+            .Build()
+            .ExecuteAsync(async _ =>
+            {
+                var existingChannel = (from channel in restGuild.TextChannels
+                        where channel.Name == name && channel.CategoryId == categoryId &&
+                              !existingChannelIds.Contains(channel.Id)
+                        select channel)
+                    .FirstOrDefault();
+
+                return existingChannel ?? await restGuild.CreateTextChannelAsync(name, c => c.CategoryId = categoryId);
+            });
     }
 }
