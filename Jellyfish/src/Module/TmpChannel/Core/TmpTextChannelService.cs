@@ -103,7 +103,7 @@ public class TmpTextChannelService
                 OnRetry = args =>
                 {
                     _log.LogWarning(args.Outcome.Exception,
-                        "创建文字频道 API 调用失败一次，频道名：{Name}，所属分类 Id：{CategoryId}，重试次数：{ArgsAttemptNumber}",
+                        "创建文字频道 API 调用失败一次，频道名：{Name}，所属分组 Id：{CategoryId}，重试次数：{ArgsAttemptNumber}",
                         name, categoryId, args.AttemptNumber);
                     existingChannelIds =
                         (from channel in dbCtx.TmpTextChannels
