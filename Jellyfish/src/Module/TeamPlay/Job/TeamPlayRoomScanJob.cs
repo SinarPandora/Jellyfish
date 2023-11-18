@@ -108,8 +108,10 @@ public class TeamPlayRoomScanJob : IAsyncJob
             else
             {
                 // 6. If no user in the room
-                var needCleanup = textChannel == null || await IsLatestMessageBefore(textChannel, now,
-                    TextChannelExpireDuration);
+                var needCleanup = room.UpdateTime.AddMinutes(TextChannelExpireDuration) < now
+                                  && (textChannel == null || await IsLatestMessageBefore(
+                                      textChannel, now, TextChannelExpireDuration)
+                                  );
 
                 if (needCleanup)
                 {
