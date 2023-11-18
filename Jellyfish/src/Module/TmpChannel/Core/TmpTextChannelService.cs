@@ -105,15 +105,22 @@ public class TmpTextChannelService
                     _log.LogWarning(args.Outcome.Exception,
                         "创建文字频道 API 调用失败一次，频道名：{Name}，所属分类 Id：{CategoryId}，重试次数：{ArgsAttemptNumber}",
                         name, categoryId, args.AttemptNumber);
+                    existingChannelIds =
+                        (from channel in dbCtx.TmpTextChannels
+                            where channel.GuildId == guild.Id && channel.Name == name
+                            select channel.ChannelId)
+                        .ToHashSet();
                     return ValueTask.CompletedTask;
                 }
             })
             .Build()
             .ExecuteAsync(async _ =>
             {
-                var existingChannel = (from channel in restGuild.TextChannels
-                        where channel.Name == name && channel.CategoryId == categoryId &&
-                              !existingChannelIds.Contains(channel.Id)
+                var existingChannel =
+                    (from channel in restGuild.TextChannels
+                        where channel.Name == name
+                              && channel.CategoryId == categoryId
+                              && !existingChannelIds.Contains(channel.Id)
                         select channel)
                     .FirstOrDefault();
 
