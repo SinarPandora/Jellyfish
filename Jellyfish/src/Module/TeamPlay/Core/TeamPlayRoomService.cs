@@ -65,6 +65,7 @@ public class TeamPlayRoomService
                     ---
                     ❓找不到刚刚创建的语音/文字房间？
                     > 这可能是由于 Kook 的客户端缓存有延迟
+
                     1. 请尝试重启 Kook 客户端（网页版请尝试刷新页面）
                     2. 如果你加入过其他的 Kook 服务器，可尝试进入其他服务器后再回来
                     """, true, TimeSpan.FromMinutes(2));
