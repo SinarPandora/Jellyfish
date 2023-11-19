@@ -461,7 +461,7 @@ public class TeamPlayManageService
 
         var tpConfig =
             (from c in dbCtx.TpConfigs
-                where c.GuildId == channel.Guild.Id && c.Name == configName
+                where c.GuildId == channel.Guild.Id && c.Name == configName && c.Enabled
                 select c).FirstOrDefault();
 
         if (tpConfig == null)
@@ -488,7 +488,6 @@ public class TeamPlayManageService
         if (channelType == AdditionChannelType.CreationNotify)
         {
             tpConfig.CreationNotifyChannelId = textChannelId;
-            dbCtx.SaveChanges();
             AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].CreationNotifyChannelId = textChannelId;
         }
         else
@@ -504,16 +503,16 @@ public class TeamPlayManageService
             if (channelType == AdditionChannelType.TmpTextCategoryInto)
             {
                 tpConfig.TextCategoryId = categoryId;
-                dbCtx.SaveChanges();
                 AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].TextCategoryId = categoryId;
             }
             else
             {
                 tpConfig.VoiceCategoryId = categoryId;
-                dbCtx.SaveChanges();
                 AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].VoiceCategoryId = categoryId;
             }
         }
+
+        dbCtx.SaveChanges();
 
         await channel.SendSuccessCardAsync($"{channelTypeName}配置成功！", false);
         return true;
