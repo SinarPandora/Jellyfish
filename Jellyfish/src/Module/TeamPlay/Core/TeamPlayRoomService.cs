@@ -60,8 +60,8 @@ public class TeamPlayRoomService
                 var dmc = await user.CreateDMChannelAsync();
                 await dmc.SendWarningCardAsync(
                     """
-                    您在两分钟内多次尝试创建相同的组队房间，请使用「已创建好」的组队房间
-                    或等待冷却结束再进行操作。
+                    您在两分钟内多次尝试创建同类型的组队房间，请使用「已创建好」的组队房间
+                    或等待两分钟冷却结束再进行操作。
                     """, true, TimeSpan.FromMinutes(2));
             });
             return true;

@@ -16,11 +16,7 @@ public static class SimpleCard
     /// <param name="timeout">Recall timeout</param>
     public static Task SendWarningCardAsync(this IMessageChannel channel,
         string message, bool recall, TimeSpan? timeout = null) =>
-        recall
-            ? channel.SendAutoRecallCardAsync(
-                IconMessage("⚠️", message, Color.Orange, timeout ?? AutoRecallMessageHelper.DefaultRecallTimeout),
-                AutoRecallMessageHelper.DefaultRecallTimeout)
-            : channel.SendCardAsync(IconMessage("⚠️", message, Color.Orange));
+        SendNotifyCardAsync(channel, message, "⚠️", Color.Orange, recall, timeout);
 
     /// <summary>
     ///     Send info card message for notification
@@ -31,11 +27,7 @@ public static class SimpleCard
     /// <param name="timeout">Recall timeout</param>
     public static Task SendInfoCardAsync(this IMessageChannel channel, string message,
         bool recall, TimeSpan? timeout = null) =>
-        recall
-            ? channel.SendAutoRecallCardAsync(
-                IconMessage("💬", message, Color.Blue, timeout ?? AutoRecallMessageHelper.DefaultRecallTimeout),
-                AutoRecallMessageHelper.DefaultRecallTimeout)
-            : channel.SendCardAsync(IconMessage("💬", message, Color.Blue));
+        SendNotifyCardAsync(channel, message, "💬", Color.Blue, recall, timeout);
 
     /// <summary>
     ///     Send success card message for notification
@@ -46,11 +38,7 @@ public static class SimpleCard
     /// <param name="timeout">Recall timeout</param>
     public static Task SendSuccessCardAsync(this IMessageChannel channel, string message,
         bool recall, TimeSpan? timeout = null) =>
-        recall
-            ? channel.SendAutoRecallCardAsync(
-                IconMessage("✅", message, Color.Green, timeout ?? AutoRecallMessageHelper.DefaultRecallTimeout),
-                AutoRecallMessageHelper.DefaultRecallTimeout)
-            : channel.SendCardAsync(IconMessage("✅", message, Color.Green));
+        SendNotifyCardAsync(channel, message, "✅", Color.Green, recall, timeout);
 
     /// <summary>
     ///     Send error card message for notification
@@ -61,11 +49,7 @@ public static class SimpleCard
     /// <param name="timeout">Recall timeout</param>
     public static Task SendErrorCardAsync(this IMessageChannel channel, string message,
         bool recall, TimeSpan? timeout = null) =>
-        recall
-            ? channel.SendAutoRecallCardAsync(
-                IconMessage("❌", message, Color.Red, timeout ?? AutoRecallMessageHelper.DefaultRecallTimeout),
-                AutoRecallMessageHelper.DefaultRecallTimeout)
-            : channel.SendCardAsync(IconMessage("❌", message, Color.Red));
+        SendNotifyCardAsync(channel, message, "❌", Color.Red, recall, timeout);
 
     /// <summary>
     ///     Send fatal card message for notification
@@ -76,12 +60,15 @@ public static class SimpleCard
     /// <param name="timeout">Recall timeout</param>
     public static Task SendFatalCardAsync(this IMessageChannel channel, string message,
         bool recall, TimeSpan? timeout = null) =>
+        SendNotifyCardAsync(channel, message, "😱", Color.Red, recall, timeout);
+
+    private static Task SendNotifyCardAsync(IMessageChannel channel, string message, string icon, Color color,
+        bool recall, TimeSpan? timeout = null) =>
         recall
             ? channel.SendAutoRecallCardAsync(
-                IconMessage("😱", message, Color.Red, timeout ?? AutoRecallMessageHelper.DefaultRecallTimeout),
-                AutoRecallMessageHelper.DefaultRecallTimeout)
-            : channel.SendCardAsync(IconMessage("😱", message, Color.Red));
-
+                IconMessage(icon, message, color, timeout ?? AutoRecallMessageHelper.DefaultRecallTimeout),
+                timeout ?? AutoRecallMessageHelper.DefaultRecallTimeout)
+            : channel.SendCardAsync(IconMessage(icon, message, color));
 
     private static Card IconMessage(string icon, string message, Color color, TimeSpan? timeout = null) =>
         MarkdownMessage($"{icon} {message}", color, timeout);
