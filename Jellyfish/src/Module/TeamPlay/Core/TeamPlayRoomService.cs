@@ -74,7 +74,6 @@ public class TeamPlayRoomService
         }
 
         var tpConfig = args.Config;
-        if (!tpConfig.VoiceChannelId.HasValue) return false;
 
         var guild = user.Guild;
         noticeChannel ??= await user.CreateDMChannelAsync();
