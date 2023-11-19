@@ -79,7 +79,9 @@ public class TeamPlayManageService
             {
                 s.WithText($"""
                             💬您也可以同时绑定任意文字频道为入口频道，在目标频道发送由 /组队 开头的消息将自动创建对应房间
-                            绑定方法为：在目标文字频道发送 `!组队 绑定文字频道 {name}`
+                            绑定方法为：`!组队 绑定文字频道 {name} [#引用文字频道]`
+                            ---
+                            引用的频道必须是一个 Kook 引用（在消息中显示为蓝色）
                             """, true);
             })
             .AddModule<DividerModuleBuilder>()
@@ -184,20 +186,19 @@ public class TeamPlayManageService
     ///     Binding text channel to config
     /// </summary>
     /// <param name="channel">Channel to binding</param>
-    /// <param name="msg">Current binding message</param>
     /// <param name="rawArgs">Command args</param>
     /// <returns>Is task success</returns>
-    public async Task<bool> BindingTextChannel(SocketTextChannel channel, SocketMessage msg, string rawArgs)
+    public async Task<bool> BindingTextChannel(SocketTextChannel channel, string rawArgs)
     {
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
 
         if (args.Length < 2)
         {
             await channel.SendErrorCardAsync(
-                $"""
-                 参数不足！举例：`!组队 绑定文字频道 配置名称 #引用现有文字频道`
-                  引用的频道必须是一个 Kook 引用（在消息中显示为蓝色）
-                 """,
+                """
+                参数不足！举例：`!组队 绑定文字频道 配置名称 #引用现有文字频道`
+                 引用的频道必须是一个 Kook 引用（在消息中显示为蓝色）
+                """,
                 true);
             return false;
         }
@@ -241,7 +242,7 @@ public class TeamPlayManageService
         dbCtx.SaveChanges();
         AppCaches.TeamPlayConfigs.AddOrUpdate($"{channel.Guild.Id}_{configName}", config);
         await channel.SendSuccessCardAsync(
-            $"绑定成功！{MentionUtils.KMarkdownMentionChannel(bindingChannelId)}已与组队配置 {configName} 绑定", true
+            $"绑定成功！{MentionUtils.KMarkdownMentionChannel(bindingChannelId)}已与组队配置 {configName} 绑定", false
         );
 
         _log.LogInformation("成功绑定 {Name} 到 {ChannelName}：{ChannelId}，ID：{ConfigId}",
@@ -322,8 +323,8 @@ public class TeamPlayManageService
                      设置后，通过语音频道自动创建的房间将会向该频道发送通知（若未设置则使用指令文字频道）
                      ---
                      **设置房间所在分组**
-                     > `!组队 临时语音频道分组 {config.Name} [#引用现有文字频道]`
-                     > `!组队 临时文字频道分组 {config.Name} [#引用现有文字频道]`
+                     > `!组队 语音频道分组 {config.Name} [#引用现有文字频道]`
+                     > `!组队 文字频道分组 {config.Name} [#引用现有文字频道]`
 
                      [#引用现有文字频道]：指的是一个文字频道的 Kook 引用，用于获取其所属的分类频道（因为 Kook 无法直接引用分类频道）
                      默认语音房间将创建在上一步中绑定的语音所在分组，文字房间将创建在上一步中绑定的文字房间所在分组。

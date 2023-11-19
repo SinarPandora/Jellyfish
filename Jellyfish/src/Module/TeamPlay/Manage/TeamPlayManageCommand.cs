@@ -55,7 +55,7 @@ public class TeamPlayManageCommand : GuildMessageCommand
         if (args.StartsWith("配置"))
             isSuccess = await _service.SendBindingWizard(user, channel, args[2..].TrimStart());
         else if (args.StartsWith("绑定文字频道"))
-            isSuccess = await _service.BindingTextChannel(channel, msg, args[6..].TrimStart());
+            isSuccess = await _service.BindingTextChannel(channel, args[6..].TrimStart());
         else if (args.StartsWith("通知文字频道"))
             isSuccess = await _service.SetCategoryChannel(channel, args[6..].TrimStart(),
                 AdditionChannelType.CreationNotify);

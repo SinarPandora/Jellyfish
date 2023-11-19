@@ -6,7 +6,7 @@ postgres_container_name := "jellyfish_postgres_container"
 
 backup:
     export BACKUP_FILE_NAME="Jellyfish-$(date '+%Y-%m-%d-%H-%M-%S')-dump.tar" && \
-    docker exec {{ postgres_container_name }} pg_dump --dbname=jellyfish_kook --file="$BACKUP_FILE_NAME" --username=jellyfish --host=localhost --port=5432 && \
+    docker exec {{ postgres_container_name }} pg_dump --dbname=jellyfish_kook --file="$BACKUP_FILE_NAME" --username=jellyfish --host=localhost --port=5432 --format=t && \
     mkdir -p DataBackup && cd DataBackup && \
     docker cp {{ postgres_container_name }}:/"$BACKUP_FILE_NAME" .
 
