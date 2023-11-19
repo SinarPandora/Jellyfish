@@ -460,8 +460,8 @@ public class TeamPlayManageService
         await using var dbCtx = _dbProvider.Provide();
 
         var tpConfig =
-            (from c in dbCtx.TpConfigs
-                where c.GuildId == channel.Guild.Id && c.Name == configName && c.Enabled
+            (from c in dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
+                where c.Name == configName
                 select c).FirstOrDefault();
 
         if (tpConfig == null)
