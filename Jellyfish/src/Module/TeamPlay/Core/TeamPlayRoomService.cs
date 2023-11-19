@@ -53,7 +53,19 @@ public class TeamPlayRoomService
         IMessageChannel? noticeChannel,
         Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
     {
-        if (IsUserBeLockedByCreationLock(user.Id)) return true;
+        if (Locks.IsUserBeLockedByCreationLock(user.Id, args.Config.Id))
+        {
+            _ = Task.Run(async () =>
+            {
+                var dmc = await user.CreateDMChannelAsync();
+                await dmc.SendWarningCardAsync(
+                    """
+                    您在两分钟内多次尝试创建相同的组队房间，请使用「已创建好」的组队房间
+                    或等待冷却结束再进行操作。
+                    """, false, TimeSpan.FromMinutes(2));
+            });
+            return true;
+        }
 
         var tpConfig = args.Config;
         if (!tpConfig.VoiceChannelId.HasValue) return false;
@@ -186,25 +198,6 @@ public class TeamPlayRoomService
             await noticeChannel.SendErrorCardAsync(ErrorMessages.ApiFailed, true);
             return false;
         }
-    }
-
-    /// <summary>
-    ///     Check if user is currently locked by CreationLock
-    ///     Lock duration: 10s for each user
-    /// </summary>
-    /// <param name="userId">Action user Id</param>
-    /// <returns>If is locked</returns>
-    private static bool IsUserBeLockedByCreationLock(ulong userId)
-    {
-        if (Locks.RoomCreationLock.TryGetValue(userId, out var timestamp))
-        {
-            if (timestamp.AddSeconds(Locks.RoomCreationLockTimeout) > DateTime.Now) return true;
-
-            Locks.RoomCreationLock.Remove(userId, out _);
-        }
-        else Locks.RoomCreationLock[userId] = DateTime.Now;
-
-        return false;
     }
 
     /// <summary>

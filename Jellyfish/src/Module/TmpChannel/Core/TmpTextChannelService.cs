@@ -50,7 +50,7 @@ public class TmpTextChannelService
             await using var dbCtx = _dbProvider.Provide();
             var newChannel = await CreateTmpTextChannelAsync(creator.Guild, args.Name, args.CategoryId, dbCtx);
 
-            _log.LogInformation("开始设置临时文字频道 {IdentityStr} 权限", identityStr);
+            _log.LogInformation("开始设置临时文字频道 {IdentityStr} 的权限", identityStr);
             await permissionSetupFn(newChannel);
             _log.LogInformation("临时文字频道 {IdentityStr} 权限设置完成", identityStr);
 
