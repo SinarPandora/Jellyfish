@@ -43,7 +43,6 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
         var restTextChannel = await restGuild.GetTextChannelAsync(tmpInstance.ChannelId);
         if (restTextChannel == null) return CommandResult.Done;
 
-
         if (restTextChannel.GetPermissionOverwrite(user.Value) != null) return CommandResult.Done;
 
         if (channel.HasPassword)
@@ -67,7 +66,7 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
             );
         }
 
-        await restTextChannel.SendSuccessCardAsync($"欢迎 {MentionUtils.KMarkdownMentionUser(user.Id)} 加入组队房间！",
+        await restTextChannel.SendSuccessCardAsync($"欢迎 {user.Value.DisplayName()} 加入组队房间！",
             false);
 
         return CommandResult.Done;

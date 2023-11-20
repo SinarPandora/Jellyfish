@@ -31,7 +31,7 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
         await _service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
             async (_, room) =>
             {
-                var notifyChannelId = tpConfig.CreationNotifyChannelId ?? tpConfig.TextCategoryId;
+                var notifyChannelId = tpConfig.CreationNotifyChannelId ?? tpConfig.TextChannelId;
                 if (notifyChannelId.HasValue)
                 {
                     await channel.Guild

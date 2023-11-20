@@ -188,12 +188,6 @@ public class TeamPlayRoomService
             await moveUserTask;
             dbCtx.SaveChanges();
 
-            // Send post messages
-            await SendRoomUpdateWizardToDmcAsync(
-                tpConfig.TextChannelId == null
-                    ? noticeChannel // Use the DMC created above
-                    : await user.CreateDMChannelAsync() // Create new one
-                , room.Name);
             await onSuccess(instance, room);
             return true;
         }
@@ -277,25 +271,6 @@ public class TeamPlayRoomService
     }
 
     /// <summary>
-    ///     Send room update wizard to DMC
-    /// </summary>
-    /// <param name="dmc">The DMC</param>
-    /// <param name="roomName">Room name</param>
-    public static async Task SendRoomUpdateWizardToDmcAsync(IMessageChannel dmc, string roomName)
-    {
-        await dmc.SendSuccessCardAsync(
-            $"""
-             您已成为组队房间 {roomName} 的房主
-             作为房主，您可以随意修改语音房间信息，设置密码，调整麦序，全体静音等
-             （由于 Kook APP 限制，手机版可能无法设置/修改语音频道密码）
-             ---
-             同时你也可以使用配套的文字房间与你的朋友交流！
-             ---
-             当语音及文字房间二十分钟内均无人使用时，组队房间将被解散。
-             """, false);
-    }
-
-    /// <summary>
     ///     Create temporary text channel for team play room
     /// </summary>
     /// <param name="args">Channel create args</param>
@@ -339,10 +314,14 @@ public class TeamPlayRoomService
                     $"""
                      {MentionUtils.KMarkdownMentionUser(creator.Id)}
                      ---
-                     欢迎光临！这是属于组队房间「{tpRoomInstance.RoomName}」的专属临时文字频道！
-                     （若语音房间设置了密码，该频道将改为仅语音内玩家可见）
+                     欢迎光临！这是属于组队房间「{tpRoomInstance.RoomName}」的专属临时文字房间！
+                     （若语音房间设置了密码，该房间将改为仅语音内玩家可见）
                      ---
+                     作为房主，您可以随意修改语音房间信息，设置密码，调整麦序，全体静音等
                      当语音及文字房间二十分钟内均无人使用时，组队房间将被解散。
+                     ---
+                     * 手机版暂不支持设置语音房间密码
+                     * 修改语音房间名称后，文字房间将在稍后自动同步，无需修改两次
                      """, false);
 
                 await newChannel.SendCardAsync(await CreateInviteCardAsync(voiceChannel));
