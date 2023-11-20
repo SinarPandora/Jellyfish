@@ -57,7 +57,7 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
             await Task.Delay(TimeSpan.FromSeconds(3)); // Delay 3s for Kook app cache refresh
             await restTextChannel.SendSuccessCardAsync(
                 $"""
-                 欢迎 {user.Value.DisplayName()} 加入组队房间！
+                 欢迎 {MentionUtils.KMarkdownMentionUser(user.Id)} 加入组队房间！
                  ---
                  若新成员无法看到该文字房间，文字房间内的成员可尝试艾特他/她
                  """,
@@ -71,7 +71,7 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
             _log.LogInformation("加入语音房间 {TpRoomName} 的用户：{Name}:{Id}，已在文字房间 {TextRoomName} 中被标记",
                 room.RoomName, user.Value.DisplayName(), user.Id, restTextChannel.Name
             );
-            await restTextChannel.SendSuccessCardAsync($"欢迎 {MentionUtils.KMarkdownMentionUser(user.Id)} 加入组队房间！",
+            await restTextChannel.SendSuccessCardAsync($"欢迎 {user.Value.DisplayName()} 加入组队房间！",
                 false);
         }
 
