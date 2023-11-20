@@ -102,7 +102,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 // 5. Check if owner leave
                 if (users.All(u => u.Id != room.OwnerId))
                 {
-                    await ElectNewRoomOwner(room, users, voiceChannel);
+                    await ElectNewRoomOwner(room, users, voiceChannel, textChannel);
                 }
             }
             else
@@ -261,8 +261,9 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// <param name="instance">The room instance</param>
     /// <param name="users">All users in the room</param>
     /// <param name="voiceChannel">The voice channel</param>
+    /// <param name="textChannel">The text channel</param>
     private async Task ElectNewRoomOwner(TpRoomInstance instance, IEnumerable<IGuildUser> users,
-        IVoiceChannel voiceChannel)
+        IVoiceChannel voiceChannel, IMessageChannel? textChannel)
     {
         // If room owner not in the room, switch owner
         var newOwner =
@@ -274,10 +275,18 @@ public class TeamPlayRoomScanJob : IAsyncJob
             _log.LogInformation("检测到房主离开房间 {RoomName}，将随机产生新房主", instance.RoomName);
             await TeamPlayRoomService.GiveOwnerPermissionAsync(voiceChannel, newOwner);
             instance.OwnerId = newOwner.Id;
-            await TeamPlayRoomService.SendRoomUpdateWizardToDmcAsync(
-                await newOwner.CreateDMChannelAsync(),
-                instance.RoomName
-            );
+
+            if (textChannel != null)
+            {
+                await textChannel.SendInfoCardAsync($"由于上一任房主已经离开语音房间，{newOwner.DisplayName()} 已成为新语音房间房主", false);
+            }
+            else
+            {
+                var dmc = await newOwner.CreateDMChannelAsync();
+                await dmc.SendInfoCardAsync(
+                    $"由于上一任房主已经离开语音房间，{newOwner.DisplayName()} 已成为组队房间 {instance.RoomName} 新语音房间房主", false);
+            }
+
             _log.LogInformation("新房主已产生，房间：{RoomName}，房主：{DisplayName}", instance.RoomName, newOwner.DisplayName());
         }
     }
