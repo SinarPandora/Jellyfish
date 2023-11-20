@@ -51,7 +51,7 @@ public static class KookCoreApiHelper
         {
             if (e.Reason.IsNotNullOrEmpty() && e.Reason.Contains(HasBeenBlockedByUser))
             {
-                Log.Warn("消息发送失败，已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
+                Log.Warn("消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
             }
 
             return null;
@@ -78,7 +78,7 @@ public static class KookCoreApiHelper
         {
             if (e.Reason.IsNotNullOrEmpty() && e.Reason.Contains(HasBeenBlockedByUser))
             {
-                Log.Warn("消息发送失败，已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
+                Log.Warn("消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
             }
 
             return null;
