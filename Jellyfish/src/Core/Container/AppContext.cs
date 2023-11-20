@@ -59,6 +59,7 @@ public static class AppContext
 
         // TeamPlay Command
         container.RegisterType<TeamPlayRoomScanJob>().SingleInstance();
+        container.RegisterType<TeamPlayConfigCleanUpJob>().SingleInstance();
         container.RegisterType<TeamPlayRoomService>().SingleInstance();
         container.RegisterType<TeamPlayManageService>().SingleInstance();
         container.RegisterType<TeamPlayManageCommand>().As<GuildMessageCommand>().SingleInstance();
