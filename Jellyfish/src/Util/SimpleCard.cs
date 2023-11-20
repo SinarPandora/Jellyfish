@@ -68,7 +68,7 @@ public static class SimpleCard
             ? channel.SendAutoRecallCardAsync(
                 IconMessage(icon, message, color, timeout ?? AutoRecallMessageHelper.DefaultRecallTimeout),
                 timeout ?? AutoRecallMessageHelper.DefaultRecallTimeout)
-            : channel.SendCardAsync(IconMessage(icon, message, color));
+            : channel.SendCardSafeAsync(IconMessage(icon, message, color));
 
     private static Card IconMessage(string icon, string message, Color color, TimeSpan? timeout = null) =>
         MarkdownMessage($"{icon} {message}", color, timeout);

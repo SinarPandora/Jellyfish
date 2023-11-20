@@ -83,7 +83,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         else if (args.StartsWith("删除"))
             isSuccess = await DeleteGroupOrInstance(args[2..].TrimStart(), true, channel);
         else
-            await channel.SendCardAsync(HelpMessage);
+            await channel.SendCardSafeAsync(HelpMessage);
 
         if (!isSuccess)
         {
@@ -296,8 +296,15 @@ public class TcGroupControlCommand : GuildMessageCommand
 
             if (description != null)
             {
-                var resp = await channel.SendTextAsync(description);
-                messageId = resp.Id;
+                var resp = await channel.SendTextSafeAsync(description);
+                if (!resp.HasValue)
+                {
+                    _log.LogError("Bot 无法发送描述消息，因为 Bot 已被屏蔽");
+                    await channel.SendErrorCardAsync("Bot 无法发送描述消息，因为 Bot 已被屏蔽", false);
+                    return;
+                }
+
+                messageId = resp.Value.Id;
             }
 
             instance.Description = description;
@@ -327,8 +334,15 @@ public class TcGroupControlCommand : GuildMessageCommand
         Guid? messageId = null;
         if (description != null)
         {
-            var result = await childChannel.SendTextAsync(description);
-            messageId = result.Id;
+            var resp = await childChannel.SendTextSafeAsync(description);
+            if (!resp.HasValue)
+            {
+                _log.LogError("Bot 无法发送描述消息，因为 Bot 已被屏蔽");
+                await childChannel.SendErrorCardAsync("Bot 无法发送描述消息，因为 Bot 已被屏蔽", false);
+                return;
+            }
+
+            messageId = resp.Value.Id;
         }
 
         var instance = messageId == null

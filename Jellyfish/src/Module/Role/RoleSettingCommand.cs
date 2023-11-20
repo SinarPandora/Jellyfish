@@ -56,7 +56,7 @@ public class RoleSettingCommand : GuildMessageCommand
     {
         var isSuccess = true;
         if (args.StartsWith("帮助"))
-            await channel.SendCardAsync(HelpMessage);
+            await channel.SendCardSafeAsync(HelpMessage);
         else if (args.StartsWith("列表"))
             await ListPermissions(channel);
         else if (args.StartsWith("服务器角色"))
@@ -66,7 +66,7 @@ public class RoleSettingCommand : GuildMessageCommand
         else if (args.StartsWith("解绑"))
             isSuccess = await UnBindingPermission(args[2..].TrimStart(), channel);
         else
-            await channel.SendCardAsync(HelpMessage);
+            await channel.SendCardSafeAsync(HelpMessage);
 
         if (!isSuccess)
         {

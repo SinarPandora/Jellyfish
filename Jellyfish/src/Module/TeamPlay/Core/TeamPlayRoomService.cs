@@ -324,8 +324,8 @@ public class TeamPlayRoomService
                      * 手机 Kook APP 暂不支持设置语音房间密码
                      """, false);
 
-                await newChannel.SendCardAsync(await CreateInviteCardAsync(voiceChannel));
-                await newChannel.SendTextAsync("👍🏻还未加入组队语音？点击上方按钮进入对应语音房间");
+                await newChannel.SendCardSafeAsync(await CreateInviteCardAsync(voiceChannel));
+                await newChannel.SendTextSafeAsync("👍🏻还未加入组队语音？点击上方按钮进入对应语音房间");
             },
             _ => noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false));
     }

@@ -93,7 +93,7 @@ public class TeamPlayManageService
             })
             .WithSize(CardSize.Large);
 
-        await channel.SendCardAsync(cardBuilder.Build());
+        await channel.SendCardSafeAsync(cardBuilder.Build());
         _log.LogInformation("已发送绑定向导，目标类型：{Name}", name);
 
         return true;
@@ -111,7 +111,7 @@ public class TeamPlayManageService
             .ToArray();
         if (!configRecords.Any())
         {
-            await channel.SendTextAsync("您还没有任何组队配置");
+            await channel.SendTextSafeAsync("您还没有任何组队配置");
         }
         else
         {
@@ -128,7 +128,7 @@ public class TeamPlayManageService
                            $"文字入口：{textChannel}，当前语音房间数：{e.RoomInstances.Count}";
                 })
                 .ToArray();
-            await channel.SendTextAsync(string.Join("\n", configs));
+            await channel.SendTextSafeAsync(string.Join("\n", configs));
         }
     }
 
@@ -290,7 +290,7 @@ public class TeamPlayManageService
     /// <param name="config">Team play config</param>
     private static async Task SendFurtherConfigIntroMessage(IMessageChannel channel, TpConfig config)
     {
-        await channel.SendCardAsync(new CardBuilder()
+        await channel.SendCardSafeAsync(new CardBuilder()
             .AddModule<SectionModuleBuilder>(s =>
             {
                 s.WithText(

@@ -1,6 +1,7 @@
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Jellyfish.Module.TeamPlay.Core;
+using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
 
@@ -37,8 +38,8 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
                     var notifyChannel = channel.Guild.GetTextChannel(notifyChannelId.Value);
                     if (notifyChannel != null)
                     {
-                        await notifyChannel.SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
-                        await notifyChannel.SendTextAsync(
+                        await notifyChannel.SendCardSafeAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
+                        await notifyChannel.SendTextSafeAsync(
                             $"👍🏻想一起玩？点击上方按钮加入语音房间！{(room.HasPassword ? "" : "不方便语音也可以加入同名文字房间哦")}");
                     }
                 }

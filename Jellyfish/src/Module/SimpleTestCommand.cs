@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Jellyfish.Core.Command;
+using Jellyfish.Util;
 using Kook.WebSocket;
 
 namespace Jellyfish.Module;
@@ -25,7 +26,7 @@ public class SimpleTestCommand : GuildMessageCommand
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
-        await channel.SendTextAsync("I'm Here!");
+        await channel.SendTextSafeAsync("I'm Here!");
         _log.LogInformation("Current Boot Level is {GuildBoostLevel}", channel.Guild.BoostLevel);
     }
 

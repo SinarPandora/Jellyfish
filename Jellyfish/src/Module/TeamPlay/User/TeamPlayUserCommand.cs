@@ -115,7 +115,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
         var help = HelpTemplate.Format(tpConfig.DefaultMemberLimit == 0
             ? "无限制"
             : tpConfig.DefaultMemberLimit.ToString());
-        await channel.SendCardAsync(
+        await channel.SendCardSafeAsync(
             HelpMessageTemplate.ForMessageCommand(this, "欢迎使用组队指令！", help)
         );
         return true;
@@ -139,8 +139,8 @@ public class TeamPlayUserCommand : GuildMessageCommand
         var isSuccess = await _service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
             async (_, room) =>
             {
-                await channel.SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
-                await channel.SendTextAsync(
+                await channel.SendCardSafeAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
+                await channel.SendTextSafeAsync(
                     $"👍🏻想一起玩？点击上方按钮加入语音房间！{(room.HasPassword ? "" : "不方便语音也可以加入同名文字房间哦")}");
             });
 

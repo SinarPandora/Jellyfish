@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
+using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
 
@@ -44,7 +45,7 @@ public class GlobalHelpCommand : GuildMessageCommand
                 select $"{command.Name()}：{command.Keywords().First()}"
             );
 
-        await channel.SendCardAsync(new CardBuilder()
+        await channel.SendCardSafeAsync(new CardBuilder()
             .AddModule<SectionModuleBuilder>(s =>
             {
                 s.WithText(

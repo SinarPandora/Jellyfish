@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Kook;
+using Kook.Net;
 using Kook.Rest;
 using Kook.WebSocket;
 using NLog;
@@ -19,6 +20,7 @@ public static class KookCoreApiHelper
     #region CONST
 
     private const int MoveUserChannelTimeout = 5;
+    private const string HasBeenBlockedByUser = "已被对方屏蔽";
 
     #endregion
 
@@ -28,6 +30,60 @@ public static class KookCoreApiHelper
     ///     Do not modify the value of the instance, as it is assigned during the initialization period
     /// </summary>
     internal static KookSocketClient Kook = null!;
+
+    /// <summary>
+    ///     Sends a card message to this message channel.
+    ///     [Safe] Ignore cases where the bot is blocked.
+    /// </summary>
+    /// <see cref="IMessageChannel.SendCardAsync"/>
+    public static async Task<Cacheable<IUserMessage, Guid>?> SendCardSafeAsync(
+        this IMessageChannel channel,
+        ICard card,
+        IQuote? quote = null,
+        IUser? ephemeralUser = null,
+        RequestOptions? options = null)
+    {
+        try
+        {
+            return await channel.SendCardAsync(card, quote, ephemeralUser, options);
+        }
+        catch (HttpException e)
+        {
+            if (e.Reason.IsNotNullOrEmpty() && e.Reason.Contains(HasBeenBlockedByUser))
+            {
+                Log.Warn("消息发送失败，已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    ///     Sends a text message to this message channel.
+    ///     [Safe] Ignore cases where the bot is blocked.
+    /// </summary>
+    /// <see cref="IMessageChannel.SendTextAsync"/>
+    public static async Task<Cacheable<IUserMessage, Guid>?> SendTextSafeAsync(
+        this IMessageChannel channel,
+        string text,
+        IQuote? quote = null,
+        IUser? ephemeralUser = null,
+        RequestOptions? options = null)
+    {
+        try
+        {
+            return await channel.SendTextAsync(text, quote, ephemeralUser, options);
+        }
+        catch (HttpException e)
+        {
+            if (e.Reason.IsNotNullOrEmpty() && e.Reason.Contains(HasBeenBlockedByUser))
+            {
+                Log.Warn("消息发送失败，已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
+            }
+
+            return null;
+        }
+    }
 
     /// <summary>
     ///     Delete single channel in guild.

@@ -47,7 +47,7 @@ public class TeamPlayManageCommand : GuildMessageCommand
     {
         if (args.StartsWith("帮助"))
         {
-            await channel.SendCardAsync(HelpMessage);
+            await channel.SendCardSafeAsync(HelpMessage);
             return;
         }
 
@@ -74,7 +74,7 @@ public class TeamPlayManageCommand : GuildMessageCommand
         else if (args.StartsWith("列表"))
             await _service.ListConfigs(channel);
         else
-            await channel.SendCardAsync(HelpMessage);
+            await channel.SendCardSafeAsync(HelpMessage);
 
         if (!isSuccess)
         {
