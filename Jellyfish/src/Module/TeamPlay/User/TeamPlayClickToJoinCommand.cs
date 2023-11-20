@@ -34,9 +34,13 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
                 var notifyChannelId = tpConfig.CreationNotifyChannelId ?? tpConfig.TextChannelId;
                 if (notifyChannelId.HasValue)
                 {
-                    await channel.Guild
-                        .GetTextChannel(notifyChannelId.Value)
-                        .SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
+                    var notifyChannel = channel.Guild.GetTextChannel(notifyChannelId.Value);
+                    if (notifyChannel != null)
+                    {
+                        await notifyChannel.SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
+                        await notifyChannel.SendTextAsync(
+                            $"👍🏻想一起玩？点击上方按钮加入语音房间！{(room.HasPassword ? "" : "不方便语音也可以加入同名文字房间哦")}");
+                    }
                 }
             });
         return CommandResult.Done;
