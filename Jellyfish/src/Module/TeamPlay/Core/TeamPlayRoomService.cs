@@ -320,8 +320,8 @@ public class TeamPlayRoomService
                      作为房主，您可以随意修改语音房间信息，设置密码，调整麦序，全体静音等
                      当语音及文字房间二十分钟内均无人使用时，组队房间将被解散。
                      ---
-                     * 手机版暂不支持设置语音房间密码
                      * 修改语音房间名称后，文字房间将在稍后自动同步，无需修改两次
+                     * 手机 Kook APP 暂不支持设置语音房间密码
                      """, false);
 
                 await newChannel.SendCardAsync(await CreateInviteCardAsync(voiceChannel));

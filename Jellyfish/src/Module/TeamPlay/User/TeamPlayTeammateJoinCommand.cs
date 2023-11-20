@@ -28,8 +28,7 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
     public override string Name() => "队友加入组队语音频道指令";
 
     public override async Task<CommandResult> Execute(Cacheable<SocketGuildUser, ulong> user,
-        SocketVoiceChannel channel,
-        DateTimeOffset joinAt)
+        SocketVoiceChannel channel, DateTimeOffset joinAt)
     {
         await using var dbCtx = _dbProvider.Provide();
         var room = dbCtx.TpRoomInstances.Include(e => e.TmpTextChannel)
@@ -66,8 +65,16 @@ public class TeamPlayTeammateJoinCommand : UserConnectEventCommand
             );
         }
 
-        await restTextChannel.SendSuccessCardAsync($"欢迎 {user.Value.DisplayName()} 加入组队房间！",
-            false);
+        if (channel.HasPassword)
+        {
+            await restTextChannel.SendSuccessCardAsync($"欢迎 {MentionUtils.KMarkdownMentionUser(user.Id)} 加入组队房间！",
+                false);
+        }
+        else
+        {
+            await restTextChannel.SendSuccessCardAsync($"欢迎 {user.Value.DisplayName()} 加入组队房间！",
+                false);
+        }
 
         return CommandResult.Done;
     }
