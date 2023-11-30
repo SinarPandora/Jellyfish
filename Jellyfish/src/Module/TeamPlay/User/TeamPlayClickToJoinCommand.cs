@@ -10,15 +10,8 @@ namespace Jellyfish.Module.TeamPlay.User;
 /// <summary>
 ///     Create room command, trigger when user click and join to any specified voice channel
 /// </summary>
-public class TeamPlayClickToJoinCommand : UserConnectEventCommand
+public class TeamPlayClickToJoinCommand(TeamPlayRoomService service) : UserConnectEventCommand
 {
-    private readonly TeamPlayRoomService _service;
-
-    public TeamPlayClickToJoinCommand(TeamPlayRoomService service)
-    {
-        _service = service;
-    }
-
     public override string Name() => "语音频道点击创建房间指令";
 
     public override async Task<CommandResult> Execute(Cacheable<SocketGuildUser, ulong> user,
@@ -29,7 +22,7 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
             select config).FirstOrDefault();
 
         if (tpConfig == null) return CommandResult.Continue;
-        await _service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
+        await service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
             async (_, room) =>
             {
                 var notifyChannelId = tpConfig.CreationNotifyChannelId ?? tpConfig.TextChannelId;

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jellyfish.Core.Data;
 
-public class DatabaseContext : DbContext
+public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbContext(options)
 {
     private const string CreateTimeProp = nameof(TrackableEntity.CreateTime);
     private const string UpdateTimeProp = nameof(TrackableEntity.UpdateTime);
@@ -22,10 +22,6 @@ public class DatabaseContext : DbContext
     public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
     public DbSet<TmpTextChannel> TmpTextChannels { get; set; } = null!;
     public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
-
-    public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
-    {
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

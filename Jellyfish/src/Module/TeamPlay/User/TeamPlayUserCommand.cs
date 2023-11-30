@@ -10,7 +10,7 @@ namespace Jellyfish.Module.TeamPlay.User;
 /// <summary>
 ///     Team play command for normal user, use to create room instance
 /// </summary>
-public class TeamPlayUserCommand : GuildMessageCommand
+public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageCommand
 {
     private const string HelpTemplate =
         """
@@ -51,13 +51,6 @@ public class TeamPlayUserCommand : GuildMessageCommand
         3. /组队 人数 6 密码 2335
         ```
         """;
-
-    private readonly TeamPlayRoomService _service;
-
-    public TeamPlayUserCommand(TeamPlayRoomService service)
-    {
-        _service = service;
-    }
 
     public override string Name() => "组队房间指令";
 
@@ -136,7 +129,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
             select config).FirstOrDefault();
         if (tpConfig == null) return;
 
-        var isSuccess = await _service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
+        var isSuccess = await service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
             async (_, room) =>
             {
                 await channel.SendCardSafeAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));

@@ -11,17 +11,9 @@ namespace Jellyfish.Module.TeamPlay.Core;
 /// <summary>
 ///     TeamPlay management actions service
 /// </summary>
-public class TeamPlayManageService
+public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContextProvider dbProvider)
 {
     public const string UserInjectKeyword = "{USER}";
-    private readonly ILogger<TeamPlayManageService> _log;
-    private readonly DbContextProvider _dbProvider;
-
-    public TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContextProvider dbProvider)
-    {
-        _log = log;
-        _dbProvider = dbProvider;
-    }
 
     /// <summary>
     ///     Send binding wizard card message to the current channel
@@ -32,7 +24,7 @@ public class TeamPlayManageService
     /// <returns>Is task success</returns>
     public async Task<bool> SendBindingWizard(SocketUser user, SocketTextChannel channel, string name)
     {
-        await using var dbCtx = _dbProvider.Provide();
+        await using var dbCtx = dbProvider.Provide();
         var names = dbCtx.TpConfigs.EnabledInGuild(channel.Guild).AsNoTracking()
             .Select(c => c.Name)
             .ToHashSet();
@@ -94,7 +86,7 @@ public class TeamPlayManageService
             .WithSize(CardSize.Large);
 
         await channel.SendCardSafeAsync(cardBuilder.Build());
-        _log.LogInformation("已发送绑定向导，目标类型：{Name}", name);
+        log.LogInformation("已发送绑定向导，目标类型：{Name}", name);
 
         return true;
     }
@@ -105,7 +97,7 @@ public class TeamPlayManageService
     /// <param name="channel">Message send to this channel</param>
     public async Task ListConfigs(SocketTextChannel channel)
     {
-        await using var dbCtx = _dbProvider.Provide();
+        await using var dbCtx = dbProvider.Provide();
         var configRecords = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
             .OrderByDescending(e => e.Name)
             .ToArray();
@@ -141,7 +133,7 @@ public class TeamPlayManageService
     public async Task BindingVoiceChannel(string name, Cacheable<SocketGuildUser, ulong> user,
         SocketTextChannel channel)
     {
-        _log.LogInformation("已收到名为 {Name} 的语音频道绑定请求，执行进一步操作", name);
+        log.LogInformation("已收到名为 {Name} 的语音频道绑定请求，执行进一步操作", name);
         var voiceChannel = user.Value.VoiceChannel;
         if (voiceChannel == null)
         {
@@ -149,10 +141,10 @@ public class TeamPlayManageService
         }
         else
         {
-            _log.LogInformation("已检测到语音频道：{VoiceChannelName}：{VoiceChannelId}", voiceChannel.Name, voiceChannel.Id);
+            log.LogInformation("已检测到语音频道：{VoiceChannelName}：{VoiceChannelId}", voiceChannel.Name, voiceChannel.Id);
             await channel.SendInfoCardAsync($"检测到您加入了频道：{voiceChannel.Name}，正在绑定...", false);
 
-            await using var dbCtx = _dbProvider.Provide();
+            await using var dbCtx = dbProvider.Provide();
             var config = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
                 .FirstOrDefault(e => e.Name == name);
 
@@ -177,7 +169,7 @@ public class TeamPlayManageService
                 $"绑定成功！加入 {MentionUtils.KMarkdownMentionChannel(voiceChannel.Id)} 将自动创建 {name} 类型的房间", false);
             await SendFurtherConfigIntroMessage(channel, config);
 
-            _log.LogInformation("成功绑定 {Name} 到 {VoiceChannelName}：{VoiceChannelId}，ID：{ConfigId}",
+            log.LogInformation("成功绑定 {Name} 到 {VoiceChannelName}：{VoiceChannelId}，ID：{ConfigId}",
                 name, voiceChannel.Name, voiceChannel.Id, config.Id);
         }
     }
@@ -221,8 +213,8 @@ public class TeamPlayManageService
 
         var bindingChannelName = channel.Guild.GetTextChannel(bindingChannelId).Name;
 
-        await using var dbCtx = _dbProvider.Provide();
-        _log.LogInformation("已收到名为 {Name} 的文字频道绑定请求，执行进一步操作", configName);
+        await using var dbCtx = dbProvider.Provide();
+        log.LogInformation("已收到名为 {Name} 的文字频道绑定请求，执行进一步操作", configName);
         var config = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
             .FirstOrDefault(e => e.Name == configName);
         if (config == null)
@@ -245,7 +237,7 @@ public class TeamPlayManageService
             $"绑定成功！{MentionUtils.KMarkdownMentionChannel(bindingChannelId)}已与组队配置 {configName} 绑定", false
         );
 
-        _log.LogInformation("成功绑定 {Name} 到 {ChannelName}：{ChannelId}，ID：{ConfigId}",
+        log.LogInformation("成功绑定 {Name} 到 {ChannelName}：{ChannelId}，ID：{ConfigId}",
             configName, bindingChannelName, bindingChannelId, config.Id);
 
         await SendFurtherConfigIntroMessage(channel, config);
@@ -260,7 +252,7 @@ public class TeamPlayManageService
     /// <returns>Is task success</returns>
     public async Task<bool> RemoveConfig(SocketTextChannel channel, string name)
     {
-        await using var dbCtx = _dbProvider.Provide();
+        await using var dbCtx = dbProvider.Provide();
         var record = (
             from config in dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
             where config.Name == name
@@ -276,7 +268,7 @@ public class TeamPlayManageService
         dbCtx.SaveChanges();
         if (!AppCaches.TeamPlayConfigs.Remove($"{channel.Guild.Id}_{name}", out _))
         {
-            _log.LogWarning("组队配置缓存缺失，可能是一个 bug。配置键：{GuildId}_{Name}", channel.Guild.Id, name);
+            log.LogWarning("组队配置缓存缺失，可能是一个 bug。配置键：{GuildId}_{Name}", channel.Guild.Id, name);
         }
 
         await channel.SendSuccessCardAsync($"规则 {name} 删除成功！已创建的房间将保留直到无人使用", false);
@@ -358,7 +350,7 @@ public class TeamPlayManageService
                 $"从而影响分辨，您可以在格式中添加 {UserInjectKeyword} 来代表用户输入的内容", false);
         }
 
-        await using var dbCtx = _dbProvider.Provide();
+        await using var dbCtx = dbProvider.Provide();
         var config = (
             from record in dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
             where record.Name == configName
@@ -401,7 +393,7 @@ public class TeamPlayManageService
             return false;
         }
 
-        await using var dbCtx = _dbProvider.Provide();
+        await using var dbCtx = dbProvider.Provide();
         var config = (
             from record in dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
             where record.Name == configName
@@ -457,7 +449,7 @@ public class TeamPlayManageService
         }
 
         var configName = args[0];
-        await using var dbCtx = _dbProvider.Provide();
+        await using var dbCtx = dbProvider.Provide();
 
         var tpConfig =
             (from c in dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
