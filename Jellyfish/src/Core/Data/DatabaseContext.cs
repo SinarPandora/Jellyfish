@@ -4,6 +4,7 @@ using Jellyfish.Module.GroupControl.Data;
 using Jellyfish.Module.Role.Data;
 using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Module.TmpChannel.Data;
+using Jellyfish.Module.Vote.Data;
 using Kook;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,9 @@ public class DatabaseContext : DbContext
     public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
     public DbSet<TmpTextChannel> TmpTextChannels { get; set; } = null!;
     public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
+    public DbSet<Vote> Votes { get; set; } = null!;
+    public DbSet<VoteChannel> VoteChannels { get; set; } = null!;
+    public DbSet<VoteOption> VoteOptions { get; set; } = null!;
 
     public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
     {
@@ -118,6 +122,57 @@ public class DatabaseContext : DbContext
             entity
                 .Property(e => e.UpdateTime)
                 .HasDefaultValueSql("current_timestamp");
+        });
+
+        modelBuilder.Entity<Vote>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValue("current_timestamp");
+
+            entity
+                .Property(e => e.UpdateTime)
+                .HasDefaultValue("current_timestamp");
+
+            entity
+                .HasMany(e => e.Channels)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.VoteId)
+                .IsRequired();
+
+            entity
+                .HasMany(e => e.Options)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.VoteId)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<VoteChannel>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValue("current_timestamp");
+
+            entity
+                .Property(e => e.UpdateTime)
+                .HasDefaultValue("current_timestamp");
+
+            entity
+                .HasMany(e => e.Options)
+                .WithOne(e => e.CreationChannel)
+                .HasForeignKey(e => e.VoteChannelId)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<VoteOption>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValue("current_timestamp");
+
+            entity
+                .Property(e => e.UpdateTime)
+                .HasDefaultValue("current_timestamp");
         });
     }
 
