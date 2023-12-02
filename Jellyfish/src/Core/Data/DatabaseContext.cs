@@ -128,11 +128,11 @@ public class DatabaseContext : DbContext
         {
             entity
                 .Property(e => e.CreateTime)
-                .HasDefaultValue("current_timestamp");
+                .HasDefaultValueSql("current_timestamp");
 
             entity
                 .Property(e => e.UpdateTime)
-                .HasDefaultValue("current_timestamp");
+                .HasDefaultValueSql("current_timestamp");
 
             entity
                 .HasMany(e => e.Channels)
@@ -151,11 +151,11 @@ public class DatabaseContext : DbContext
         {
             entity
                 .Property(e => e.CreateTime)
-                .HasDefaultValue("current_timestamp");
+                .HasDefaultValueSql("current_timestamp");
 
             entity
                 .Property(e => e.UpdateTime)
-                .HasDefaultValue("current_timestamp");
+                .HasDefaultValueSql("current_timestamp");
 
             entity
                 .HasMany(e => e.Options)
@@ -168,11 +168,11 @@ public class DatabaseContext : DbContext
         {
             entity
                 .Property(e => e.CreateTime)
-                .HasDefaultValue("current_timestamp");
+                .HasDefaultValueSql("current_timestamp");
 
             entity
                 .Property(e => e.UpdateTime)
-                .HasDefaultValue("current_timestamp");
+                .HasDefaultValueSql("current_timestamp");
         });
     }
 
