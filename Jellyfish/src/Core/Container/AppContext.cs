@@ -39,6 +39,7 @@ public static class AppContext
                 KookCoreApiHelper.Kook = kookSocketClient;
                 return kookSocketClient;
             })
+            .As<KookSocketClient>().As<BaseSocketClient>()
             .SingleInstance();
         container.RegisterType<KookLoader>().SingleInstance();
         container.RegisterType<KookApiFactory>().SingleInstance();
