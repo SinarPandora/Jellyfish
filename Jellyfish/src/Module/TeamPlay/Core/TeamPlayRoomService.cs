@@ -241,9 +241,9 @@ public class TeamPlayRoomService(
     /// </summary>
     /// <param name="channel">Room</param>
     /// <param name="user">Owner</param>
-    public static async Task GiveOwnerPermissionAsync(IVoiceChannel channel, IGuildUser user)
+    public static Task GiveOwnerPermissionAsync(IVoiceChannel channel, IGuildUser user)
     {
-        await channel.OverrideUserPermissionAsync(user, _ => OverwritePermissions.AllowAll(channel));
+        return channel.OverrideUserPermissionAsync(user, _ => OverwritePermissions.AllowAll(channel));
     }
 
     /// <summary>
@@ -270,14 +270,14 @@ public class TeamPlayRoomService(
     /// <param name="voiceChannel">Current voice channel</param>
     /// <param name="isVoiceChannelHasPassword">Is voice channel has password</param>
     /// <param name="noticeChannel">Notice channel</param>
-    private async Task CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
+    private Task CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
         SocketGuildUser creator,
         long roomInstanceId,
         IVoiceChannel voiceChannel,
         bool isVoiceChannelHasPassword,
         IMessageChannel noticeChannel)
     {
-        await tmpTextChannelService.CreateAsync(args, creator,
+        return tmpTextChannelService.CreateAsync(args, creator,
             async newChannel =>
             {
                 // If voice channel has password, make the bound text channel also be private

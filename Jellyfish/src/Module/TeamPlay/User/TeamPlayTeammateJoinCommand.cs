@@ -13,7 +13,7 @@ namespace Jellyfish.Module.TeamPlay.User;
 /// </summary>
 public class TeamPlayTeammateJoinCommand(
     ILogger<TeamPlayTeammateJoinCommand> log,
-    KookSocketClient kook,
+    BaseSocketClient kook,
     DbContextProvider dbProvider)
     : UserConnectEventCommand
 {

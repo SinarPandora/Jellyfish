@@ -33,7 +33,7 @@ public class CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
             foreach (var permission in role.CommandPermissions)
             {
                 AppCaches.Permissions.AddOrUpdate($"{role.GuildId}_{permission.CommandName}",
-                    new HashSet<uint> { role.KookId },
+                    [role.KookId],
                     (_, v) =>
                     {
                         v.Add(role.KookId);

@@ -101,7 +101,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
         var configRecords = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
             .OrderByDescending(e => e.Name)
             .ToArray();
-        if (!configRecords.Any())
+        if (configRecords.Length == 0)
         {
             await channel.SendTextSafeAsync("您还没有任何组队配置");
         }

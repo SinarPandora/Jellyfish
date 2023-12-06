@@ -12,7 +12,7 @@ namespace Jellyfish.Module.TeamPlay.Job;
 /// <summary>
 ///     Room scan job, scan all registered room's remove all empty
 /// </summary>
-public class TeamPlayRoomScanJob(KookSocketClient kook, ILogger<TeamPlayRoomScanJob> log, DbContextProvider dbProvider)
+public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScanJob> log, DbContextProvider dbProvider)
     : IAsyncJob
 {
     private const int TextChannelExpireDuration = 20;
@@ -135,7 +135,7 @@ public class TeamPlayRoomScanJob(KookSocketClient kook, ILogger<TeamPlayRoomScan
     /// <param name="textChannel">Target text channel</param>
     /// <param name="users">Users in voice room</param>
     private static async Task SyncPrivateTextChannelMemberPermission(SocketVoiceChannel voiceChannel,
-        INestedChannel textChannel, IEnumerable<SocketGuildUser> users)
+        SocketTextChannel textChannel, IEnumerable<SocketGuildUser> users)
     {
         var cachedGuild = voiceChannel.Guild;
         var everyOneRole = cachedGuild.EveryoneRole;
@@ -212,7 +212,8 @@ public class TeamPlayRoomScanJob(KookSocketClient kook, ILogger<TeamPlayRoomScan
     /// <param name="room">Room instance</param>
     /// <param name="voiceChannel">Current voice channel</param>
     /// <param name="textChannel">Bound text channel</param>
-    private async Task RefreshChannelNames(TpRoomInstance room, IVoiceChannel voiceChannel, ITextChannel? textChannel)
+    private async Task RefreshChannelNames(TpRoomInstance room, SocketVoiceChannel voiceChannel,
+        SocketTextChannel? textChannel)
     {
         var cleanName = voiceChannel.Name;
         if (cleanName.StartsWith("🔐"))
