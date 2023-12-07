@@ -185,7 +185,7 @@ public class RoleSettingCommand : GuildMessageCommand
 
         // Update cache
         AppCaches.Permissions.AddOrUpdate($"{channel.Guild.Id}_{commandName}",
-            new HashSet<uint> { guildRoleId },
+            [guildRoleId],
             (_, v) =>
             {
                 v.Add(role.KookId);
