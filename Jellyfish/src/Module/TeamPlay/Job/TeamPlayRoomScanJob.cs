@@ -12,30 +12,20 @@ namespace Jellyfish.Module.TeamPlay.Job;
 /// <summary>
 ///     Room scan job, scan all registered room's remove all empty
 /// </summary>
-public class TeamPlayRoomScanJob : IAsyncJob
+public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScanJob> log, DbContextProvider dbProvider)
+    : IAsyncJob
 {
     private const int TextChannelExpireDuration = 20;
-
-    private readonly ILogger<TeamPlayRoomScanJob> _log;
-    private readonly KookSocketClient _kook;
-    private readonly DbContextProvider _dbProvider;
-
-    public TeamPlayRoomScanJob(KookSocketClient kook, ILogger<TeamPlayRoomScanJob> log, DbContextProvider dbProvider)
-    {
-        _kook = kook;
-        _log = log;
-        _dbProvider = dbProvider;
-    }
 
     /// <summary>
     ///     Entrypoint for AsyncJob
     /// </summary>
     public async Task ExecuteAsync()
     {
-        _log.LogInformation("组队房间扫描任务开始");
+        log.LogInformation("组队房间扫描任务开始");
         var now = DateTime.Now;
 
-        await using var dbCtx = _dbProvider.Provide();
+        await using var dbCtx = dbProvider.Provide();
         var configs = dbCtx.TpConfigs
             .Include(e => e.RoomInstances)
             .ThenInclude(e => e.TmpTextChannel)
@@ -47,7 +37,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
 
         foreach (var (guildId, rooms) in configs)
         {
-            var guild = _kook.GetGuild(guildId);
+            var guild = kook.GetGuild(guildId);
             foreach (var room in rooms)
             {
                 await CheckAndDeleteRoom(guild, room, now, dbCtx);
@@ -58,7 +48,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
         // Remove expired creation locks
         Locks.RoomCreationLock.RemoveWhere(pair => pair.Value.AddSeconds(10) < now);
 
-        _log.LogInformation("组队房间扫描任务结束");
+        log.LogInformation("组队房间扫描任务结束");
     }
 
     /// <summary>
@@ -134,7 +124,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
         }
         catch (Exception e)
         {
-            _log.LogError(e, "组队房间扫描任务失败，房间名：{RoomName}", room.RoomName);
+            log.LogError(e, "组队房间扫描任务失败，房间名：{RoomName}", room.RoomName);
         }
     }
 
@@ -145,7 +135,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// <param name="textChannel">Target text channel</param>
     /// <param name="users">Users in voice room</param>
     private static async Task SyncPrivateTextChannelMemberPermission(SocketVoiceChannel voiceChannel,
-        INestedChannel textChannel, IEnumerable<SocketGuildUser> users)
+        SocketTextChannel textChannel, IEnumerable<SocketGuildUser> users)
     {
         var cachedGuild = voiceChannel.Guild;
         var everyOneRole = cachedGuild.EveryoneRole;
@@ -186,17 +176,17 @@ public class TeamPlayRoomScanJob : IAsyncJob
     private async Task CleanUpTeamPlayRoom(IGuild guild, TpRoomInstance room, IChannel? textChannel,
         IChannel voiceChannel, DatabaseContext dbCtx)
     {
-        _log.LogInformation("检测到房间 {RoomName} 已无人使用，开始清理房间", room.RoomName);
+        log.LogInformation("检测到房间 {RoomName} 已无人使用，开始清理房间", room.RoomName);
         if (textChannel != null)
         {
             await guild.DeleteSingleChannelAsync(textChannel.Id, ChannelType.Text);
-            _log.LogInformation("已删除文字房间：{RoomName}", textChannel.Name);
+            log.LogInformation("已删除文字房间：{RoomName}", textChannel.Name);
         }
 
         await guild.DeleteSingleChannelAsync(room.VoiceChannelId, ChannelType.Voice);
-        _log.LogInformation("已删除语音房间：{RoomName}", voiceChannel.Name);
+        log.LogInformation("已删除语音房间：{RoomName}", voiceChannel.Name);
         dbCtx.TpRoomInstances.Remove(room);
-        _log.LogInformation("已删除组队房间：{RoomName}", room.RoomName);
+        log.LogInformation("已删除组队房间：{RoomName}", room.RoomName);
     }
 
     /// <summary>
@@ -222,7 +212,8 @@ public class TeamPlayRoomScanJob : IAsyncJob
     /// <param name="room">Room instance</param>
     /// <param name="voiceChannel">Current voice channel</param>
     /// <param name="textChannel">Bound text channel</param>
-    private async Task RefreshChannelNames(TpRoomInstance room, IVoiceChannel voiceChannel, ITextChannel? textChannel)
+    private async Task RefreshChannelNames(TpRoomInstance room, SocketVoiceChannel voiceChannel,
+        SocketTextChannel? textChannel)
     {
         var cleanName = voiceChannel.Name;
         if (cleanName.StartsWith("🔐"))
@@ -238,7 +229,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
 
         if (newName != voiceChannel.Name)
         {
-            _log.LogInformation("监测到房间 {RoomName}#{Id} 名称发生变化，尝试更新房间名", room.RoomName, room.Id);
+            log.LogInformation("监测到房间 {RoomName}#{Id} 名称发生变化，尝试更新房间名", room.RoomName, room.Id);
             await voiceChannel.ModifyAsync(v => v.Name = newName);
             if (textChannel != null)
             {
@@ -249,7 +240,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 }
             }
 
-            _log.LogInformation("房间 {RoomName}#{Id} 名称已更新为 {NewName}", room.RoomName, room.Id, newName);
+            log.LogInformation("房间 {RoomName}#{Id} 名称已更新为 {NewName}", room.RoomName, room.Id, newName);
         }
 
         room.RoomName = newName;
@@ -272,7 +263,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
                 select user).FirstOrDefault();
         if (newOwner != null)
         {
-            _log.LogInformation("检测到房主离开房间 {RoomName}，将随机产生新房主", instance.RoomName);
+            log.LogInformation("检测到房主离开房间 {RoomName}，将随机产生新房主", instance.RoomName);
             await TeamPlayRoomService.GiveOwnerPermissionAsync(voiceChannel, newOwner);
             instance.OwnerId = newOwner.Id;
 
@@ -287,7 +278,7 @@ public class TeamPlayRoomScanJob : IAsyncJob
                     $"由于上一任房主已经离开语音房间，{newOwner.DisplayName()} 已成为组队房间 {instance.RoomName} 新语音房间房主", false);
             }
 
-            _log.LogInformation("新房主已产生，房间：{RoomName}，房主：{DisplayName}", instance.RoomName, newOwner.DisplayName());
+            log.LogInformation("新房主已产生，房间：{RoomName}，房主：{DisplayName}", instance.RoomName, newOwner.DisplayName());
         }
     }
 }

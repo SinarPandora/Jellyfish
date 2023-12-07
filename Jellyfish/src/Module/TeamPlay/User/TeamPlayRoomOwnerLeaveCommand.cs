@@ -10,23 +10,15 @@ namespace Jellyfish.Module.TeamPlay.User;
 ///     Room owner leave channel command.
 ///     When owner leaved, remove its owner permission
 /// </summary>
-public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
+public class TeamPlayRoomOwnerLeaveCommand(ILogger<TeamPlayRoomOwnerLeaveCommand> log, DbContextProvider dbProvider)
+    : UserDisconnectEventCommand
 {
-    private readonly ILogger<TeamPlayRoomOwnerLeaveCommand> _log;
-    private readonly DbContextProvider _dbProvider;
-
-    public TeamPlayRoomOwnerLeaveCommand(ILogger<TeamPlayRoomOwnerLeaveCommand> log, DbContextProvider dbProvider)
-    {
-        _log = log;
-        _dbProvider = dbProvider;
-    }
-
     public override string Name() => "房主离开语音房间指令";
 
     public override async Task<CommandResult> Execute(Cacheable<SocketGuildUser, ulong> user,
         SocketVoiceChannel channel, DateTimeOffset leaveAt)
     {
-        await using var dbCtx = _dbProvider.Provide();
+        await using var dbCtx = dbProvider.Provide();
         var room = (from instance in dbCtx.TpRoomInstances
             where instance.GuildId == channel.Guild.Id && instance.VoiceChannelId == channel.Id
             select instance).FirstOrDefault();
@@ -38,7 +30,7 @@ public class TeamPlayRoomOwnerLeaveCommand : UserDisconnectEventCommand
         room.OwnerId = 0;
         dbCtx.SaveChanges();
 
-        _log.LogInformation("房主 {UserName} 已离开房间 {RoomName}#{Id}", user.Value.DisplayName(), room.RoomName, room.Id);
+        log.LogInformation("房主 {UserName} 已离开房间 {RoomName}#{Id}", user.Value.DisplayName(), room.RoomName, room.Id);
 
         return CommandResult.Continue; // This is a middleware command, so make it continue event done
     }

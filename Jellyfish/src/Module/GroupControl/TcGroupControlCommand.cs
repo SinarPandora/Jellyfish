@@ -327,7 +327,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         string name,
         string? description,
         TcGroup tcGroup,
-        IDictionary<string, TcGroupInstance> instanceMap,
+        Dictionary<string, TcGroupInstance> instanceMap,
         DatabaseContext dbCtx)
     {
         _log.LogInformation("检测到频道 {Name} 尚未被记录，正在记录", name);
@@ -606,24 +606,17 @@ public class TcGroupControlCommand : GuildMessageCommand
     /// <param name="instance">Target channel instance</param>
     /// <param name="channel">Sender channel to send message</param>
     /// <param name="dbCtx">Database context</param>
-    private static async Task DeleteChildChannel(bool hardDel, TcGroupInstance instance,
+    private static Task DeleteChildChannel(bool hardDel, TcGroupInstance instance,
         SocketTextChannel channel, DatabaseContext dbCtx)
     {
         if (hardDel)
         {
             var textChannel = channel.Guild.GetTextChannel(instance.TextChannelId);
-            if (textChannel == null)
-            {
-                await channel.SendWarningCardAsync("指定文字频道早已被删除", true);
-            }
-            else
-            {
-                await textChannel.DeleteAsync();
-            }
+            return textChannel == null ? channel.SendWarningCardAsync("指定文字频道早已被删除", true) : textChannel.DeleteAsync();
         }
-        else
-        {
-            dbCtx.TcGroupInstances.Remove(instance);
-        }
+
+        dbCtx.TcGroupInstances.Remove(instance);
+
+        return Task.CompletedTask;
     }
 }

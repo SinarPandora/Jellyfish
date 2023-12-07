@@ -4,15 +4,8 @@ using Kook.Rest;
 
 namespace Jellyfish.Core.Kook;
 
-public class KookApiFactory
+public class KookApiFactory(AppConfig config)
 {
-    private readonly AppConfig _appConfig;
-
-    public KookApiFactory(AppConfig config)
-    {
-        _appConfig = config;
-    }
-
     /// <summary>
     ///     Kook Restful API Client
     /// </summary>
@@ -20,7 +13,7 @@ public class KookApiFactory
     public async Task<KookRestClient> CreateApiClient()
     {
         var apiClient = new KookRestClient();
-        await apiClient.LoginAsync(TokenType.Bot, _appConfig.KookToken);
+        await apiClient.LoginAsync(TokenType.Bot, config.KookToken);
         return apiClient;
     }
 }

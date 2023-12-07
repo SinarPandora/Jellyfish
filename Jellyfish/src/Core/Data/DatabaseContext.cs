@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jellyfish.Core.Data;
 
-public class DatabaseContext : DbContext
+public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbContext(options)
 {
     private const string CreateTimeProp = nameof(TrackableEntity.CreateTime);
     private const string UpdateTimeProp = nameof(TrackableEntity.UpdateTime);
@@ -26,10 +26,6 @@ public class DatabaseContext : DbContext
     public DbSet<Vote> Votes { get; set; } = null!;
     public DbSet<VoteChannel> VoteChannels { get; set; } = null!;
     public DbSet<VoteOption> VoteOptions { get; set; } = null!;
-
-    public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
-    {
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

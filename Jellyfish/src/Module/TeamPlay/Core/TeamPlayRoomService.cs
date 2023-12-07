@@ -11,7 +11,10 @@ namespace Jellyfish.Module.TeamPlay.Core;
 /// <summary>
 ///     Team play room service to handle room create or update actions
 /// </summary>
-public class TeamPlayRoomService
+public class TeamPlayRoomService(
+    ILogger<TeamPlayRoomService> log,
+    TmpTextChannelService tmpTextChannelService,
+    DbContextProvider dbProvider)
 {
     #region ErrorMessage
 
@@ -27,18 +30,6 @@ public class TeamPlayRoomService
                                                       """;
 
     #endregion
-
-    private readonly ILogger<TeamPlayRoomService> _log;
-    private readonly TmpTextChannelService _tmpTextChannelService;
-    private readonly DbContextProvider _dbProvider;
-
-    public TeamPlayRoomService(ILogger<TeamPlayRoomService> log,
-        TmpTextChannelService tmpTextChannelService, DbContextProvider dbProvider)
-    {
-        _log = log;
-        _tmpTextChannelService = tmpTextChannelService;
-        _dbProvider = dbProvider;
-    }
 
     /// <summary>
     ///     Create room instance, using text command
@@ -100,10 +91,10 @@ public class TeamPlayRoomService
             roomName = $"🔊{roomName}";
         }
 
-        await using var dbCtx = _dbProvider.Provide();
+        await using var dbCtx = dbProvider.Provide();
         if (dbCtx.TpRoomInstances.Any(e => e.OwnerId == user.Id))
         {
-            _log.LogInformation("创建频道 {RoomName} 失败，用户 {DisplayName}#{UserId} 已加入其他语音频道", roomName, user.DisplayName,
+            log.LogInformation("创建频道 {RoomName} 失败，用户 {DisplayName}#{UserId} 已加入其他语音频道", roomName, user.DisplayName,
                 user.Id);
             await noticeChannel.SendErrorCardAsync(UserDoesNotFree, true);
             return false;
@@ -113,7 +104,7 @@ public class TeamPlayRoomService
         var textCategoryId = GetTextCategoryId(tpConfig, user.Guild);
         if (!voiceCategoryId.HasValue)
         {
-            _log.LogError("{TpConfigId}：{TpConfigName} 所对应的父频道未找到，请检查错误日志并更新频道配置", tpConfig.Id, tpConfig.Name);
+            log.LogError("{TpConfigId}：{TpConfigName} 所对应的父频道未找到，请检查错误日志并更新频道配置", tpConfig.Id, tpConfig.Name);
             await noticeChannel.SendErrorCardAsync(ParentChannelNotFound, true);
             return false;
         }
@@ -138,7 +129,7 @@ public class TeamPlayRoomService
 
         try
         {
-            _log.LogInformation("开始创建语音房间{RoomName}", roomName);
+            log.LogInformation("开始创建语音房间{RoomName}", roomName);
             var room = await guild.CreateVoiceChannelAsync(roomName, r =>
             {
                 r.VoiceQuality = guild.GetHighestVoiceQuality();
@@ -148,17 +139,17 @@ public class TeamPlayRoomService
 
             if (isVoiceChannelHasPassword)
             {
-                _log.LogInformation("检测到房间 {RoomName} 带有初始密码，尝试设置密码", roomName);
+                log.LogInformation("检测到房间 {RoomName} 带有初始密码，尝试设置密码", roomName);
                 await room.ModifyAsync(v => v.Password = args.Password);
-                _log.LogInformation("房间 {RoomName} 密码设置成功！", roomName);
+                log.LogInformation("房间 {RoomName} 密码设置成功！", roomName);
             }
 
             // Give owner permission
             await GiveOwnerPermissionAsync(room, user);
 
-            _log.LogInformation("创建语音房间 API 调用成功，房间名：{RoomName}", roomName);
+            log.LogInformation("创建语音房间 API 调用成功，房间名：{RoomName}", roomName);
 
-            _log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), room.Name);
+            log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), room.Name);
 
             var moveUserTask = user.VoiceChannel != null
                 ? guild.MoveToRoomAsync(user.Id, room)
@@ -175,7 +166,7 @@ public class TeamPlayRoomService
             dbCtx.TpRoomInstances.Add(instance);
             dbCtx.SaveChanges();
 
-            _log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
+            log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
 
             _ = CreateTemporaryTextChannel(
                 new TmpChannel.Core.Args.CreateTextChannelArgs(
@@ -193,7 +184,7 @@ public class TeamPlayRoomService
         }
         catch (Exception e)
         {
-            _log.LogError(e, "创建语音房间出错！");
+            log.LogError(e, "创建语音房间出错！");
             await noticeChannel.SendErrorCardAsync(ErrorMessages.ApiFailed, true);
             return false;
         }
@@ -250,9 +241,9 @@ public class TeamPlayRoomService
     /// </summary>
     /// <param name="channel">Room</param>
     /// <param name="user">Owner</param>
-    public static async Task GiveOwnerPermissionAsync(IVoiceChannel channel, IGuildUser user)
+    public static Task GiveOwnerPermissionAsync(IVoiceChannel channel, IGuildUser user)
     {
-        await channel.OverrideUserPermissionAsync(user, _ => OverwritePermissions.AllowAll(channel));
+        return channel.OverrideUserPermissionAsync(user, _ => OverwritePermissions.AllowAll(channel));
     }
 
     /// <summary>
@@ -279,14 +270,14 @@ public class TeamPlayRoomService
     /// <param name="voiceChannel">Current voice channel</param>
     /// <param name="isVoiceChannelHasPassword">Is voice channel has password</param>
     /// <param name="noticeChannel">Notice channel</param>
-    private async Task CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
+    private Task CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
         SocketGuildUser creator,
         long roomInstanceId,
         IVoiceChannel voiceChannel,
         bool isVoiceChannelHasPassword,
         IMessageChannel noticeChannel)
     {
-        await _tmpTextChannelService.CreateAsync(args, creator,
+        return tmpTextChannelService.CreateAsync(args, creator,
             async newChannel =>
             {
                 // If voice channel has password, make the bound text channel also be private
@@ -305,7 +296,7 @@ public class TeamPlayRoomService
             },
             async (instance, newChannel) =>
             {
-                await using var dbCtx = _dbProvider.Provide();
+                await using var dbCtx = dbProvider.Provide();
                 var tpRoomInstance = dbCtx.TpRoomInstances.First(i => i.Id == roomInstanceId);
                 tpRoomInstance.TmpTextChannelId = instance.Id;
                 dbCtx.SaveChanges();
