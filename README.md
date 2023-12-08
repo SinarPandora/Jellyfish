@@ -2,34 +2,31 @@
 
 > 为 斯普拉遁-加鱿站 定制的多功能 Kook Bot
 
-## 依赖库及文档
+## 功能列表与开发计划
 
-### Nuget 依赖
+### 基本功能
 
-* [Kook.Net](https://kooknet.dev/index.html)
-* [NLog](https://nlog-project.org/)
-* [EntityFrameworkCore](https://docs.microsoft.com/zh-cn/ef/core/)
-* [Newtonsoft.Json](https://www.newtonsoft.com/json)
-* [Z.ExtensionMethods](https://csharp-extension.com/)
-* [FluentScheduler](https://fluentscheduler.github.io/creating-schedules/)
-* [Polly](https://www.thepollyproject.org/)
-* [Autofac](https://autofac.org/)
+- [x] 指令权限管理
+- [x] 通俗易懂的全局帮助
+- [ ] 多阶段指令（可回退）
 
-### Kook 开发者文档
+### Kook 功能补强
 
-* [KookAPI](https://developer.kookapp.cn/doc/reference)
-* [KMarkdown Preview](https://www.kookapp.cn/tools/message-builder.html#/kmarkdown)
+- [x] 临时文本频道
+- [x] 游戏组队功能（点击自动创建临时语音/临时文本频道）
+- [x] 频道组（根据条件创建和管理一组频道）
+- [ ] 每日打卡
+- [ ] 活跃度系统
+- [ ] 自定义投票
+- [ ] 信息收集表
+- [ ] 分页卡片
+- [ ] 倒计时频道名
+- [ ] 根据最后消息时间自动排序频道
 
-## API Hosts
+### 斯普拉遁扩展功能
 
-国内部分地区 DNS 被污染，若启动后始终无法受到消息，请添加以下地址解析内容：
-
-```hosts
-203.107.54.174  kaiheila.cn
-101.201.199.174 ws.kaiheila.cn
-39.102.47.15    www.kookapp.cn
-203.107.54.174  kookapp.cn
-```
+- [ ] 与其他相关 Bot 联动
+- [ ] 私房规则选择器
 
 ## 开发指南
 
@@ -101,6 +98,35 @@
 }
 
 ```
+
+### API Hosts
+
+国内部分地区 DNS 被污染，若启动后始终无法受到消息，请添加以下地址解析内容：
+
+```hosts
+203.107.54.174  kaiheila.cn
+101.201.199.174 ws.kaiheila.cn
+39.102.47.15    www.kookapp.cn
+203.107.54.174  kookapp.cn
+```
+
+### 依赖库及文档
+
+#### Nuget 依赖
+
+* [Kook.Net](https://kooknet.dev/index.html)
+* [NLog](https://nlog-project.org/)
+* [EntityFrameworkCore](https://docs.microsoft.com/zh-cn/ef/core/)
+* [Newtonsoft.Json](https://www.newtonsoft.com/json)
+* [Z.ExtensionMethods](https://csharp-extension.com/)
+* [FluentScheduler](https://fluentscheduler.github.io/creating-schedules/)
+* [Polly](https://www.thepollyproject.org/)
+* [Autofac](https://autofac.org/)
+
+#### Kook 开发者文档
+
+* [KookAPI](https://developer.kookapp.cn/doc/reference)
+* [KMarkdown Preview](https://www.kookapp.cn/tools/message-builder.html#/kmarkdown)
 
 ## 部署指南
 
