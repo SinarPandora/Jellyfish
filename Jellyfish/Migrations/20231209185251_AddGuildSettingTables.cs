@@ -28,9 +28,9 @@ namespace Jellyfish.Migrations
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     guild_id = table.Column<decimal>(type: "numeric(20,0)", nullable: false),
+                    setting = table.Column<string>(type: "jsonb", nullable: false),
                     create_time = table.Column<DateTime>(type: "timestamp", nullable: false, defaultValueSql: "current_timestamp"),
-                    update_time = table.Column<DateTime>(type: "timestamp", nullable: false, defaultValueSql: "current_timestamp"),
-                    Setting = table.Column<string>(type: "jsonb", nullable: false)
+                    update_time = table.Column<DateTime>(type: "timestamp", nullable: false, defaultValueSql: "current_timestamp")
                 },
                 constraints: table =>
                 {

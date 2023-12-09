@@ -8,6 +8,7 @@ using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Module.TmpChannel.Data;
 using Kook;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace Jellyfish.Core.Data;
 
@@ -124,7 +125,12 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         {
             // Store GuildSettingDetails as JSON
             entity
-                .OwnsOne<GuildSettingDetails>(g => g.Setting, s => s.ToJson());
+                .Property(e => e.Setting)
+                .HasColumnType("jsonb")
+                // Use Newtonsoft json to custom json serialize because it support Hashset
+                .HasConversion(r => JsonConvert.SerializeObject(r),
+                    json => JsonConvert.DeserializeObject<GuildSettingDetails>(json)!);
+
 
             entity
                 .Property(e => e.CreateTime)
