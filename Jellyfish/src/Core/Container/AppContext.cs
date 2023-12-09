@@ -6,6 +6,7 @@ using Jellyfish.Core.Config;
 using Jellyfish.Core.Job;
 using Jellyfish.Core.Kook;
 using Jellyfish.Core.Lifecycle;
+using Jellyfish.Custom.GuildSetting.Core;
 using Jellyfish.Module;
 using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.GroupControl;
@@ -79,5 +80,11 @@ public static class AppContext
 
         // Text Channel Group Control Command
         container.RegisterType<TcGroupControlCommand>().As<GuildMessageCommand>().SingleInstance();
+
+        // Guild Setting Command
+        container.RegisterType<GuildCustomFeatureCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<SynergyBotAccountCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<InitSettingsForNewGuildCommand>().As<BotJoinGuildCommand>().SingleInstance();
+        container.RegisterType<GuildSettingService>().SingleInstance();
     }
 }

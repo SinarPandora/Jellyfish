@@ -12,7 +12,7 @@ public abstract class HelpMessageTemplate
     ///     Create help message for message command(already included help as option in the message)
     /// </summary>
     /// <param name="command">Message command object</param>
-    /// <param name="description">Command description</param>
+    /// <param name="description">Command description without title</param>
     /// <param name="options">Command options</param>
     /// <returns>Help message</returns>
     public static Card ForMessageCommand(GuildMessageCommand command, string description, string options) =>

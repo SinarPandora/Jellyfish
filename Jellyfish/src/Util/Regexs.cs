@@ -18,4 +18,10 @@ public abstract partial class Regexs
 
     [GeneratedRegex(@"\(chn\)(?<channelId>\d+)\(chn\)")]
     public static partial Regex MatchTextChannelMention();
+
+    [GeneratedRegex(@"\(met\)(?<userId>\d+)\(met\)")]
+    public static partial Regex MatchUserMention();
+
+    [GeneratedRegex(@"\(rol\)(?<roleId>\d+)\(rol\)")]
+    public static partial Regex MatchRoleMention();
 }
