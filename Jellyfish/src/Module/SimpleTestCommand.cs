@@ -12,7 +12,7 @@ public class SimpleTestCommand : GuildMessageCommand
 {
     private readonly ILogger<SimpleTestCommand> _log;
 
-    public SimpleTestCommand(ILogger<SimpleTestCommand> log)
+    public SimpleTestCommand(ILogger<SimpleTestCommand> log) : base(false)
     {
         _log = log;
         Enabled = false;

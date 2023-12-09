@@ -6,8 +6,13 @@ namespace Jellyfish.Core.Command;
 /// <summary>
 ///     Guild message command interface
 /// </summary>
-public abstract class GuildMessageCommand : Command
+public abstract class GuildMessageCommand(bool isManagerCommand) : Command
 {
+    /// <summary>
+    ///     Mark as manager command will be limited by default manager account and role
+    /// </summary>
+    public bool IsManagerCommand { get; set; } = isManagerCommand;
+
     private static readonly Card EmptyHelp = new CardBuilder()
         .AddModule<SectionModuleBuilder>(m => m.WithText("该指令没有帮助信息"))
         .Build();

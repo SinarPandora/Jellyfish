@@ -21,7 +21,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
     /// <param name="user">Action user</param>
     /// <param name="channel">Current channel</param>
     /// <param name="name">Config name</param>
-    /// <returns>Is task success</returns>
+    /// <returns>Is task success or not</returns>
     public async Task<bool> SendBindingWizard(SocketUser user, SocketTextChannel channel, string name)
     {
         await using var dbCtx = dbProvider.Provide();
@@ -179,7 +179,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
     /// </summary>
     /// <param name="channel">Channel to binding</param>
     /// <param name="rawArgs">Command args</param>
-    /// <returns>Is task success</returns>
+    /// <returns>Is task success or not</returns>
     public async Task<bool> BindingTextChannel(SocketTextChannel channel, string rawArgs)
     {
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
@@ -249,7 +249,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="name">Config name to remove</param>
-    /// <returns>Is task success</returns>
+    /// <returns>Is task success or not</returns>
     public async Task<bool> RemoveConfig(SocketTextChannel channel, string name)
     {
         await using var dbCtx = dbProvider.Provide();
@@ -331,7 +331,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="msg">Message that contains args</param>
-    /// <returns>Is task success</returns>
+    /// <returns>Is task success or not</returns>
     public async Task<bool> SetRoomPattern(SocketTextChannel channel, string msg)
     {
         var args = Regexs.MatchWhiteChars().Split(msg, 2);
@@ -375,7 +375,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="msg">Message that contains args</param>
-    /// <returns>Is task success</returns>
+    /// <returns>Is task success or not</returns>
     public async Task<bool> SetDefaultMemberCount(SocketTextChannel channel, string msg)
     {
         var args = Regexs.MatchWhiteChars().Split(msg, 2);
@@ -423,7 +423,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
     /// <param name="channel">Current channel</param>
     /// <param name="rawArgs">Command args</param>
     /// <param name="channelType">Target channel type</param>
-    /// <returns>Is task success</returns>
+    /// <returns>Is task success or not</returns>
     public async Task<bool> SetCategoryChannel(SocketTextChannel channel, string rawArgs,
         AdditionChannelType channelType)
     {

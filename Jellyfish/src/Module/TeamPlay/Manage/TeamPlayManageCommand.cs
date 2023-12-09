@@ -12,7 +12,7 @@ public class TeamPlayManageCommand : GuildMessageCommand
 {
     private readonly TeamPlayManageService _service;
 
-    public TeamPlayManageCommand(TeamPlayManageService service)
+    public TeamPlayManageCommand(TeamPlayManageService service) : base(true)
     {
         _service = service;
         HelpMessage = HelpMessageTemplate.ForMessageCommand(this,

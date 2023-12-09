@@ -14,7 +14,7 @@ public class GlobalHelpCommand : GuildMessageCommand
 {
     private readonly Lazy<ImmutableArray<GuildMessageCommand>> _commands;
 
-    public GlobalHelpCommand(IServiceScopeFactory provider)
+    public GlobalHelpCommand(IServiceScopeFactory provider) : base(false)
     {
         _commands = new Lazy<ImmutableArray<GuildMessageCommand>>(() =>
             {

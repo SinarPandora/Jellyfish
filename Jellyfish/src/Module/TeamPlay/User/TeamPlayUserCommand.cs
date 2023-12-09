@@ -10,7 +10,7 @@ namespace Jellyfish.Module.TeamPlay.User;
 /// <summary>
 ///     Team play command for normal user, use to create room instance
 /// </summary>
-public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageCommand
+public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageCommand(false)
 {
     private const string HelpTemplate =
         """
@@ -73,7 +73,7 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
     ///     Show help message
     /// </summary>
     /// <param name="channel">Current channel to find config</param>
-    /// <returns>Is task success</returns>
+    /// <returns>Is command success or not</returns>
     private async Task<bool> Help(SocketTextChannel channel)
     {
         var tpConfig = (from config in AppCaches.TeamPlayConfigs.Values

@@ -38,7 +38,7 @@ public class TeamPlayRoomService(
     /// <param name="user">Current user</param>
     /// <param name="noticeChannel">Text channel for notice</param>
     /// <param name="onSuccess">Callback on success</param>
-    /// <returns>Is task success</returns>
+    /// <returns>Is task success or not</returns>
     public async Task<bool> CreateAndMoveToRoomAsync(
         Args.CreateRoomArgs args, SocketGuildUser user,
         IMessageChannel? noticeChannel,
