@@ -17,6 +17,7 @@ public class KookEventMatcher
     private readonly IEnumerable<UserConnectEventCommand> _userConnectEventCommands;
     private readonly IEnumerable<UserDisconnectEventCommand> _userDisconnectEventCommands;
     private readonly IEnumerable<DmcCommand> _dmcCommands;
+    private readonly IEnumerable<BotJoinGuildCommand> _botJoinGuildCommands;
 
     public KookEventMatcher(
         IEnumerable<GuildMessageCommand> messageCommand,
@@ -24,7 +25,8 @@ public class KookEventMatcher
         IEnumerable<UserConnectEventCommand> userConnectEventCommands,
         IEnumerable<UserDisconnectEventCommand> userDisconnectEventCommands,
         IEnumerable<DmcCommand> dmcCommands,
-        IComponentContext provider, ILogger<KookEventMatcher> log)
+        IComponentContext provider, ILogger<KookEventMatcher> log,
+        IEnumerable<BotJoinGuildCommand> botJoinGuildCommands)
     {
         _messageCommands = messageCommand.Where(c => c.Enabled).ToArray();
         _buttonActionCommands = buttonActionCommands.Where(c => c.Enabled).ToArray();
@@ -32,6 +34,7 @@ public class KookEventMatcher
         _userDisconnectEventCommands = userDisconnectEventCommands;
         _dmcCommands = dmcCommands;
         _log = log;
+        _botJoinGuildCommands = botJoinGuildCommands;
         _currentUserId = new Lazy<ulong>(() => provider.Resolve<KookSocketClient>().CurrentUser.Id);
     }
 
@@ -175,6 +178,30 @@ public class KookEventMatcher
                 catch (Exception e)
                 {
                     _log.LogInformation(e, "私聊文字指令 {Name} 执行失败！", command.Name());
+                }
+            }
+        });
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Handle on bot join to new guild received
+    /// </summary>
+    /// <param name="guild">Current guild</param>
+    public Task OnBotJoinGuild(SocketGuild guild)
+    {
+        _ = Task.Run(async () =>
+        {
+            foreach (var command in _botJoinGuildCommands)
+            {
+                try
+                {
+                    var result = await command.Execute(guild);
+                    if (result == CommandResult.Done) break;
+                }
+                catch (Exception e)
+                {
+                    _log.LogInformation(e, "Bot加入服务器指令 {Name} 执行失败！", command.Name());
                 }
             }
         });

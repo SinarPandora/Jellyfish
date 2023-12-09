@@ -1,6 +1,7 @@
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Job;
 using Jellyfish.Core.Kook;
+using Jellyfish.Custom.GuildSetting.Core;
 
 namespace Jellyfish.Core.Lifecycle;
 
@@ -16,8 +17,10 @@ public class AppInitializer(IServiceScopeFactory scopeFactory) : IStartupFilter
             using (var scope = scopeFactory.CreateScope())
             {
                 scope.ServiceProvider.GetRequiredService<CacheLoader>().Load().Wait();
-                scope.ServiceProvider.GetRequiredService<KookLoader>().Load().Wait();
+                scope.ServiceProvider.GetRequiredService<KookLoader>().Login().Wait();
+                scope.ServiceProvider.GetRequiredService<GuildSettingService>().InitGuildSettings().Wait();
                 scope.ServiceProvider.GetRequiredService<JobLoader>().Load();
+                scope.ServiceProvider.GetRequiredService<KookLoader>().RegisterActions();
             }
 
             next(builder);
