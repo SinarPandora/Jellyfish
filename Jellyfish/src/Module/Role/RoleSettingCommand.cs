@@ -90,11 +90,25 @@ public class RoleSettingCommand : GuildMessageCommand
     private async Task ListPermissions(SocketTextChannel channel)
     {
         await using var dbCtx = _dbProvider.Provide();
-        var roles = from role in dbCtx.UserRoles.Include(e => e.CommandPermissions).AsNoTracking()
+        var roles = (from role in dbCtx.UserRoles.Include(e => e.CommandPermissions).AsNoTracking()
             orderby role.KookId
             where role.GuildId == channel.Guild.Id
             from permission in role.CommandPermissions
-            select role;
+            select role).ToArray();
+
+        if (roles.IsEmpty())
+        {
+            await channel.SendInfoCardAsync(
+                """
+                您还没有对任何指令进行权限限制
+                ---
+                在不额外设置权限时，所有管理指令（一般以叹号开头）只允许带有管理员权限的用户使用
+                除此之外的指令任何人都可以执行
+                """, false
+            );
+            return;
+        }
+
         var permissions = string.Join(
             "\n",
             roles.Select(r =>
