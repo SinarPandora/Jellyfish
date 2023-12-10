@@ -1,22 +1,41 @@
 using Jellyfish.Core.Config;
+using Jellyfish.Core.Job;
+using Jellyfish.Custom.GuildSetting.Core;
 using Kook;
 using Kook.WebSocket;
 
 namespace Jellyfish.Core.Kook;
 
-public class KookLoader(KookEventMatcher matcher, AppConfig appConfig, KookSocketClient client, ILogger<KookLoader> log)
+public class KookLoader(
+    KookEventMatcher matcher,
+    AppConfig appConfig,
+    KookSocketClient client,
+    ILogger<KookLoader> log,
+    GuildSettingService guildSettingService,
+    JobLoader jobLoader)
 {
-    public async Task Load()
+    /// <summary>
+    ///     Login Kook client
+    /// </summary>
+    public async Task Login()
     {
         client.Log += KookLog;
         client.Ready += KookReady;
+        await client.LoginAsync(TokenType.Bot, appConfig.KookToken);
+        await client.StartAsync();
+    }
+
+    /// <summary>
+    ///     Register commands and actions
+    /// </summary>
+    private void RegisterActions()
+    {
         client.MessageReceived += matcher.OnMessageReceived;
         client.MessageButtonClicked += matcher.OnCardActionClicked;
         client.DirectMessageReceived += matcher.OnDirectMessageReceived;
         client.UserConnected += matcher.OnUserConnected;
         client.UserDisconnected += matcher.OnUserDisconnected;
-        await client.LoginAsync(TokenType.Bot, appConfig.KookToken);
-        await client.StartAsync();
+        client.JoinedGuild += matcher.OnBotJoinGuild;
     }
 
     /// <summary>
@@ -30,10 +49,13 @@ public class KookLoader(KookEventMatcher matcher, AppConfig appConfig, KookSocke
         return Task.CompletedTask;
     }
 
-    private Task KookReady()
+    private async Task KookReady()
     {
-        log.LogInformation("{ClientCurrentUser} 已连接！", client.CurrentUser);
-        return Task.CompletedTask;
+        log.LogInformation("{ClientCurrentUser} 登录成功！", client.CurrentUser);
+        await guildSettingService.InitGuildSettings();
+        RegisterActions();
+        jobLoader.Load();
+        log.LogInformation("{ClientCurrentUser} 已就绪！", client.CurrentUser);
     }
 
 

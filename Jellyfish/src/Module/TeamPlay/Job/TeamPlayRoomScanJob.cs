@@ -1,4 +1,5 @@
 using FluentScheduler;
+using Jellyfish.Core.Cache;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Module.TeamPlay.Data;
@@ -144,14 +145,30 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
         {
             case true when everyoneOverride is not { ViewChannel: PermValue.Deny }:
             {
-                // Sync voice member permission to text channel, then hide the text channel
-                foreach (var user in users)
-                {
-                    await textChannel.OverrideUserPermissionAsync(user, r => r.Modify(
-                        viewChannel: PermValue.Allow,
-                        mentionEveryone: PermValue.Allow
-                    ));
-                }
+                // Sync voice members and synergy bot accounts permission to text channel, then hide the text channel
+                await Task.WhenAll(
+                    Task.WhenAll(users.Select(user =>
+                        textChannel.OverrideUserPermissionAsync(user, r => r.Modify(
+                            viewChannel: PermValue.Allow,
+                            mentionEveryone: PermValue.Allow
+                        )))
+                    ),
+                    Task.WhenAll(AppCaches.GuildSettings[cachedGuild.Id].SynergyBotAccounts.Select(botId =>
+                    {
+                        var botUser = cachedGuild.GetUser(botId);
+                        if (botUser != null)
+                        {
+                            return textChannel.OverrideUserPermissionAsync(botUser, p =>
+                                p.Modify(
+                                    viewChannel: PermValue.Allow,
+                                    mentionEveryone: PermValue.Allow
+                                ));
+                        }
+
+                        return Task.CompletedTask;
+                    }))
+                );
+
 
                 await textChannel.OverrideRolePermissionAsync(everyOneRole, r => r.Modify(viewChannel: PermValue.Deny));
                 break;

@@ -1,3 +1,4 @@
+using Jellyfish.Core.Cache;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Module.TmpChannel.Core;
@@ -38,11 +39,11 @@ public class TeamPlayRoomService(
     /// <param name="user">Current user</param>
     /// <param name="noticeChannel">Text channel for notice</param>
     /// <param name="onSuccess">Callback on success</param>
-    /// <returns>Is task success</returns>
+    /// <returns>Is task success or not</returns>
     public async Task<bool> CreateAndMoveToRoomAsync(
         Args.CreateRoomArgs args, SocketGuildUser user,
         IMessageChannel? noticeChannel,
-        Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
+        Func<TpRoomInstance, RestVoiceChannel, RestTextChannel?, Task> onSuccess)
     {
         if (Locks.IsUserBeLockedByCreationLock(user.Id, args.Config.Id))
         {
@@ -130,7 +131,7 @@ public class TeamPlayRoomService(
         try
         {
             log.LogInformation("开始创建语音房间{RoomName}", roomName);
-            var room = await guild.CreateVoiceChannelAsync(roomName, r =>
+            var voiceChannel = await guild.CreateVoiceChannelAsync(roomName, r =>
             {
                 r.VoiceQuality = guild.GetHighestVoiceQuality();
                 r.UserLimit = memberLimit;
@@ -140,46 +141,47 @@ public class TeamPlayRoomService(
             if (isVoiceChannelHasPassword)
             {
                 log.LogInformation("检测到房间 {RoomName} 带有初始密码，尝试设置密码", roomName);
-                await room.ModifyAsync(v => v.Password = args.Password);
+                await voiceChannel.ModifyAsync(v => v.Password = args.Password);
                 log.LogInformation("房间 {RoomName} 密码设置成功！", roomName);
             }
 
             // Give owner permission
-            await GiveOwnerPermissionAsync(room, user);
+            await GiveOwnerPermissionAsync(voiceChannel, user);
 
             log.LogInformation("创建语音房间 API 调用成功，房间名：{RoomName}", roomName);
 
-            log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), room.Name);
+            log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), voiceChannel.Name);
 
-            var moveUserTask = user.VoiceChannel != null
-                ? guild.MoveToRoomAsync(user.Id, room)
-                : Task.CompletedTask;
+            if (user.VoiceChannel != null)
+            {
+                // Ignore error for moving user to voice channel
+                _ = guild.MoveToRoomAsync(user.Id, voiceChannel);
+            }
 
             var instance = new TpRoomInstance(
                 tpConfigId: tpConfig.Id,
-                voiceChannelId: room.Id,
+                voiceChannelId: voiceChannel.Id,
                 guildId: tpConfig.GuildId,
                 roomName: roomName,
                 ownerId: user.Id,
                 commandText: args.RawCommand
             );
             dbCtx.TpRoomInstances.Add(instance);
-            dbCtx.SaveChanges();
+            dbCtx.SaveChanges(); // Save for voice channel
 
             log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
 
-            _ = CreateTemporaryTextChannel(
+            // Error already handled inside the method with callback
+            var tmpTextChannel = await CreateTemporaryTextChannel(
                 new TmpChannel.Core.Args.CreateTextChannelArgs(
                     (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
                     textCategoryId ?? voiceCategoryId
                 ),
-                user, instance.Id, room, isVoiceChannelHasPassword, noticeChannel
+                user, instance, voiceChannel, isVoiceChannelHasPassword, noticeChannel
             );
+            dbCtx.SaveChanges(); // Save for text channel
 
-            await moveUserTask;
-            dbCtx.SaveChanges();
-
-            await onSuccess(instance, room);
+            await onSuccess(instance, voiceChannel, tmpTextChannel);
             return true;
         }
         catch (Exception e)
@@ -266,46 +268,63 @@ public class TeamPlayRoomService(
     /// </summary>
     /// <param name="args">Channel create args</param>
     /// <param name="creator">Team play room creator</param>
-    /// <param name="roomInstanceId">Current team play room instance id</param>
+    /// <param name="roomInstance">Current team play room instance</param>
     /// <param name="voiceChannel">Current voice channel</param>
     /// <param name="isVoiceChannelHasPassword">Is voice channel has password</param>
     /// <param name="noticeChannel">Notice channel</param>
-    private Task CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
+    /// <returns>New text channel or null if fail to create</returns>
+    private async Task<RestTextChannel?> CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
         SocketGuildUser creator,
-        long roomInstanceId,
+        TpRoomInstance roomInstance,
         IVoiceChannel voiceChannel,
         bool isVoiceChannelHasPassword,
         IMessageChannel noticeChannel)
     {
-        return tmpTextChannelService.CreateAsync(args, creator,
-            async newChannel =>
+        var promise = new TaskCompletionSource<RestTextChannel?>();
+        await tmpTextChannelService.CreateAsync(args, creator,
+            newChannel =>
             {
                 // If voice channel has password, make the bound text channel also be private
                 if (isVoiceChannelHasPassword)
                 {
-                    await newChannel.OverrideUserPermissionAsync(creator, p =>
-                        p.Modify(
-                            viewChannel: PermValue.Allow,
-                            mentionEveryone: PermValue.Allow
-                        ));
+                    return Task.WhenAll(
+                        newChannel.OverrideUserPermissionAsync(creator, p =>
+                            p.Modify(
+                                viewChannel: PermValue.Allow,
+                                mentionEveryone: PermValue.Allow
+                            )),
+                        newChannel.OverrideRolePermissionAsync(creator.Guild.EveryoneRole, p =>
+                            p.Modify(viewChannel: PermValue.Deny)
+                        ),
+                        Task.WhenAll(AppCaches.GuildSettings[roomInstance.GuildId].SynergyBotAccounts.Select(botId =>
+                        {
+                            var botUser = creator.Guild.GetUser(botId);
+                            if (botUser != null)
+                            {
+                                return newChannel.OverrideUserPermissionAsync(botUser, p =>
+                                    p.Modify(
+                                        viewChannel: PermValue.Allow,
+                                        mentionEveryone: PermValue.Allow
+                                    ));
+                            }
 
-                    await newChannel.OverrideRolePermissionAsync(creator.Guild.EveryoneRole, p =>
-                        p.Modify(viewChannel: PermValue.Deny)
+                            return Task.CompletedTask;
+                        }))
                     );
                 }
+
+                return Task.CompletedTask;
             },
             async (instance, newChannel) =>
             {
-                await using var dbCtx = dbProvider.Provide();
-                var tpRoomInstance = dbCtx.TpRoomInstances.First(i => i.Id == roomInstanceId);
-                tpRoomInstance.TmpTextChannelId = instance.Id;
-                dbCtx.SaveChanges();
+                roomInstance.TmpTextChannelId = instance.Id;
+                roomInstance.TmpTextChannel = instance;
 
                 await newChannel.SendSuccessCardAsync(
                     $"""
                      {MentionUtils.KMarkdownMentionUser(creator.Id)}
                      ---
-                     欢迎光临！这是属于组队房间「{tpRoomInstance.RoomName}」的专属临时文字房间！
+                     欢迎光临！这是属于组队房间「{roomInstance.RoomName}」的专属临时文字房间！
                      （若语音房间设置了密码，该房间将改为仅语音内玩家可见）
                      ---
                      作为房主，您可以随意修改语音房间信息，设置密码，调整麦序，全体静音等
@@ -317,7 +336,15 @@ public class TeamPlayRoomService(
 
                 await newChannel.SendCardSafeAsync(await CreateInviteCardAsync(voiceChannel));
                 await newChannel.SendTextSafeAsync("👍🏻还未加入组队语音？点击上方按钮进入对应语音房间");
+
+                promise.SetResult(newChannel);
             },
-            _ => noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false));
+            _ =>
+            {
+                promise.SetResult(null);
+                return noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false);
+            });
+
+        return await promise.Task;
     }
 }

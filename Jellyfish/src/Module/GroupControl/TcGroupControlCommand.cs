@@ -20,7 +20,7 @@ public class TcGroupControlCommand : GuildMessageCommand
     private static readonly Lazy<IDeserializer> YamlDeserializer = new(() => new DeserializerBuilder().Build());
     private readonly DbContextProvider _dbProvider;
 
-    public TcGroupControlCommand(ILogger<TcGroupControlCommand> log, DbContextProvider dbProvider)
+    public TcGroupControlCommand(ILogger<TcGroupControlCommand> log, DbContextProvider dbProvider) : base(true)
     {
         _log = log;
         _dbProvider = dbProvider;

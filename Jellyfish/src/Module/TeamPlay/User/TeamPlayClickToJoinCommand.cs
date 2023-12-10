@@ -23,7 +23,7 @@ public class TeamPlayClickToJoinCommand(TeamPlayRoomService service) : UserConne
 
         if (tpConfig == null) return CommandResult.Continue;
         await service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
-            async (_, room) =>
+            async (_, voiceChannel, textChannel) =>
             {
                 var notifyChannelId = tpConfig.CreationNotifyChannelId ?? tpConfig.TextChannelId;
                 if (notifyChannelId.HasValue)
@@ -31,9 +31,15 @@ public class TeamPlayClickToJoinCommand(TeamPlayRoomService service) : UserConne
                     var notifyChannel = channel.Guild.GetTextChannel(notifyChannelId.Value);
                     if (notifyChannel != null)
                     {
-                        await notifyChannel.SendCardSafeAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
+                        await notifyChannel.SendCardSafeAsync(
+                            await TeamPlayRoomService.CreateInviteCardAsync(voiceChannel));
                         await notifyChannel.SendTextSafeAsync(
-                            $"👍🏻想一起玩？点击上方按钮加入语音房间！{(room.HasPassword ? "" : "不方便语音也可以加入同名文字房间哦")}");
+                            $"👍🏻想一起玩？点击上方按钮加入语音房间！{
+                                (!voiceChannel.HasPassword && textChannel != null
+                                    ? $"不方便语音也可以加入同名文字房间 {MentionUtils.KMarkdownMentionChannel(textChannel.Id)} 哦"
+                                    : string.Empty
+                                )
+                            }");
                     }
                 }
             });

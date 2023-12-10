@@ -1,4 +1,6 @@
 using Jellyfish.Core.Enum;
+using Jellyfish.Custom.GuildSetting.Data;
+using Jellyfish.Custom.GuildSetting.Enum;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GroupControl.Data;
 using Jellyfish.Module.Role.Data;
@@ -6,6 +8,7 @@ using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Module.TmpChannel.Data;
 using Kook;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace Jellyfish.Core.Data;
 
@@ -22,6 +25,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
     public DbSet<TmpTextChannel> TmpTextChannels { get; set; } = null!;
     public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
+    public DbSet<GuildSetting> GuildSettings { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +34,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         modelBuilder.HasPostgresEnum<ChannelType>();
         modelBuilder.HasPostgresEnum<TimeUnit>();
         modelBuilder.HasPostgresEnum<ExtendTargetType>();
+        modelBuilder.HasPostgresEnum<GuildCustomFeature>();
 
         modelBuilder.Entity<TpConfig>(entity =>
         {
@@ -107,6 +112,26 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
         modelBuilder.Entity<TmpTextChannel>(entity =>
         {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .Property(e => e.UpdateTime)
+                .HasDefaultValueSql("current_timestamp");
+        });
+
+        modelBuilder.Entity<GuildSetting>(entity =>
+        {
+            // Store GuildSettingDetails as JSON
+            entity
+                .Property(e => e.Setting)
+                .HasColumnType("jsonb")
+                // Use Newtonsoft json to custom json serialize because it support Hashset
+                .HasConversion(r => JsonConvert.SerializeObject(r),
+                    json => JsonConvert.DeserializeObject<GuildSettingDetails>(json)!);
+
+
             entity
                 .Property(e => e.CreateTime)
                 .HasDefaultValueSql("current_timestamp");

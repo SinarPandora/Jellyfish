@@ -1,5 +1,4 @@
 using Jellyfish.Core.Cache;
-using Jellyfish.Core.Job;
 using Jellyfish.Core.Kook;
 
 namespace Jellyfish.Core.Lifecycle;
@@ -16,8 +15,7 @@ public class AppInitializer(IServiceScopeFactory scopeFactory) : IStartupFilter
             using (var scope = scopeFactory.CreateScope())
             {
                 scope.ServiceProvider.GetRequiredService<CacheLoader>().Load().Wait();
-                scope.ServiceProvider.GetRequiredService<KookLoader>().Load().Wait();
-                scope.ServiceProvider.GetRequiredService<JobLoader>().Load();
+                scope.ServiceProvider.GetRequiredService<KookLoader>().Login().Wait();
             }
 
             next(builder);
