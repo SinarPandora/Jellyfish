@@ -166,7 +166,7 @@ public class TeamPlayRoomService(
                 commandText: args.RawCommand
             );
             dbCtx.TpRoomInstances.Add(instance);
-            dbCtx.SaveChanges();
+            dbCtx.SaveChanges(); // Save for voice channel
 
             log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
 
@@ -176,8 +176,9 @@ public class TeamPlayRoomService(
                     (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
                     textCategoryId ?? voiceCategoryId
                 ),
-                user, instance.Id, voiceChannel, isVoiceChannelHasPassword, noticeChannel
+                user, instance, voiceChannel, isVoiceChannelHasPassword, noticeChannel
             );
+            dbCtx.SaveChanges(); // Save for text channel
 
             await onSuccess(instance, voiceChannel, tmpTextChannel);
             return true;
@@ -266,14 +267,14 @@ public class TeamPlayRoomService(
     /// </summary>
     /// <param name="args">Channel create args</param>
     /// <param name="creator">Team play room creator</param>
-    /// <param name="roomInstanceId">Current team play room instance id</param>
+    /// <param name="roomInstance">Current team play room instance</param>
     /// <param name="voiceChannel">Current voice channel</param>
     /// <param name="isVoiceChannelHasPassword">Is voice channel has password</param>
     /// <param name="noticeChannel">Notice channel</param>
     /// <returns>New text channel or null if fail to create</returns>
     private async Task<RestTextChannel?> CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
         SocketGuildUser creator,
-        long roomInstanceId,
+        TpRoomInstance roomInstance,
         IVoiceChannel voiceChannel,
         bool isVoiceChannelHasPassword,
         IMessageChannel noticeChannel)
@@ -298,16 +299,14 @@ public class TeamPlayRoomService(
             },
             async (instance, newChannel) =>
             {
-                await using var dbCtx = dbProvider.Provide();
-                var tpRoomInstance = dbCtx.TpRoomInstances.First(i => i.Id == roomInstanceId);
-                tpRoomInstance.TmpTextChannelId = instance.Id;
-                dbCtx.SaveChanges();
+                roomInstance.TmpTextChannelId = instance.Id;
+                roomInstance.TmpTextChannel = instance;
 
                 await newChannel.SendSuccessCardAsync(
                     $"""
                      {MentionUtils.KMarkdownMentionUser(creator.Id)}
                      ---
-                     欢迎光临！这是属于组队房间「{tpRoomInstance.RoomName}」的专属临时文字房间！
+                     欢迎光临！这是属于组队房间「{roomInstance.RoomName}」的专属临时文字房间！
                      （若语音房间设置了密码，该房间将改为仅语音内玩家可见）
                      ---
                      作为房主，您可以随意修改语音房间信息，设置密码，调整麦序，全体静音等
