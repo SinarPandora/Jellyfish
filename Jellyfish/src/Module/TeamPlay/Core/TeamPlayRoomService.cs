@@ -130,7 +130,7 @@ public class TeamPlayRoomService(
         try
         {
             log.LogInformation("开始创建语音房间{RoomName}", roomName);
-            var room = await guild.CreateVoiceChannelAsync(roomName, r =>
+            var voiceChannel = await guild.CreateVoiceChannelAsync(roomName, r =>
             {
                 r.VoiceQuality = guild.GetHighestVoiceQuality();
                 r.UserLimit = memberLimit;
@@ -140,24 +140,26 @@ public class TeamPlayRoomService(
             if (isVoiceChannelHasPassword)
             {
                 log.LogInformation("检测到房间 {RoomName} 带有初始密码，尝试设置密码", roomName);
-                await room.ModifyAsync(v => v.Password = args.Password);
+                await voiceChannel.ModifyAsync(v => v.Password = args.Password);
                 log.LogInformation("房间 {RoomName} 密码设置成功！", roomName);
             }
 
             // Give owner permission
-            await GiveOwnerPermissionAsync(room, user);
+            await GiveOwnerPermissionAsync(voiceChannel, user);
 
             log.LogInformation("创建语音房间 API 调用成功，房间名：{RoomName}", roomName);
 
-            log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), room.Name);
+            log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), voiceChannel.Name);
 
-            var moveUserTask = user.VoiceChannel != null
-                ? guild.MoveToRoomAsync(user.Id, room)
-                : Task.CompletedTask;
+            if (user.VoiceChannel != null)
+            {
+                // Ignore error for moving user to voice channel
+                _ = guild.MoveToRoomAsync(user.Id, voiceChannel);
+            }
 
             var instance = new TpRoomInstance(
                 tpConfigId: tpConfig.Id,
-                voiceChannelId: room.Id,
+                voiceChannelId: voiceChannel.Id,
                 guildId: tpConfig.GuildId,
                 roomName: roomName,
                 ownerId: user.Id,
@@ -168,15 +170,16 @@ public class TeamPlayRoomService(
 
             log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
 
+            // Error already handled inside the method with callback
             var tmpTextChannel = await CreateTemporaryTextChannel(
                 new TmpChannel.Core.Args.CreateTextChannelArgs(
                     (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
                     textCategoryId ?? voiceCategoryId
                 ),
-                user, instance.Id, room, isVoiceChannelHasPassword, noticeChannel
+                user, instance.Id, voiceChannel, isVoiceChannelHasPassword, noticeChannel
             );
 
-            await onSuccess(instance, room, tmpTextChannel);
+            await onSuccess(instance, voiceChannel, tmpTextChannel);
             return true;
         }
         catch (Exception e)
