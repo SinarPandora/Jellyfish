@@ -1,3 +1,4 @@
+using Jellyfish.Core.Cache;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Module.TmpChannel.Core;
@@ -281,21 +282,38 @@ public class TeamPlayRoomService(
     {
         var promise = new TaskCompletionSource<RestTextChannel?>();
         await tmpTextChannelService.CreateAsync(args, creator,
-            async newChannel =>
+            newChannel =>
             {
                 // If voice channel has password, make the bound text channel also be private
                 if (isVoiceChannelHasPassword)
                 {
-                    await newChannel.OverrideUserPermissionAsync(creator, p =>
-                        p.Modify(
-                            viewChannel: PermValue.Allow,
-                            mentionEveryone: PermValue.Allow
-                        ));
+                    return Task.WhenAll(
+                        newChannel.OverrideUserPermissionAsync(creator, p =>
+                            p.Modify(
+                                viewChannel: PermValue.Allow,
+                                mentionEveryone: PermValue.Allow
+                            )),
+                        newChannel.OverrideRolePermissionAsync(creator.Guild.EveryoneRole, p =>
+                            p.Modify(viewChannel: PermValue.Deny)
+                        ),
+                        Task.WhenAll(AppCaches.GuildSettings[roomInstance.GuildId].SynergyBotAccounts.Select(botId =>
+                        {
+                            var botUser = creator.Guild.GetUser(botId);
+                            if (botUser != null)
+                            {
+                                return newChannel.OverrideUserPermissionAsync(botUser, p =>
+                                    p.Modify(
+                                        viewChannel: PermValue.Allow,
+                                        mentionEveryone: PermValue.Allow
+                                    ));
+                            }
 
-                    await newChannel.OverrideRolePermissionAsync(creator.Guild.EveryoneRole, p =>
-                        p.Modify(viewChannel: PermValue.Deny)
+                            return Task.CompletedTask;
+                        }))
                     );
                 }
+
+                return Task.CompletedTask;
             },
             async (instance, newChannel) =>
             {
