@@ -130,11 +130,16 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
         if (tpConfig == null) return;
 
         var isSuccess = await service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
-            async (_, room) =>
+            async (_, voiceChannel, textChannel) =>
             {
-                await channel.SendCardSafeAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
+                await channel.SendCardSafeAsync(await TeamPlayRoomService.CreateInviteCardAsync(voiceChannel));
                 await channel.SendTextSafeAsync(
-                    $"👍🏻想一起玩？点击上方按钮加入语音房间！{(room.HasPassword ? "" : "不方便语音也可以加入同名文字房间哦")}");
+                    $"👍🏻想一起玩？点击上方按钮加入语音房间！{
+                        (!voiceChannel.HasPassword && textChannel != null
+                            ? $"不方便语音也可以加入同名文字房间 {MentionUtils.KMarkdownMentionChannel(textChannel.Id)} 哦"
+                            : string.Empty
+                        )
+                    }");
             });
 
         if (!isSuccess)

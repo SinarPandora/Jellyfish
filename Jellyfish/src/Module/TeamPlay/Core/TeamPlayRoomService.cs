@@ -42,7 +42,7 @@ public class TeamPlayRoomService(
     public async Task<bool> CreateAndMoveToRoomAsync(
         Args.CreateRoomArgs args, SocketGuildUser user,
         IMessageChannel? noticeChannel,
-        Func<TpRoomInstance, RestVoiceChannel, Task> onSuccess)
+        Func<TpRoomInstance, RestVoiceChannel, RestTextChannel?, Task> onSuccess)
     {
         if (Locks.IsUserBeLockedByCreationLock(user.Id, args.Config.Id))
         {
@@ -168,7 +168,7 @@ public class TeamPlayRoomService(
 
             log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
 
-            _ = CreateTemporaryTextChannel(
+            var tmpTextChannel = await CreateTemporaryTextChannel(
                 new TmpChannel.Core.Args.CreateTextChannelArgs(
                     (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
                     textCategoryId ?? voiceCategoryId
@@ -176,10 +176,7 @@ public class TeamPlayRoomService(
                 user, instance.Id, room, isVoiceChannelHasPassword, noticeChannel
             );
 
-            await moveUserTask;
-            dbCtx.SaveChanges();
-
-            await onSuccess(instance, room);
+            await onSuccess(instance, room, tmpTextChannel);
             return true;
         }
         catch (Exception e)
@@ -270,14 +267,16 @@ public class TeamPlayRoomService(
     /// <param name="voiceChannel">Current voice channel</param>
     /// <param name="isVoiceChannelHasPassword">Is voice channel has password</param>
     /// <param name="noticeChannel">Notice channel</param>
-    private Task CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
+    /// <returns>New text channel or null if fail to create</returns>
+    private async Task<RestTextChannel?> CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
         SocketGuildUser creator,
         long roomInstanceId,
         IVoiceChannel voiceChannel,
         bool isVoiceChannelHasPassword,
         IMessageChannel noticeChannel)
     {
-        return tmpTextChannelService.CreateAsync(args, creator,
+        var promise = new TaskCompletionSource<RestTextChannel?>();
+        await tmpTextChannelService.CreateAsync(args, creator,
             async newChannel =>
             {
                 // If voice channel has password, make the bound text channel also be private
@@ -317,7 +316,15 @@ public class TeamPlayRoomService(
 
                 await newChannel.SendCardSafeAsync(await CreateInviteCardAsync(voiceChannel));
                 await newChannel.SendTextSafeAsync("👍🏻还未加入组队语音？点击上方按钮进入对应语音房间");
+
+                promise.SetResult(newChannel);
             },
-            _ => noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false));
+            _ =>
+            {
+                promise.SetResult(null);
+                return noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false);
+            });
+
+        return await promise.Task;
     }
 }
