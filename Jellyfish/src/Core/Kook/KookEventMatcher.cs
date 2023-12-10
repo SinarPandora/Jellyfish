@@ -1,6 +1,6 @@
 using Autofac;
-using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
+using Jellyfish.Module.Role.Core;
 using Kook;
 using Kook.WebSocket;
 
@@ -52,7 +52,7 @@ public class KookEventMatcher
         {
             foreach (var command in _messageCommands)
             {
-                if (!CheckIfUserHasPermission(user, command.Name())) continue;
+                if (!user.CanExecute(command)) continue;
                 try
                 {
                     var result = await command.MatchAndExecute(msg, user, channel);
@@ -206,18 +206,5 @@ public class KookEventMatcher
             }
         });
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    ///     Check if current user has permission to perform command
-    /// </summary>
-    /// <param name="user">Kook user</param>
-    /// <param name="commandName">Command name</param>
-    /// <returns>Does user has permission or not</returns>
-    private static bool CheckIfUserHasPermission(SocketGuildUser user, string commandName)
-    {
-        return !AppCaches.Permissions.ContainsKey($"{user.Guild.Id}_{commandName}")
-               || AppCaches.Permissions.GetValueOrDefault($"{user.Guild.Id}_{commandName}")
-                   .ContainsAny(user.Roles.Select(it => it.Id).ToArray());
     }
 }

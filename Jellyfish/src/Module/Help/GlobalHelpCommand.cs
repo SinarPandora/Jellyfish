@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
-using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
+using Jellyfish.Module.Role.Core;
 using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
@@ -33,17 +33,10 @@ public class GlobalHelpCommand : GuildMessageCommand
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
-        var cache = AppCaches.Permissions;
-        var userGuildRoles = user.Roles.Select(it => it.Id).ToArray();
         var availableCommands =
-            string.Join("\n",
-                from command in _commands.Value
-                let cacheKey = $"{user.Guild.Id}_{command.Name()}"
-                where command.Enabled && !cache.ContainsKey(cacheKey) ||
-                      cache.GetValueOrDefault(cacheKey).ContainsAny(userGuildRoles)
-                orderby command.Name()
-                select $"{command.Name()}：{command.Keywords().First()}"
-            );
+            _commands.Value.Where(user.CanExecute)
+                .Select(command => $"{command.Name()}：{command.Keywords().First()}")
+                .StringJoin("\n");
 
         await channel.SendCardSafeAsync(new CardBuilder()
             .AddModule<SectionModuleBuilder>(s =>

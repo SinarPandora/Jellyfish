@@ -35,7 +35,7 @@ public class SynergyBotAccountCommand : GuildMessageCommand
 
     public override string Name() => "服务器协同机器人账号配置指令";
 
-    public override IEnumerable<string> Keywords() => ["！协同机器人", "!协同机器人"];
+    public override IEnumerable<string> Keywords() => ["!协同机器人", "！协同机器人"];
 
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
