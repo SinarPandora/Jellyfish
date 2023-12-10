@@ -6,7 +6,7 @@ using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
 
-namespace Jellyfish.Custom.GuildSetting.Core;
+namespace Jellyfish.Module.GuildSetting.Core;
 
 /// <summary>
 ///     Command for setting synergy bot account

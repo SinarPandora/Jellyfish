@@ -1,11 +1,11 @@
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Jellyfish.Core.Data;
-using Jellyfish.Custom.GuildSetting.Enum;
+using Jellyfish.Module.GuildSetting.Enum;
 using Jellyfish.Util;
 using Kook.WebSocket;
 
-namespace Jellyfish.Custom.GuildSetting.Core;
+namespace Jellyfish.Module.GuildSetting.Core;
 
 /// <summary>
 ///     Command for setting custom feature

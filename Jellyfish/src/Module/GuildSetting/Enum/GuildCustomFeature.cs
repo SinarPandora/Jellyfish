@@ -1,4 +1,4 @@
-namespace Jellyfish.Custom.GuildSetting.Enum;
+namespace Jellyfish.Module.GuildSetting.Enum;
 
 /// <summary>
 ///     Supported custom features

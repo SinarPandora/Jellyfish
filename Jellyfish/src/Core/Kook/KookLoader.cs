@@ -1,6 +1,6 @@
 using Jellyfish.Core.Config;
 using Jellyfish.Core.Job;
-using Jellyfish.Custom.GuildSetting.Core;
+using Jellyfish.Module.GuildSetting.Core;
 using Kook;
 using Kook.WebSocket;
 

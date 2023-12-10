@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using Jellyfish.Custom.GuildSetting.Data;
+using Jellyfish.Module.GuildSetting.Data;
 using Jellyfish.Module.TeamPlay.Data;
 
 namespace Jellyfish.Core.Cache;

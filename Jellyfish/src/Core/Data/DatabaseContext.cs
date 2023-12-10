@@ -1,8 +1,8 @@
 using Jellyfish.Core.Enum;
-using Jellyfish.Custom.GuildSetting.Data;
-using Jellyfish.Custom.GuildSetting.Enum;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GroupControl.Data;
+using Jellyfish.Module.GuildSetting.Data;
+using Jellyfish.Module.GuildSetting.Enum;
 using Jellyfish.Module.Role.Data;
 using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Module.TmpChannel.Data;

@@ -1,6 +1,6 @@
-using Jellyfish.Custom.GuildSetting.Enum;
+using Jellyfish.Module.GuildSetting.Enum;
 
-namespace Jellyfish.Custom.GuildSetting.Data;
+namespace Jellyfish.Module.GuildSetting.Data;
 
 /// <summary>
 ///     JSON type setting details

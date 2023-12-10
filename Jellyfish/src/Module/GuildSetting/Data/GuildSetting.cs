@@ -1,6 +1,6 @@
 using Jellyfish.Core.Data;
 
-namespace Jellyfish.Custom.GuildSetting.Data;
+namespace Jellyfish.Module.GuildSetting.Data;
 
 /// <summary>
 ///     Guild setting

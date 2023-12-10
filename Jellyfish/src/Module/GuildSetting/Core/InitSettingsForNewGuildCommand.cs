@@ -3,7 +3,7 @@ using Jellyfish.Core.Command;
 using Jellyfish.Core.Data;
 using Kook.WebSocket;
 
-namespace Jellyfish.Custom.GuildSetting.Core;
+namespace Jellyfish.Module.GuildSetting.Core;
 
 /// <summary>
 ///     Init empty setting when bot join to a new guild

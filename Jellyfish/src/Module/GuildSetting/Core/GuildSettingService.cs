@@ -2,7 +2,7 @@ using Jellyfish.Core.Cache;
 using Jellyfish.Core.Data;
 using Kook.WebSocket;
 
-namespace Jellyfish.Custom.GuildSetting.Core;
+namespace Jellyfish.Module.GuildSetting.Core;
 
 /// <summary>
 ///     Guild setting service
