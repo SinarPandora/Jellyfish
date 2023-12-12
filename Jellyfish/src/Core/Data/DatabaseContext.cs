@@ -16,6 +16,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 {
     private const string CreateTimeProp = nameof(TrackableEntity.CreateTime);
     private const string UpdateTimeProp = nameof(TrackableEntity.UpdateTime);
+    private const string GuildSettingDetailsProp = nameof(GuildSetting.Setting);
 
     public DbSet<TpConfig> TpConfigs { get; set; } = null!;
     public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
@@ -131,7 +132,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasConversion(r => JsonConvert.SerializeObject(r),
                     json => JsonConvert.DeserializeObject<GuildSettingDetails>(json)!);
 
-
             entity
                 .Property(e => e.CreateTime)
                 .HasDefaultValueSql("current_timestamp");
@@ -148,6 +148,13 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
         foreach (var entry in entities)
         {
+            // Mark custom json field GuildSetting.Setting always modified,
+            // to solve nested objects that cannot be detected for change
+            if (entry.Metadata.ClrType == typeof(GuildSetting))
+            {
+                Entry(entry.Entity).Property(GuildSettingDetailsProp).IsModified = true;
+            }
+
             if (entry.State != EntityState.Added && entry.State != EntityState.Modified) continue;
             var actionTimestamp = DateTime.Now;
             if (entry.Metadata.FindProperty(UpdateTimeProp) != null)

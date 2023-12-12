@@ -20,7 +20,7 @@ public class SynergyBotAccountCommand : GuildMessageCommand
         _dbProvider = dbProvider;
         HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
             """
-            配置协同极其账号
+            配置协同机器人账号
             被添加的机器人账号将自动被添加到水母机器人创建的私有/临时频道中（除了频道组指令）
             ⚠️警告：请不要将非机器人（即 Kook APP 内名字旁边没有「机器人」标识的用户）配置为协同机器人，这将导致诸如组队功能等部分功能出错。
             """,
