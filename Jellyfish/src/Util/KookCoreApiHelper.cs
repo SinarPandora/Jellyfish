@@ -313,8 +313,6 @@ public static class KookCoreApiHelper
     /// <returns>Display name</returns>
     public static string DisplayName(this IUser user)
     {
-        return user is IGuildUser guildUser
-            ? guildUser.Nickname ?? guildUser.Username
-            : user.Username;
+        return user is IGuildUser guildUser ? guildUser.DisplayName : user.Username;
     }
 }

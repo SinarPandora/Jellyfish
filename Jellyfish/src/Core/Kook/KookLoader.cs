@@ -1,6 +1,4 @@
 using Jellyfish.Core.Config;
-using Jellyfish.Core.Job;
-using Jellyfish.Module.GuildSetting.Core;
 using Kook;
 using Kook.WebSocket;
 
@@ -10,9 +8,7 @@ public class KookLoader(
     KookEventMatcher matcher,
     AppConfig appConfig,
     KookSocketClient client,
-    ILogger<KookLoader> log,
-    GuildSettingService guildSettingService,
-    JobLoader jobLoader)
+    ILogger<KookLoader> log)
 {
     /// <summary>
     ///     Login Kook client
@@ -21,6 +17,7 @@ public class KookLoader(
     {
         client.Log += KookLog;
         client.Ready += KookReady;
+        RegisterActions();
         await client.LoginAsync(TokenType.Bot, appConfig.KookToken);
         await client.StartAsync();
     }
@@ -49,13 +46,10 @@ public class KookLoader(
         return Task.CompletedTask;
     }
 
-    private async Task KookReady()
+    private Task KookReady()
     {
         log.LogInformation("{ClientCurrentUser} 登录成功！", client.CurrentUser);
-        await guildSettingService.InitGuildSettings();
-        RegisterActions();
-        jobLoader.Load();
-        log.LogInformation("{ClientCurrentUser} 已就绪！", client.CurrentUser);
+        return Task.CompletedTask;
     }
 
 
