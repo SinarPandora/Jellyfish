@@ -14,10 +14,12 @@ namespace Jellyfish.Module.GuildSetting.Core;
 public class SynergyBotAccountCommand : GuildMessageCommand
 {
     private readonly DbContextProvider _dbProvider;
+    private readonly KookSocketClient _kook;
 
-    public SynergyBotAccountCommand(DbContextProvider dbProvider) : base(true)
+    public SynergyBotAccountCommand(DbContextProvider dbProvider, KookSocketClient kook) : base(true)
     {
         _dbProvider = dbProvider;
+        _kook = kook;
         HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
             """
             配置协同机器人账号
@@ -92,13 +94,19 @@ public class SynergyBotAccountCommand : GuildMessageCommand
         {
             if (!ulong.TryParse(match.Groups["userId"].Value, out var botId))
             {
-                if (!(channel.Guild.GetUser(botId).IsBot ?? false))
-                {
-                    await channel.SendErrorCardAsync("您指定的账号并非机器人账号", true);
-                    return false;
-                }
-
                 await channel.SendErrorCardAsync("您应该使用 @ 来指定机器人账号，被指定的账号在 Kook APP 中显示为蓝色文字", true);
+                return false;
+            }
+
+            if (!(channel.Guild.GetUser(botId).IsBot ?? false))
+            {
+                await channel.SendErrorCardAsync("您指定的账号并非机器人账号", true);
+                return false;
+            }
+
+            if (_kook.CurrentUser.Id == botId)
+            {
+                await channel.SendErrorCardAsync("水母自己不能成为自己的协同机器人", true);
                 return false;
             }
 
