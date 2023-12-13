@@ -146,7 +146,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     {
         var entities = ChangeTracker.Entries().ToList();
 
-        foreach (var entry in entities)
+        foreach (var entry in entities.Where(entry => entry.State is EntityState.Added or EntityState.Modified))
         {
             // Mark custom json field GuildSetting.Setting always modified,
             // to solve nested objects that cannot be detected for change
@@ -155,7 +155,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 Entry(entry.Entity).Property(GuildSettingDetailsProp).IsModified = true;
             }
 
-            if (entry.State != EntityState.Added && entry.State != EntityState.Modified) continue;
             var actionTimestamp = DateTime.Now;
             if (entry.Metadata.FindProperty(UpdateTimeProp) != null)
             {
