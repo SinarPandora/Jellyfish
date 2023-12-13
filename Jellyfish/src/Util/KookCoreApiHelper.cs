@@ -123,6 +123,8 @@ public static class KookCoreApiHelper
                 {
                     await channel.DeleteAsync();
                 }
+
+                Log.Info("服务器 {GuildName} 中频道 {ChannelId} 已被删除", guild.Name, channelId);
             });
     }
 
@@ -155,7 +157,12 @@ public static class KookCoreApiHelper
             .Build()
             .ExecuteAsync(async token =>
             {
-                if (currentChannel == null) return;
+                if (currentChannel == null)
+                {
+                    Log.Info("用户{UserId}已不在语音频道中，已取消移动语音房间", userId);
+                    return;
+                }
+
                 if (currentChannel.Id != toChannel.Id)
                 {
                     await guild.MoveUsersAsync(guildUsers, toChannel);
@@ -166,6 +173,9 @@ public static class KookCoreApiHelper
                     {
                         throw new ApplicationException("当前用户可能未成功移动至语音频道，尝试重新移动用户");
                     }
+
+                    Log.Info("用户 {UserName} 已成功移动到服务器 {GuildName} 的语音频道 {ChannelName}", restUser.DisplayName(),
+                        guild.Name, toChannel.Name);
                 }
             });
     }
@@ -203,6 +213,7 @@ public static class KookCoreApiHelper
                 }
 
                 await restGuildChannel.ModifyPermissionOverwriteAsync(role, overrideFn);
+                Log.Info("已覆盖服务器 {GuildName} 中角色 {Name}#{Id} 的权限", role.Guild.Name, role.Name, role.Id);
             });
     }
 
@@ -239,6 +250,7 @@ public static class KookCoreApiHelper
                 }
 
                 await restGuildChannel.ModifyPermissionOverwriteAsync(user, overrideFn);
+                Log.Info("已覆盖服务器 {GuildName} 中用户 {Name}#{Id} 的权限", user.Guild.Name, user.DisplayName(), user.Id);
             });
     }
 
@@ -271,6 +283,9 @@ public static class KookCoreApiHelper
                 {
                     await restGuildChannel.RemovePermissionOverwriteAsync(user);
                 }
+
+                Log.Info("已删除服务器中 {GuildName} 用户 {Name}#{Id} 在频道 {ChannelName}#{ChannelId} 的权限覆盖",
+                    user.Guild.Name, user.DisplayName(), user.Id, channel.Name, channel.Id);
             });
     }
 
@@ -303,6 +318,9 @@ public static class KookCoreApiHelper
                 {
                     await restGuildChannel.RemovePermissionOverwriteAsync(role);
                 }
+
+                Log.Info("已删除服务器 {GuildName} 中角色 {Name}#{Id} 在频道 {ChannelName}#{ChannelId} 的权限覆盖",
+                    role.Guild.Name, role.Name, role.Id, channel.Name, channel.Id);
             });
     }
 
