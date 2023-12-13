@@ -23,22 +23,18 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
     // ---------------------------------------------- Team Play --------------------------------------------------------
     public DbSet<TpConfig> TpConfigs { get; set; } = null!;
-
     public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
 
     // ---------------------------------------------- Permission -------------------------------------------------------
     public DbSet<UserRole> UserRoles { get; set; } = null!;
-
     public DbSet<UserCommandPermission> UserCommandPermissions { get; set; } = null!;
 
     // ---------------------------------------------- Channel Group ----------------------------------------------------
     public DbSet<TcGroup> TcGroups { get; set; } = null!;
-
     public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
 
     // ---------------------------------------------- Temp Text Channel ------------------------------------------------
     public DbSet<TmpTextChannel> TmpTextChannels { get; set; } = null!;
-
     public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
 
     // ---------------------------------------------- Guild Setting ----------------------------------------------------
@@ -49,7 +45,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     public DbSet<ClockInChannel> ClockInChannels { get; set; } = null!;
     public DbSet<ClockInStage> ClockInStages { get; set; } = null!;
     public DbSet<ClockInHistory> ClockInHistories { get; set; } = null!;
-
     public DbSet<ClockInQualifiedUser> ClockInQualifiedUsers { get; set; } = null!;
 
     // ---------------------------------------------- User Activity ----------------------------------------------------
