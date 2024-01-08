@@ -2,6 +2,11 @@
 
 > Kook 基础功能扩展机器人，同时包含大量为「斯普拉遁-加鱿站」定制的功能
 
+## 特别感谢
+
+感谢 Jetbrains 提供的免费开源证书支持！写 C#，就选 Rider，纵享丝滑  
+![Rider logo](https://resources.jetbrains.com/storage/products/company/brand/logos/Rider.png)
+
 ## 功能列表与开发计划
 
 ### 基本功能
