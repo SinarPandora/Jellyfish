@@ -14,28 +14,29 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Autofac" Version="7.1.0"/>
-        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="8.0.0"/>
-        <PackageReference Include="EFCore.NamingConventions" Version="8.0.0-rc.2"/>
+        <PackageReference Include="Autofac" Version="8.0.0"/>
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="9.0.0"/>
+        <PackageReference Include="EFCore.NamingConventions" Version="8.0.3"/>
         <PackageReference Include="FluentScheduler" Version="5.5.1"/>
         <PackageReference Include="JetBrains.Annotations" Version="2023.3.0"/>
         <PackageReference Include="Jitbit.FastCache" Version="1.0.10"/>
-        <PackageReference Include="Kook.Net" Version="0.5.3"/>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+        <PackageReference Include="Kook.Net" Version="0.7.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.4"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
-        <PackageReference Include="NLog" Version="5.2.7"/>
-        <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.7"/>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0"/>
-        <PackageReference Include="Polly" Version="8.2.0"/>
+        <PackageReference Include="NLog" Version="5.2.8"/>
+        <PackageReference Include="NLog.Schema" Version="5.2.8"/>
+        <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.8"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.2"/>
+        <PackageReference Include="Polly" Version="8.3.1"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
         <PackageReference Include="System.Collections.Immutable" Version="8.0.0"/>
         <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0"/>
         <PackageReference Include="System.Reactive" Version="6.0.0"/>
-        <PackageReference Include="YamlDotNet" Version="13.7.1"/>
+        <PackageReference Include="YamlDotNet" Version="15.1.2"/>
         <PackageReference Include="Z.ExtensionMethods" Version="2.1.1"/>
     </ItemGroup>
 
@@ -44,14 +45,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="Resources\**">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-            <Link>\%(Filename)%(Extension)</Link>
-        </None>
+      <Folder Include="Migrations\" />
+        <Folder Include="src\Custom\"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Migrations\" />
-        <Folder Include="src\Custom\"/>
+        <_ContentIncludedByDefault Remove="Resources\NLog.config"/>
     </ItemGroup>
 </Project>
