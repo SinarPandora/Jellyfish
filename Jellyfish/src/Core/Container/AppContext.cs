@@ -85,5 +85,7 @@ public static class AppContext
         container.RegisterType<GuildCustomFeatureCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<SynergyBotAccountCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<InitSettingsForNewGuildCommand>().As<BotJoinGuildCommand>().SingleInstance();
+        container.RegisterType<InitSettingOnConnectUnregisteredGuildCommand>().As<GuildAvailableCommand>()
+            .SingleInstance();
     }
 }

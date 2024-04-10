@@ -56,7 +56,7 @@ public class RoleSettingCommand : GuildMessageCommand
 
     public override string Name() => "权限配置指令";
 
-    public override string[] Keywords() => new[] { "!权限", "！权限" };
+    public override string[] Keywords() => ["!权限", "！权限"];
 
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)

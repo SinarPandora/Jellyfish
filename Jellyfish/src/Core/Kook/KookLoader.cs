@@ -33,6 +33,7 @@ public class KookLoader(
         client.UserConnected += matcher.OnUserConnected;
         client.UserDisconnected += matcher.OnUserDisconnected;
         client.JoinedGuild += matcher.OnBotJoinGuild;
+        client.GuildAvailable += matcher.OnGuildAvailable;
     }
 
     /// <summary>

@@ -18,6 +18,7 @@ public class KookEventMatcher
     private readonly IEnumerable<UserDisconnectEventCommand> _userDisconnectEventCommands;
     private readonly IEnumerable<DmcCommand> _dmcCommands;
     private readonly IEnumerable<BotJoinGuildCommand> _botJoinGuildCommands;
+    private readonly IEnumerable<GuildAvailableCommand> _guildAvailableCommands;
 
     public KookEventMatcher(
         IEnumerable<GuildMessageCommand> messageCommand,
@@ -25,16 +26,19 @@ public class KookEventMatcher
         IEnumerable<UserConnectEventCommand> userConnectEventCommands,
         IEnumerable<UserDisconnectEventCommand> userDisconnectEventCommands,
         IEnumerable<DmcCommand> dmcCommands,
-        IComponentContext provider, ILogger<KookEventMatcher> log,
-        IEnumerable<BotJoinGuildCommand> botJoinGuildCommands)
+        IEnumerable<BotJoinGuildCommand> botJoinGuildCommands,
+        IEnumerable<GuildAvailableCommand> guildAvailableCommands,
+        IComponentContext provider, ILogger<KookEventMatcher> log
+    )
     {
         _messageCommands = messageCommand.Where(c => c.Enabled).ToArray();
         _buttonActionCommands = buttonActionCommands.Where(c => c.Enabled).ToArray();
         _userConnectEventCommands = userConnectEventCommands;
         _userDisconnectEventCommands = userDisconnectEventCommands;
         _dmcCommands = dmcCommands;
-        _log = log;
         _botJoinGuildCommands = botJoinGuildCommands;
+        _guildAvailableCommands = guildAvailableCommands;
+        _log = log;
         _currentUserId = new Lazy<ulong>(() => provider.Resolve<KookSocketClient>().CurrentUser.Id);
     }
 
@@ -202,6 +206,30 @@ public class KookEventMatcher
                 catch (Exception e)
                 {
                     _log.LogInformation(e, "Bot加入服务器指令 {Name} 执行失败！", command.Name());
+                }
+            }
+        });
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Handle on bot connected to a guild
+    /// </summary>
+    /// <param name="guild">Current guild</param>
+    public Task OnGuildAvailable(SocketGuild guild)
+    {
+        _ = Task.Run(async () =>
+        {
+            foreach (var command in _guildAvailableCommands)
+            {
+                try
+                {
+                    var result = await command.Execute(guild);
+                    if (result == CommandResult.Done) break;
+                }
+                catch (Exception e)
+                {
+                    _log.LogInformation(e, "Bot连接频道指令 {Name} 执行失败！", command.Name());
                 }
             }
         });
