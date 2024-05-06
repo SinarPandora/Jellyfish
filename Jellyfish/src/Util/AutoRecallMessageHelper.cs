@@ -17,8 +17,11 @@ public static class AutoRecallMessageHelper
     /// <param name="timeout">Recall timeout</param>
     public static async Task SendAutoRecallCardAsync(this IMessageChannel channel, Card card, TimeSpan? timeout = null)
     {
-        var result = await channel.SendCardAsync(card);
-        _ = channel.DeleteMessageWithTimeoutAsync(result.Id);
+        var result = await channel.SendCardSafeAsync(card);
+        if (result.HasValue)
+        {
+            _ = channel.DeleteMessageWithTimeoutAsync(result.Value.Id, timeout);
+        }
     }
 
     /// <summary>
@@ -30,8 +33,11 @@ public static class AutoRecallMessageHelper
     public static async Task SendAutoRecallTextAsync(this IMessageChannel channel, string message,
         TimeSpan? timeout = null)
     {
-        var result = await channel.SendTextAsync(message);
-        _ = channel.DeleteMessageWithTimeoutAsync(result.Id);
+        var result = await channel.SendTextSafeAsync(message);
+        if (result.HasValue)
+        {
+            _ = channel.DeleteMessageWithTimeoutAsync(result.Value.Id, timeout);
+        }
     }
 
     /// <summary>

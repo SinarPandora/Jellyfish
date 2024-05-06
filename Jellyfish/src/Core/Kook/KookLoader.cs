@@ -4,33 +4,36 @@ using Kook.WebSocket;
 
 namespace Jellyfish.Core.Kook;
 
-public class KookLoader
+public class KookLoader(
+    KookEventMatcher matcher,
+    AppConfig appConfig,
+    KookSocketClient client,
+    ILogger<KookLoader> log)
 {
-    private readonly ILogger<KookLoader> _log;
-
-    private readonly AppConfig _appConfig;
-    private readonly KookSocketClient _client;
-    private readonly KookEventMatcher _kookEventMatcher;
-
-    public KookLoader(KookEventMatcher matcher, AppConfig appConfig, KookSocketClient client, ILogger<KookLoader> log)
+    /// <summary>
+    ///     Login Kook client
+    /// </summary>
+    public async Task Login()
     {
-        _kookEventMatcher = matcher;
-        _appConfig = appConfig;
-        _client = client;
-        _log = log;
+        client.Log += KookLog;
+        client.Ready += KookReady;
+        RegisterActions();
+        await client.LoginAsync(TokenType.Bot, appConfig.KookToken);
+        await client.StartAsync();
     }
 
-    public async Task Load()
+    /// <summary>
+    ///     Register commands and actions
+    /// </summary>
+    private void RegisterActions()
     {
-        _client.Log += KookLog;
-        _client.Ready += KookReady;
-        _client.MessageReceived += _kookEventMatcher.OnMessageReceived;
-        _client.MessageButtonClicked += _kookEventMatcher.OnCardActionClicked;
-        _client.DirectMessageReceived += _kookEventMatcher.OnDirectMessageReceived;
-        _client.UserConnected += _kookEventMatcher.OnUserConnected;
-        _client.UserDisconnected += _kookEventMatcher.OnUserDisconnected;
-        await _client.LoginAsync(TokenType.Bot, _appConfig.KookToken);
-        await _client.StartAsync();
+        client.MessageReceived += matcher.OnMessageReceived;
+        client.MessageButtonClicked += matcher.OnCardActionClicked;
+        client.DirectMessageReceived += matcher.OnDirectMessageReceived;
+        client.UserConnected += matcher.OnUserConnected;
+        client.UserDisconnected += matcher.OnUserDisconnected;
+        client.JoinedGuild += matcher.OnBotJoinGuild;
+        client.GuildAvailable += matcher.OnGuildAvailable;
     }
 
     /// <summary>
@@ -40,13 +43,13 @@ public class KookLoader
     /// <returns>Empty Async Result</returns>
     private Task KookLog(LogMessage msg)
     {
-        _log.LogInformation("{Message}", msg.ToString());
+        log.LogInformation("{Message}", msg.ToString());
         return Task.CompletedTask;
     }
 
     private Task KookReady()
     {
-        _log.LogInformation("{ClientCurrentUser} 已连接！", _client.CurrentUser);
+        log.LogInformation("{ClientCurrentUser} 登录成功！", client.CurrentUser);
         return Task.CompletedTask;
     }
 

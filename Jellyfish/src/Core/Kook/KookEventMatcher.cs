@@ -1,6 +1,6 @@
 using Autofac;
-using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
+using Jellyfish.Module.Role.Core;
 using Kook;
 using Kook.WebSocket;
 
@@ -17,6 +17,8 @@ public class KookEventMatcher
     private readonly IEnumerable<UserConnectEventCommand> _userConnectEventCommands;
     private readonly IEnumerable<UserDisconnectEventCommand> _userDisconnectEventCommands;
     private readonly IEnumerable<DmcCommand> _dmcCommands;
+    private readonly IEnumerable<BotJoinGuildCommand> _botJoinGuildCommands;
+    private readonly IEnumerable<GuildAvailableCommand> _guildAvailableCommands;
 
     public KookEventMatcher(
         IEnumerable<GuildMessageCommand> messageCommand,
@@ -24,13 +26,18 @@ public class KookEventMatcher
         IEnumerable<UserConnectEventCommand> userConnectEventCommands,
         IEnumerable<UserDisconnectEventCommand> userDisconnectEventCommands,
         IEnumerable<DmcCommand> dmcCommands,
-        IComponentContext provider, ILogger<KookEventMatcher> log)
+        IEnumerable<BotJoinGuildCommand> botJoinGuildCommands,
+        IEnumerable<GuildAvailableCommand> guildAvailableCommands,
+        IComponentContext provider, ILogger<KookEventMatcher> log
+    )
     {
         _messageCommands = messageCommand.Where(c => c.Enabled).ToArray();
         _buttonActionCommands = buttonActionCommands.Where(c => c.Enabled).ToArray();
         _userConnectEventCommands = userConnectEventCommands;
         _userDisconnectEventCommands = userDisconnectEventCommands;
         _dmcCommands = dmcCommands;
+        _botJoinGuildCommands = botJoinGuildCommands;
+        _guildAvailableCommands = guildAvailableCommands;
         _log = log;
         _currentUserId = new Lazy<ulong>(() => provider.Resolve<KookSocketClient>().CurrentUser.Id);
     }
@@ -49,7 +56,7 @@ public class KookEventMatcher
         {
             foreach (var command in _messageCommands)
             {
-                if (!CheckIfUserHasPermission(user, command.Name())) continue;
+                if (!user.CanExecute(command)) continue;
                 try
                 {
                     var result = await command.MatchAndExecute(msg, user, channel);
@@ -182,15 +189,50 @@ public class KookEventMatcher
     }
 
     /// <summary>
-    ///     Check if current user has permission to perform command
+    ///     Handle on bot join to new guild received
     /// </summary>
-    /// <param name="user">Kook user</param>
-    /// <param name="commandName">Command name</param>
-    /// <returns>Does user has permission or not</returns>
-    private static bool CheckIfUserHasPermission(SocketGuildUser user, string commandName)
+    /// <param name="guild">Current guild</param>
+    public Task OnBotJoinGuild(SocketGuild guild)
     {
-        return !AppCaches.Permissions.ContainsKey($"{user.Guild.Id}_{commandName}")
-               || AppCaches.Permissions.GetValueOrDefault($"{user.Guild.Id}_{commandName}")
-                   .ContainsAny(user.Roles.Select(it => it.Id).ToArray());
+        _ = Task.Run(async () =>
+        {
+            foreach (var command in _botJoinGuildCommands)
+            {
+                try
+                {
+                    var result = await command.Execute(guild);
+                    if (result == CommandResult.Done) break;
+                }
+                catch (Exception e)
+                {
+                    _log.LogInformation(e, "Bot加入服务器指令 {Name} 执行失败！", command.Name());
+                }
+            }
+        });
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    ///     Handle on bot connected to a guild
+    /// </summary>
+    /// <param name="guild">Current guild</param>
+    public Task OnGuildAvailable(SocketGuild guild)
+    {
+        _ = Task.Run(async () =>
+        {
+            foreach (var command in _guildAvailableCommands)
+            {
+                try
+                {
+                    var result = await command.Execute(guild);
+                    if (result == CommandResult.Done) break;
+                }
+                catch (Exception e)
+                {
+                    _log.LogInformation(e, "Bot连接频道指令 {Name} 执行失败！", command.Name());
+                }
+            }
+        });
+        return Task.CompletedTask;
     }
 }

@@ -20,7 +20,7 @@ public class TcGroupControlCommand : GuildMessageCommand
     private static readonly Lazy<IDeserializer> YamlDeserializer = new(() => new DeserializerBuilder().Build());
     private readonly DbContextProvider _dbProvider;
 
-    public TcGroupControlCommand(ILogger<TcGroupControlCommand> log, DbContextProvider dbProvider)
+    public TcGroupControlCommand(ILogger<TcGroupControlCommand> log, DbContextProvider dbProvider) : base(true)
     {
         _log = log;
         _dbProvider = dbProvider;
@@ -83,7 +83,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         else if (args.StartsWith("删除"))
             isSuccess = await DeleteGroupOrInstance(args[2..].TrimStart(), true, channel);
         else
-            await channel.SendCardAsync(HelpMessage);
+            await channel.SendCardSafeAsync(HelpMessage);
 
         if (!isSuccess)
         {
@@ -296,8 +296,15 @@ public class TcGroupControlCommand : GuildMessageCommand
 
             if (description != null)
             {
-                var resp = await channel.SendTextAsync(description);
-                messageId = resp.Id;
+                var resp = await channel.SendTextSafeAsync(description);
+                if (!resp.HasValue)
+                {
+                    _log.LogError("Bot 无法发送描述消息，因为 Bot 已被屏蔽");
+                    await channel.SendErrorCardAsync("Bot 无法发送描述消息，因为 Bot 已被屏蔽", false);
+                    return;
+                }
+
+                messageId = resp.Value.Id;
             }
 
             instance.Description = description;
@@ -320,15 +327,22 @@ public class TcGroupControlCommand : GuildMessageCommand
         string name,
         string? description,
         TcGroup tcGroup,
-        IDictionary<string, TcGroupInstance> instanceMap,
+        Dictionary<string, TcGroupInstance> instanceMap,
         DatabaseContext dbCtx)
     {
         _log.LogInformation("检测到频道 {Name} 尚未被记录，正在记录", name);
         Guid? messageId = null;
         if (description != null)
         {
-            var result = await childChannel.SendTextAsync(description);
-            messageId = result.Id;
+            var resp = await childChannel.SendTextSafeAsync(description);
+            if (!resp.HasValue)
+            {
+                _log.LogError("Bot 无法发送描述消息，因为 Bot 已被屏蔽");
+                await childChannel.SendErrorCardAsync("Bot 无法发送描述消息，因为 Bot 已被屏蔽", false);
+                return;
+            }
+
+            messageId = resp.Value.Id;
         }
 
         var instance = messageId == null
@@ -592,24 +606,17 @@ public class TcGroupControlCommand : GuildMessageCommand
     /// <param name="instance">Target channel instance</param>
     /// <param name="channel">Sender channel to send message</param>
     /// <param name="dbCtx">Database context</param>
-    private static async Task DeleteChildChannel(bool hardDel, TcGroupInstance instance,
+    private static Task DeleteChildChannel(bool hardDel, TcGroupInstance instance,
         SocketTextChannel channel, DatabaseContext dbCtx)
     {
         if (hardDel)
         {
             var textChannel = channel.Guild.GetTextChannel(instance.TextChannelId);
-            if (textChannel == null)
-            {
-                await channel.SendWarningCardAsync("指定文字频道早已被删除", true);
-            }
-            else
-            {
-                await textChannel.DeleteAsync();
-            }
+            return textChannel == null ? channel.SendWarningCardAsync("指定文字频道早已被删除", true) : textChannel.DeleteAsync();
         }
-        else
-        {
-            dbCtx.TcGroupInstances.Remove(instance);
-        }
+
+        dbCtx.TcGroupInstances.Remove(instance);
+
+        return Task.CompletedTask;
     }
 }

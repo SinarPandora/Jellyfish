@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Kook;
+using Kook.Net;
 using Kook.Rest;
 using Kook.WebSocket;
 using NLog;
@@ -19,6 +20,7 @@ public static class KookCoreApiHelper
     #region CONST
 
     private const int MoveUserChannelTimeout = 5;
+    private const string HasBeenBlockedByUser = "已被对方屏蔽";
 
     #endregion
 
@@ -28,6 +30,60 @@ public static class KookCoreApiHelper
     ///     Do not modify the value of the instance, as it is assigned during the initialization period
     /// </summary>
     internal static KookSocketClient Kook = null!;
+
+    /// <summary>
+    ///     Sends a card message to this message channel.
+    ///     [Safe] Ignore cases where the bot is blocked.
+    /// </summary>
+    /// <see cref="IMessageChannel.SendCardAsync"/>
+    public static async Task<Cacheable<IUserMessage, Guid>?> SendCardSafeAsync(
+        this IMessageChannel channel,
+        ICard card,
+        IQuote? quote = null,
+        IUser? ephemeralUser = null,
+        RequestOptions? options = null)
+    {
+        try
+        {
+            return await channel.SendCardAsync(card, quote, ephemeralUser, options);
+        }
+        catch (HttpException e)
+        {
+            if (e.Reason.IsNotNullOrEmpty() && e.Reason.Contains(HasBeenBlockedByUser))
+            {
+                Log.Warn("消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    ///     Sends a text message to this message channel.
+    ///     [Safe] Ignore cases where the bot is blocked.
+    /// </summary>
+    /// <see cref="IMessageChannel.SendTextAsync"/>
+    public static async Task<Cacheable<IUserMessage, Guid>?> SendTextSafeAsync(
+        this IMessageChannel channel,
+        string text,
+        IQuote? quote = null,
+        IUser? ephemeralUser = null,
+        RequestOptions? options = null)
+    {
+        try
+        {
+            return await channel.SendTextAsync(text, quote, ephemeralUser, options);
+        }
+        catch (HttpException e)
+        {
+            if (e.Reason.IsNotNullOrEmpty() && e.Reason.Contains(HasBeenBlockedByUser))
+            {
+                Log.Warn("消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
+            }
+
+            return null;
+        }
+    }
 
     /// <summary>
     ///     Delete single channel in guild.
@@ -50,7 +106,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -87,7 +143,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -130,7 +186,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -166,7 +222,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -200,7 +256,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -232,7 +288,7 @@ public static class KookCoreApiHelper
             {
                 ShouldHandle = new PredicateBuilder().Handle<Exception>(),
                 MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
@@ -251,41 +307,12 @@ public static class KookCoreApiHelper
     }
 
     /// <summary>
-    ///     Create text channel
-    /// </summary>
-    /// <param name="guild">Current guild</param>
-    /// <param name="name"></param>
-    /// <param name="categoryId">Category to place the text channel, default is null</param>
-    /// <returns></returns>
-    public static async Task<RestTextChannel> CreateTextChannelAsync(this SocketGuild guild, string name,
-        ulong? categoryId = null)
-    {
-        return await new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
-                MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.ProgressiveDelayGenerator,
-                OnRetry = args =>
-                {
-                    Log.Warn(args.Outcome.Exception,
-                        $"创建文字频道 API 调用失败一次，频道名：{name}，所属分类 Id：{categoryId}，重试次数：{args.AttemptNumber}");
-                    return ValueTask.CompletedTask;
-                }
-            })
-            .Build()
-            .ExecuteAsync(async _ => await guild.CreateTextChannelAsync(name, c => c.CategoryId = categoryId));
-    }
-
-    /// <summary>
     ///     Get user display name(auto detect by type)
     /// </summary>
     /// <param name="user">User object</param>
     /// <returns>Display name</returns>
     public static string DisplayName(this IUser user)
     {
-        return user is IGuildUser guildUser
-            ? guildUser.Nickname ?? guildUser.Username
-            : user.Username;
+        return user is IGuildUser guildUser ? guildUser.DisplayName : user.Username;
     }
 }

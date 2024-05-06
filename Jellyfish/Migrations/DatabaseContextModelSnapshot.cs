@@ -19,13 +19,50 @@ namespace Jellyfish.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.13")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "channel_type", new[] { "unspecified", "category", "text", "voice", "dm" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "extend_target_type", new[] { "tmp_text_channel" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "guild_custom_feature", new[] { "splatoon_game", "bot_splatoon3" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "time_unit", new[] { "second", "minute", "hour", "day", "week", "month" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Jellyfish.Custom.GuildSetting.Data.GuildSetting", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("create_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<string>("Setting")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("setting");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("update_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.HasKey("Id")
+                        .HasName("pk_guild_settings");
+
+                    b.ToTable("guild_settings", (string)null);
+                });
 
             modelBuilder.Entity("Jellyfish.Module.ExpireExtendSession.Data.ExpireExtendSession", b =>
                 {
@@ -213,6 +250,10 @@ namespace Jellyfish.Migrations
                         .HasColumnType("timestamp")
                         .HasColumnName("create_time")
                         .HasDefaultValueSql("current_timestamp");
+
+                    b.Property<decimal?>("CreationNotifyChannelId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("creation_notify_channel_id");
 
                     b.Property<int>("DefaultMemberLimit")
                         .ValueGeneratedOnAdd()

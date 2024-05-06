@@ -10,7 +10,7 @@ namespace Jellyfish.Module.TeamPlay.User;
 /// <summary>
 ///     Team play command for normal user, use to create room instance
 /// </summary>
-public class TeamPlayUserCommand : GuildMessageCommand
+public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageCommand(false)
 {
     private const string HelpTemplate =
         """
@@ -52,13 +52,6 @@ public class TeamPlayUserCommand : GuildMessageCommand
         ```
         """;
 
-    private readonly TeamPlayRoomService _service;
-
-    public TeamPlayUserCommand(TeamPlayRoomService service)
-    {
-        _service = service;
-    }
-
     public override string Name() => "组队房间指令";
 
     public override IEnumerable<string> Keywords() => new[] { "/组队" };
@@ -80,7 +73,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
     ///     Show help message
     /// </summary>
     /// <param name="channel">Current channel to find config</param>
-    /// <returns>Is task success</returns>
+    /// <returns>Is command success or not</returns>
     private async Task<bool> Help(SocketTextChannel channel)
     {
         var tpConfig = (from config in AppCaches.TeamPlayConfigs.Values
@@ -115,7 +108,7 @@ public class TeamPlayUserCommand : GuildMessageCommand
         var help = HelpTemplate.Format(tpConfig.DefaultMemberLimit == 0
             ? "无限制"
             : tpConfig.DefaultMemberLimit.ToString());
-        await channel.SendCardAsync(
+        await channel.SendCardSafeAsync(
             HelpMessageTemplate.ForMessageCommand(this, "欢迎使用组队指令！", help)
         );
         return true;
@@ -136,11 +129,17 @@ public class TeamPlayUserCommand : GuildMessageCommand
             select config).FirstOrDefault();
         if (tpConfig == null) return;
 
-        var isSuccess = await _service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
-            async (_, room) =>
+        var isSuccess = await service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
+            async (_, voiceChannel, textChannel) =>
             {
-                await channel.SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
-                await channel.SendTextAsync($"{MentionUtils.KMarkdownMentionUser(user.Id)} 👍🏻请点击上方按钮进入房间");
+                await channel.SendCardSafeAsync(await TeamPlayRoomService.CreateInviteCardAsync(voiceChannel));
+                await channel.SendTextSafeAsync(
+                    $"👍🏻想一起玩？点击上方按钮加入语音房间！{
+                        (!voiceChannel.HasPassword && textChannel != null
+                            ? $"不方便语音也可以加入同名文字房间 {MentionUtils.KMarkdownMentionChannel(textChannel.Id)} 哦"
+                            : string.Empty
+                        )
+                    }");
             });
 
         if (!isSuccess)

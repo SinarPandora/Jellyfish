@@ -9,6 +9,7 @@ using Jellyfish.Core.Lifecycle;
 using Jellyfish.Module;
 using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.GroupControl;
+using Jellyfish.Module.GuildSetting.Core;
 using Jellyfish.Module.Help;
 using Jellyfish.Module.Role;
 using Jellyfish.Module.TeamPlay;
@@ -39,6 +40,7 @@ public static class AppContext
                 KookCoreApiHelper.Kook = kookSocketClient;
                 return kookSocketClient;
             })
+            .As<KookSocketClient>().As<BaseSocketClient>()
             .SingleInstance();
         container.RegisterType<KookLoader>().SingleInstance();
         container.RegisterType<KookApiFactory>().SingleInstance();
@@ -59,6 +61,7 @@ public static class AppContext
 
         // TeamPlay Command
         container.RegisterType<TeamPlayRoomScanJob>().SingleInstance();
+        container.RegisterType<TeamPlayConfigCleanUpJob>().SingleInstance();
         container.RegisterType<TeamPlayRoomService>().SingleInstance();
         container.RegisterType<TeamPlayManageService>().SingleInstance();
         container.RegisterType<TeamPlayManageCommand>().As<GuildMessageCommand>().SingleInstance();
@@ -77,5 +80,12 @@ public static class AppContext
 
         // Text Channel Group Control Command
         container.RegisterType<TcGroupControlCommand>().As<GuildMessageCommand>().SingleInstance();
+
+        // Guild Setting Command
+        container.RegisterType<GuildCustomFeatureCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<SynergyBotAccountCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<InitSettingsForNewGuildCommand>().As<BotJoinGuildCommand>().SingleInstance();
+        container.RegisterType<InitSettingOnConnectUnregisteredGuildCommand>().As<GuildAvailableCommand>()
+            .SingleInstance();
     }
 }

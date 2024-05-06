@@ -6,24 +6,16 @@ namespace Jellyfish.Core.Cache;
 /// <summary>
 ///     Global cache loader, init cache once before bot login
 /// </summary>
-public class CacheLoader
+public class CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
 {
-    private readonly ILogger<CacheLoader> _log;
-    private readonly DbContextProvider _dbProvider;
-
-    public CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
-    {
-        _log = log;
-        _dbProvider = dbProvider;
-    }
-
     public async Task Load()
     {
-        await using var dbCtx = _dbProvider.Provide();
-        _log.LogInformation("开始加载应用缓存");
+        await using var dbCtx = dbProvider.Provide();
+        log.LogInformation("开始加载应用缓存");
         await LoadPermissions(dbCtx);
         LoadTeamPlayConfigs(dbCtx);
-        _log.LogInformation("应用缓存加载完成！");
+        LoadGuildSettings(dbCtx);
+        log.LogInformation("应用缓存加载完成！");
     }
 
     /// <summary>
@@ -42,7 +34,7 @@ public class CacheLoader
             foreach (var permission in role.CommandPermissions)
             {
                 AppCaches.Permissions.AddOrUpdate($"{role.GuildId}_{permission.CommandName}",
-                    new HashSet<uint> { role.KookId },
+                    [role.KookId],
                     (_, v) =>
                     {
                         v.Add(role.KookId);
@@ -63,5 +55,17 @@ public class CacheLoader
             .AsNoTracking()
             .AsEnumerable()
             .ForEach(c => AppCaches.TeamPlayConfigs.AddOrUpdate($"{c.GuildId}_{c.Name}", c));
+    }
+
+    /// <summary>
+    ///     Load guild settings
+    /// </summary>
+    /// <param name="dbCtx">Database context</param>
+    private static void LoadGuildSettings(DatabaseContext dbCtx)
+    {
+        dbCtx.GuildSettings
+            .AsNoTracking()
+            .AsEnumerable()
+            .ForEach(s => AppCaches.GuildSettings.AddOrUpdate(s.GuildId, s.Setting));
     }
 }

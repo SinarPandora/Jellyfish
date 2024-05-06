@@ -1,6 +1,7 @@
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Command;
 using Jellyfish.Module.TeamPlay.Core;
+using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
 
@@ -9,15 +10,8 @@ namespace Jellyfish.Module.TeamPlay.User;
 /// <summary>
 ///     Create room command, trigger when user click and join to any specified voice channel
 /// </summary>
-public class TeamPlayClickToJoinCommand : UserConnectEventCommand
+public class TeamPlayClickToJoinCommand(TeamPlayRoomService service) : UserConnectEventCommand
 {
-    private readonly TeamPlayRoomService _service;
-
-    public TeamPlayClickToJoinCommand(TeamPlayRoomService service)
-    {
-        _service = service;
-    }
-
     public override string Name() => "语音频道点击创建房间指令";
 
     public override async Task<CommandResult> Execute(Cacheable<SocketGuildUser, ulong> user,
@@ -28,14 +22,25 @@ public class TeamPlayClickToJoinCommand : UserConnectEventCommand
             select config).FirstOrDefault();
 
         if (tpConfig == null) return CommandResult.Continue;
-        await _service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
-            async (_, room) =>
+        await service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
+            async (_, voiceChannel, textChannel) =>
             {
-                if (tpConfig.TextChannelId.HasValue)
+                var notifyChannelId = tpConfig.CreationNotifyChannelId ?? tpConfig.TextChannelId;
+                if (notifyChannelId.HasValue)
                 {
-                    await channel.Guild
-                        .GetTextChannel(tpConfig.TextChannelId.Value)
-                        .SendCardAsync(await TeamPlayRoomService.CreateInviteCardAsync(room));
+                    var notifyChannel = channel.Guild.GetTextChannel(notifyChannelId.Value);
+                    if (notifyChannel != null)
+                    {
+                        await notifyChannel.SendCardSafeAsync(
+                            await TeamPlayRoomService.CreateInviteCardAsync(voiceChannel));
+                        await notifyChannel.SendTextSafeAsync(
+                            $"👍🏻想一起玩？点击上方按钮加入语音房间！{
+                                (!voiceChannel.HasPassword && textChannel != null
+                                    ? $"不方便语音也可以加入同名文字房间 {MentionUtils.KMarkdownMentionChannel(textChannel.Id)} 哦"
+                                    : string.Empty
+                                )
+                            }");
+                    }
                 }
             });
         return CommandResult.Done;
