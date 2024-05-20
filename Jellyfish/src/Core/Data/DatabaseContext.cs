@@ -12,6 +12,9 @@ using Newtonsoft.Json;
 
 namespace Jellyfish.Core.Data;
 
+/// <summary>
+///     EFCore database context
+/// </summary>
 public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbContext(options)
 {
     private const string CreateTimeProp = nameof(TrackableEntity.CreateTime);

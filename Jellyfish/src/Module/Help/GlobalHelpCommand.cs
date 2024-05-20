@@ -19,16 +19,18 @@ public class GlobalHelpCommand : GuildMessageCommand
         _commands = new Lazy<ImmutableArray<GuildMessageCommand>>(() =>
             {
                 using var scope = provider.CreateScope();
-                return scope.ServiceProvider.GetServices<GuildMessageCommand>()
-                    .Where(e => e.Name() != "全局帮助指令")
-                    .ToImmutableArray();
+                return
+                [
+                    ..scope.ServiceProvider.GetServices<GuildMessageCommand>()
+                        .Where(e => e.Name() != "全局帮助指令")
+                ];
             }
         );
     }
 
     public override string Name() => "全局帮助指令";
 
-    public override string[] Keywords() => new[] { "/帮助" };
+    public override string[] Keywords() => ["/帮助"];
 
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)

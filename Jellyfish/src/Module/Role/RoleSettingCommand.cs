@@ -118,7 +118,7 @@ public class RoleSettingCommand : GuildMessageCommand
     }
 
     /// <summary>
-    ///     List all role in the current guild
+    ///     List all roles in the current guild
     /// </summary>
     /// <param name="channel">Current channel</param>
     private static Task ListGuildRoles(SocketTextChannel channel)
@@ -174,7 +174,7 @@ public class RoleSettingCommand : GuildMessageCommand
     }
 
     /// <summary>
-    ///     Binding command permission to guild role
+    ///     Binding command permission to a guild role
     /// </summary>
     /// <param name="rawArgs">Raw text args, split with space</param>
     /// <param name="channel">Current channel</param>

@@ -8,7 +8,7 @@ using Kook.WebSocket;
 namespace Jellyfish.Module.TeamPlay.User;
 
 /// <summary>
-///     Create room command, trigger when user click and join to any specified voice channel
+///     Create room command, trigger when user clicks and joins to any specified voice channel
 /// </summary>
 public class TeamPlayClickToJoinCommand(TeamPlayRoomService service) : UserConnectEventCommand
 {

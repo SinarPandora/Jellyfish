@@ -4,7 +4,7 @@ using Jellyfish.Module.TeamPlay.Data;
 namespace Jellyfish.Module.TeamPlay.Core;
 
 /// <summary>
-///     Parse create room command
+///     Parse the create-room command
 /// </summary>
 public static partial class CreateRoomCommandParser
 {

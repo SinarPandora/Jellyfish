@@ -7,7 +7,7 @@ using Kook.WebSocket;
 namespace Jellyfish.Module.ExpireExtendSession.Job;
 
 /// <summary>
-///     Scan all extend session, extend expire time on condition
+///     Scan all extent session, extend expire time on condition
 /// </summary>
 public class ExpireExtendScanJob(
     BaseSocketClient kook,

@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 namespace Jellyfish.Util;
 
 /// <summary>
-///     Common Regex(use for code generating)
+///     Common Regexes (use for code generating)
 /// </summary>
 public abstract partial class Regexs
 {
@@ -24,4 +24,7 @@ public abstract partial class Regexs
 
     [GeneratedRegex(@"\(rol\)(?<roleId>\d+)\(rol\)")]
     public static partial Regex MatchRoleMention();
+
+    [GeneratedRegex(@"[^\u4e00-\u9fa5a-zA-Z0-9]")]
+    public static partial Regex UnChineseEnglishOrNumber();
 }

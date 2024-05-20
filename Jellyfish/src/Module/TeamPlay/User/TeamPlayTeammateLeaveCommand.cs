@@ -9,7 +9,7 @@ namespace Jellyfish.Module.TeamPlay.User;
 
 /// <summary>
 ///     Teammate leave to team play room command
-///     Remove the text channel permission if bound voice channel has password
+///     Remove the text channel permission if the bound voice channel has password
 /// </summary>
 public class TeamPlayTeammateLeaveCommand(
     ILogger<TeamPlayTeammateLeaveCommand> log,

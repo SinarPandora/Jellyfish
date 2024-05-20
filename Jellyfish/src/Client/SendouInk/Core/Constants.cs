@@ -6,7 +6,7 @@ namespace Jellyfish.Client.SendouInk.Core;
 public static class Constants
 {
     /// <summary>
-    ///     Weapon slugs (API) as key, alias as values
+    ///     Weapon slugs (API) as the key, alias as values
     ///     Please use uppercase and remove white chars for matching alias
     /// </summary>
     public static Dictionary<string, string[]> WeaponSlugs = new()

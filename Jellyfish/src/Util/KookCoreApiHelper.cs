@@ -86,13 +86,13 @@ public static class KookCoreApiHelper
     }
 
     /// <summary>
-    ///     Delete single channel in guild.
+    ///     Delete a single channel in guild.
     ///     The deleted channel should never be used in system.
     /// </summary>
     /// <param name="guild">Current guild</param>
     /// <param name="channelId">Channel id</param>
     /// <param name="type">Channel type</param>
-    /// <exception cref="InvalidEnumArgumentException">Throws when channel type is unsupported</exception>
+    /// <exception cref="InvalidEnumArgumentException">Throws when the channel type is unsupported</exception>
     public static async Task DeleteSingleChannelAsync(this IGuild guild, ulong channelId, ChannelType type)
     {
         if (type != ChannelType.Text && type != ChannelType.Voice)

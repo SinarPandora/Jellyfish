@@ -9,7 +9,7 @@ using Polly.Retry;
 namespace Jellyfish.Module.TmpChannel.Core;
 
 /// <summary>
-///     Service to create temporary text channel to complements the missing features of Kook
+///     Service to create the temporary text channel to complement the missing features of Kook
 /// </summary>
 public class TmpTextChannelService(
     ILogger<TmpTextChannelService> log,
@@ -18,7 +18,7 @@ public class TmpTextChannelService(
 {
     /// <summary>
     ///     Create temporary text room with given permission.
-    ///     No need to check if owner already have a text channel, limit temporary text room only
+    ///     No need to check if owner already has a text channel, limit temporary text room only
     ///     by controlling the timing of the method call.
     /// </summary>
     /// <param name="args">Actually arguments</param>

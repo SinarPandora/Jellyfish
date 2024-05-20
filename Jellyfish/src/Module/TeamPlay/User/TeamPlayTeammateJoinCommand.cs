@@ -9,7 +9,7 @@ namespace Jellyfish.Module.TeamPlay.User;
 
 /// <summary>
 ///     Teammate join to team play room command
-///     Grant permission for teammate if text channel is private (voice room has password)
+///     Grant permission for teammate if the text channel is private (voice room has password)
 /// </summary>
 public class TeamPlayTeammateJoinCommand(
     ILogger<TeamPlayTeammateJoinCommand> log,
@@ -28,7 +28,7 @@ public class TeamPlayTeammateJoinCommand(
 
         if (room?.TmpTextChannel == null) return CommandResult.Continue;
 
-        room.UpdateTime = DateTime.Now; // Any user enter will refresh the expire time
+        room.UpdateTime = DateTime.Now; // Any user enter will refresh the expiration time
         var tmpInstance = room.TmpTextChannel;
         var restGuild = await kook.Rest.GetGuildAsync(channel.Guild.Id);
         var restTextChannel = await restGuild.GetTextChannelAsync(tmpInstance.ChannelId);
@@ -38,7 +38,7 @@ public class TeamPlayTeammateJoinCommand(
 
         if (channel.HasPassword)
         {
-            // If voice room has password, grant text room access permission to user
+            // If voice room has a password, grant text room access permission to user
             await restTextChannel.OverrideUserPermissionAsync(user.Value, p => p.Modify(
                 viewChannel: PermValue.Allow,
                 mentionEveryone: PermValue.Allow

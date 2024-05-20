@@ -8,7 +8,7 @@ namespace Jellyfish.Util;
 public static class SimpleCard
 {
     /// <summary>
-    ///     Send warning card message for notification
+    ///     Send a warning card message for notification
     /// </summary>
     /// <param name="channel">Text channel</param>
     /// <param name="message">Card text</param>
@@ -19,7 +19,7 @@ public static class SimpleCard
         SendNotifyCardAsync(channel, message, "⚠️", Color.Orange, recall, timeout);
 
     /// <summary>
-    ///     Send info card message for notification
+    ///     Send an info card message for notification
     /// </summary>
     /// <param name="channel">Text channel</param>
     /// <param name="message">Card text</param>
@@ -30,7 +30,7 @@ public static class SimpleCard
         SendNotifyCardAsync(channel, message, "💬", Color.Blue, recall, timeout);
 
     /// <summary>
-    ///     Send success card message for notification
+    ///     Send a success card message for notification
     /// </summary>
     /// <param name="channel">Text channel</param>
     /// <param name="message">Card text</param>
@@ -41,7 +41,7 @@ public static class SimpleCard
         SendNotifyCardAsync(channel, message, "✅", Color.Green, recall, timeout);
 
     /// <summary>
-    ///     Send error card message for notification
+    ///     Send an error card message for notification
     /// </summary>
     /// <param name="channel">Text channel</param>
     /// <param name="message">Card text</param>

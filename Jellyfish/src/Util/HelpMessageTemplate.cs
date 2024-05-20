@@ -4,12 +4,12 @@ using Kook;
 namespace Jellyfish.Util;
 
 /// <summary>
-///     Common template for help message
+///     Common template for Help Message
 /// </summary>
 public abstract class HelpMessageTemplate
 {
     /// <summary>
-    ///     Create help message for message command(already included help as option in the message)
+    ///     Create a help message for message command(already included help as option in the message)
     /// </summary>
     /// <param name="command">Message command object</param>
     /// <param name="description">Command description without title</param>

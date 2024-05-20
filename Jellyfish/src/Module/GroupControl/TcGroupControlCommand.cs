@@ -193,7 +193,7 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         var originalChannel = channel.Guild.GetTextChannel(textChannelId);
 
-        // Load config object from message
+        // Load a config object from the message
         List<InstanceDef> defMapping = null!;
         try
         {
@@ -241,7 +241,7 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         var instanceMap = tcGroup.GroupInstances.ToDictionary(instance => instance.Name);
 
-        // Load config mapping from message
+        // Load a config mapping from the message
         _log.LogInformation("开始批量创建频道");
         foreach (var def in defMapping)
         {

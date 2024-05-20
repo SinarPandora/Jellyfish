@@ -10,29 +10,21 @@ namespace Jellyfish.Util;
 public static class GuildHelper
 {
     /// <summary>
-    ///     Get highest VoiceQuality in current guild
+    ///     Get highest VoiceQuality in the current guild
     /// </summary>
     /// <param name="guild">Current guild</param>
     /// <exception cref="ArgumentOutOfRangeException">Throws when boost level unsupported</exception>
     /// <returns>VoiceQuality value</returns>
     public static VoiceQuality GetHighestVoiceQuality(this SocketGuild guild)
     {
-        switch (guild.BoostLevel)
+        return guild.BoostLevel switch
         {
-            case BoostLevel.None:
-                return VoiceQuality._48kbps;
-            case BoostLevel.Level1:
-                return VoiceQuality._128kbps;
-            case BoostLevel.Level2:
-                return VoiceQuality._192kbps;
-            case BoostLevel.Level3:
-            case BoostLevel.Level4:
-                return VoiceQuality._256kbps;
-            case BoostLevel.Level5:
-            case BoostLevel.Level6:
-                return VoiceQuality._320kbps;
-            default:
-                throw new InvalidEnumArgumentException($"不支持的助力等级{guild.BoostLevel}");
-        }
+            BoostLevel.None => VoiceQuality._48kbps,
+            BoostLevel.Level1 => VoiceQuality._128kbps,
+            BoostLevel.Level2 => VoiceQuality._192kbps,
+            BoostLevel.Level3 or BoostLevel.Level4 => VoiceQuality._256kbps,
+            BoostLevel.Level5 or BoostLevel.Level6 => VoiceQuality._320kbps,
+            _ => throw new InvalidEnumArgumentException($"不支持的助力等级{guild.BoostLevel}")
+        };
     }
 }

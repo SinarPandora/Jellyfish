@@ -9,7 +9,7 @@ namespace Jellyfish.Module.Role.Helper;
 public static class UserRoleHelper
 {
     /// <summary>
-    ///     Get kook role using cache from Kook client
+    ///     Get a kook role using cache from the Kook client
     /// </summary>
     /// <param name="role">User role</param>>
     /// <param name="guild">Current guild</param>

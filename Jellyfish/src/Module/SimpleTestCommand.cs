@@ -21,7 +21,7 @@ public class SimpleTestCommand : GuildMessageCommand
 
     public override string Name() => "简单测试指令";
 
-    public override string[] Keywords() => new[] { "!test", "！test" };
+    public override string[] Keywords() => ["!test", "！test"];
 
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)

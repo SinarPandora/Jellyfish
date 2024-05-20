@@ -16,7 +16,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
     public const string UserInjectKeyword = "{USER}";
 
     /// <summary>
-    ///     Send binding wizard card message to the current channel
+    ///     Send a binding wizard card message to the current channel
     /// </summary>
     /// <param name="user">Action user</param>
     /// <param name="channel">Current channel</param>
@@ -77,7 +77,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
                             """, true);
             })
             .AddModule<DividerModuleBuilder>()
-            // Other prompt
+            // Another prompt
             .AddModule<SectionModuleBuilder>(s =>
             {
                 s.WithText("当绑定了一个语音入口频道或文字入口频道后，配置就可以使用啦",

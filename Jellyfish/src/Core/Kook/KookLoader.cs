@@ -55,7 +55,7 @@ public class KookLoader(
 
 
     /// <summary>
-    ///     Create socket client
+    ///     Create a socket client
     /// </summary>
     /// <param name="config">App Configuration</param>
     /// <returns>Configured socket client</returns>

@@ -7,19 +7,12 @@ namespace Jellyfish.Client.SendouInk.Model;
 ///     Suite build filter
 /// </summary>
 [UsedImplicitly]
-public class BuildFilter
+public class BuildFilter(string ability, string comparison, string value)
 {
     public const string AtMost = "AT_MOST";
     public const string AtLeast = "AT_LEAST";
 
-    public BuildFilter(string ability, string comparison, string value)
-    {
-        Ability = ability;
-        Comparison = comparison;
-        Value = value;
-    }
-
-    [AliasAs("ability")] public string Ability { get; set; }
-    [AliasAs("comparison")] public string Comparison { get; set; }
-    [AliasAs("value")] public string Value { get; set; }
+    [AliasAs("ability")] public string Ability { get; set; } = ability;
+    [AliasAs("comparison")] public string Comparison { get; set; } = comparison;
+    [AliasAs("value")] public string Value { get; set; } = value;
 }

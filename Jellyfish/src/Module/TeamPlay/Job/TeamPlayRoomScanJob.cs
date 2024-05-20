@@ -71,7 +71,7 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
                 room.TmpTextChannelId = null;
             }
 
-            // 2. If voice channel does not exist, clean the room instance
+            // 2. If the voice channel does not exist, clean the room instance
             if (voiceChannel == null)
             {
                 if (textChannel != null)
@@ -83,14 +83,14 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
                 return;
             }
 
-            // 3. Check if any user in room
+            // 3. Check if any user in the room
             var users = await voiceChannel.GetConnectedUsersAsync()!;
             if (users.Any(u => !(u.IsBot ?? false)))
             {
                 // 4. Refresh the update time to delay the room cleanup
                 room.UpdateTime = DateTime.Now;
 
-                // 5. Check if owner leave
+                // 5. Check if owner leaves
                 if (users.All(u => u.Id != room.OwnerId))
                 {
                     await ElectNewRoomOwner(room, users, voiceChannel, textChannel);
@@ -111,10 +111,10 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
                 }
             }
 
-            // 7. Check room name with 🔐locked icon if it has password (and also sync the name for text channel)
+            // 7. Check the room name with 🔐locked icon if it has password (and also sync the name for text channel)
             await RefreshChannelNames(room, voiceChannel, textChannel);
 
-            // 8. Sync member permission for private text channel (which bound voice channel has password)
+            // 8. Sync member permission for the private text channel (which bound voice channel has password)
             if (users.IsNotEmpty() && textChannel != null)
             {
                 await SyncPrivateTextChannelMemberPermission(
@@ -145,7 +145,8 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
         {
             case true when everyoneOverride is not { ViewChannel: PermValue.Deny }:
             {
-                // Sync voice members and synergy bot accounts permission to text channel, then hide the text channel
+                // Sync voice members and synergy bot accounts permission to the text channel,
+                // then hide the text channel
                 await Task.WhenAll(
                     Task.WhenAll(users.Select(user =>
                         textChannel.OverrideUserPermissionAsync(user, r => r.Modify(
@@ -175,7 +176,7 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
             }
             case false when everyoneOverride is { ViewChannel: PermValue.Deny }:
             {
-                // Remove all member override on bound text channel, and show the text channel for all user again
+                // Remove all member overrides on the bound text channel, and show the text channel for all users again
                 await textChannel.SyncPermissionsAsync();
                 break;
             }
@@ -207,7 +208,7 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
     }
 
     /// <summary>
-    ///     Is the latest message in text channel before given
+    ///     Is the latest message in the text channel before given
     /// </summary>
     /// <param name="textChannel"></param>
     /// <param name="now"></param>

@@ -11,7 +11,7 @@ namespace Jellyfish.Module.Role.Core;
 public static class PermissionHelper
 {
     /// <summary>
-    ///     If user can execute this command
+    ///     If the user can execute this command
     /// </summary>
     /// <param name="user">User</param>
     /// <param name="command">Guild message command</param>

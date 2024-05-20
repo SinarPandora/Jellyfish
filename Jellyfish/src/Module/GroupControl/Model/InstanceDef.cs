@@ -4,7 +4,7 @@ using YamlDotNet.Serialization;
 namespace Jellyfish.Module.GroupControl.Model;
 
 /// <summary>
-///     Instance definition for creating instance group
+///     Instance definition for creating an instance group
 /// </summary>
 [UsedImplicitly]
 public class InstanceDef

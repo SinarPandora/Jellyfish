@@ -8,7 +8,7 @@ namespace Jellyfish.Module.TeamPlay.User;
 
 /// <summary>
 ///     Room owner leave channel command.
-///     When owner leaved, remove its owner permission
+///     When the owner left, remove its owner permission
 /// </summary>
 public class TeamPlayRoomOwnerLeaveCommand(ILogger<TeamPlayRoomOwnerLeaveCommand> log, DbContextProvider dbProvider)
     : UserDisconnectEventCommand

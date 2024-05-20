@@ -1,7 +1,7 @@
 namespace Jellyfish.Module.ExpireExtendSession.Data;
 
 /// <summary>
-///     Extend target type
+///     Extend-target type
 /// </summary>
 public enum ExtendTargetType
 {

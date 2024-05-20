@@ -131,7 +131,7 @@ public class KookEventMatcher
     }
 
     /// <summary>
-    ///     Handle user leave a joined voice channel event
+    ///     Handle user leaves a joined voice channel event
     /// </summary>
     /// <param name="user">Current user</param>
     /// <param name="channel">Target channel</param>
