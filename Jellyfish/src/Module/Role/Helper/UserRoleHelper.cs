@@ -22,7 +22,7 @@ public static class UserRoleHelper
     ).FirstOrDefault();
 
     /// <summary>
-    ///     Get role name using cache from Kook client
+    ///     Get role name using cache from the Kook client
     /// </summary>
     /// <param name="role">User role</param>>
     /// <param name="guild">Current guild</param>

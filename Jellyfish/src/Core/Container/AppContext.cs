@@ -7,6 +7,7 @@ using Jellyfish.Core.Job;
 using Jellyfish.Core.Kook;
 using Jellyfish.Core.Lifecycle;
 using Jellyfish.Core.Puppeteer;
+using Jellyfish.Custom.Splatoon.Model.SuiteSearch;
 using Jellyfish.Module;
 using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.GroupControl;
@@ -89,5 +90,9 @@ public static class AppContext
         container.RegisterType<InitSettingsForNewGuildCommand>().As<BotJoinGuildCommand>().SingleInstance();
         container.RegisterType<InitSettingOnConnectUnregisteredGuildCommand>().As<GuildAvailableCommand>()
             .SingleInstance();
+
+        // Splatoon: Suite Search Command
+        container.RegisterType<SuiteSearchService>().SingleInstance();
+        container.RegisterType<SuiteSearchCommand>().As<GuildMessageCommand>().SingleInstance();
     }
 }
