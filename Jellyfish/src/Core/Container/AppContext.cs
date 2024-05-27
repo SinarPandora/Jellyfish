@@ -9,7 +9,7 @@ using Jellyfish.Core.Lifecycle;
 using Jellyfish.Core.Puppeteer;
 using Jellyfish.Custom.Splatoon.Model.SuiteSearch;
 using Jellyfish.Module;
-using Jellyfish.Module.CountDownChannel.Core;
+using Jellyfish.Module.CountDownName.Core;
 using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.GroupControl;
 using Jellyfish.Module.GuildSetting.Core;

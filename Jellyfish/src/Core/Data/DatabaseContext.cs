@@ -1,5 +1,5 @@
 using Jellyfish.Core.Enum;
-using Jellyfish.Module.CountDownChannel.Data;
+using Jellyfish.Module.CountDownName.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GroupControl.Data;
 using Jellyfish.Module.GuildSetting.Data;

@@ -1,6 +1,6 @@
 using Jellyfish.Core.Data;
 
-namespace Jellyfish.Module.CountDownChannel.Data;
+namespace Jellyfish.Module.CountDownName.Data;
 
 /// <summary>
 ///     Countdown name channel
