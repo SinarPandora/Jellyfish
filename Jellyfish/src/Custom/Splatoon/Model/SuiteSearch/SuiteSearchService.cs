@@ -38,7 +38,7 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
         }
 
         var infoMsg = await channel.SendCardSafeAsync(new CardBuilder()
-            .AddModule<SectionModuleBuilder>(m => m.WithText("💬已找到武器，正在查询中……"))
+            .AddModule<SectionModuleBuilder>(m => m.WithText("💬 已找到武器，正在查询中……"))
             .WithColor(Color.Blue)
             .Build()
         );
