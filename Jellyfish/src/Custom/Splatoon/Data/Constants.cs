@@ -14,7 +14,7 @@ public abstract class Constants
     ///     Weapons base data
     ///     Please use uppercase and remove white chars for matching alias
     /// </summary>
-    public static HashSet<Weapon> Weapons =
+    public static readonly HashSet<Weapon> Weapons =
     [
         new Weapon(50, "52-gal", ".52加仑", [".52加仑", "52"]),
         new Weapon(51, "52-gal-deco", ".52加仑装饰", [".52加仑装饰", "贴牌52"]),
@@ -142,7 +142,7 @@ public abstract class Constants
     /// <summary>
     ///     Game mode alias for Sendou Ink API
     /// </summary>
-    public static Dictionary<string, string> SendouInkModeAlias = new()
+    public static readonly Dictionary<string, string> SendouInkModeAlias = new()
     {
         { "SZ", "区域" },
         { "TC", "塔楼" },
