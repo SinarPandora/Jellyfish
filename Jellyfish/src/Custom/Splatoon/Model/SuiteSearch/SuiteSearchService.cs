@@ -40,7 +40,7 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
         var imgUrl = await SearchAndScreenshot(weapon.SendouSlug);
         await channel.SendCardSafeAsync(
             new CardBuilder()
-                .AddModule<HeaderModuleBuilder>(m => m.Text = $"{weapon.Name} 常用配装")
+                .AddModule<HeaderModuleBuilder>(m => m.Text = $"{weapon.Name} 常用配装（点图可放大）")
                 .AddModule<ImageGroupModuleBuilder>(m => m.AddElement(new ImageElementBuilder
                 {
                     Source = imgUrl,
