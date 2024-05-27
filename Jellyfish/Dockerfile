@@ -1,5 +1,7 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 RUN apt-get update && apt-get install -y chromium fonts-noto-cjk
+RUN useradd -ms /bin/bash jellyfish
+USER jellyfish
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
@@ -18,4 +20,5 @@ RUN dotnet publish "Jellyfish.csproj" -c Release -o /app/publish /p:UseAppHost=f
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+USER jellyfish
 ENTRYPOINT ["dotnet", "Jellyfish.dll"]
