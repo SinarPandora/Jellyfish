@@ -276,7 +276,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
     }
 
     /// <summary>
-    ///     Send further configure intro message, after creating or binding room
+    ///     Send a further configure intro message, after creating or binding room
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="config">Team play config</param>
