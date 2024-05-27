@@ -9,12 +9,12 @@ public class CountDownChannel(
     ulong guildId,
     ulong channelId,
     string pattern,
-    DateTime dueDate
+    DateOnly dueDate
 ) : TrackableEntity
 {
     public long Id { get; set; }
     public ulong GuildId { get; set; } = guildId;
     public ulong ChannelId { get; set; } = channelId;
     public string Pattern { get; set; } = pattern;
-    public DateTime DueDate { get; set; } = dueDate;
+    public DateOnly DueDate { get; set; } = dueDate;
 }

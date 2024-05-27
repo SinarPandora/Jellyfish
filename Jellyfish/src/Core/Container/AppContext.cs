@@ -9,6 +9,7 @@ using Jellyfish.Core.Lifecycle;
 using Jellyfish.Core.Puppeteer;
 using Jellyfish.Custom.Splatoon.Model.SuiteSearch;
 using Jellyfish.Module;
+using Jellyfish.Module.CountDownChannel.Core;
 using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.GroupControl;
 using Jellyfish.Module.GuildSetting.Core;
@@ -94,5 +95,8 @@ public static class AppContext
         // Splatoon: Suite Search Command
         container.RegisterType<SuiteSearchService>().SingleInstance();
         container.RegisterType<SuiteSearchCommand>().As<GuildMessageCommand>().SingleInstance();
+
+        // Countdown-Name Channel Command
+        container.RegisterType<CountDownChannelService>().SingleInstance();
     }
 }
