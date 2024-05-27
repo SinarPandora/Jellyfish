@@ -13,4 +13,6 @@ public class AppConfig(IConfiguration configuration)
     public readonly string ChromiumPath = configuration.GetValue<string>("Puppeteer:ChromiumPath")
                                           ?? throw new NoNullAllowedException(
                                               "请在 appsettings.json 中配置 ChromiumPath 以使用依赖浏览器的附加功能");
+
+    public readonly string[] ChromiumArgs = configuration.GetSection("Puppeteer:ExtraArgs").Get<string[]>() ?? [];
 }
