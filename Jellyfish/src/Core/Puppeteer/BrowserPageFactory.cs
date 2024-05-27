@@ -61,7 +61,7 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
             Headless = true,
             Browser = SupportedBrowser.Chromium,
             // Use the Chinese language as browser default language
-            Args = ["--accept-lang=zh-CN"]
+            Args = ["--no-sandbox", "--accept-lang=zh-CN"]
         });
         log.LogInformation("浏览器进程已启动，PID：{Pid}", browser.Process.Id);
         return browser;
