@@ -1,5 +1,10 @@
 # 水母 Bot 更新日志
 
+## V1.4
+
+* Splatoon 配装搜索
+* 升级至 Kook.Net 0.8.0-beta4
+
 ## V1.3
 
 * 升级至 .Net 8.0，Kook.Net 0.5.3
