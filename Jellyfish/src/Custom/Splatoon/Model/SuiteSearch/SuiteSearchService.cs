@@ -23,7 +23,7 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
     /// <param name="channel">Current channel</param>
     public async Task Search(string keyword, SocketTextChannel channel)
     {
-        var cleanKeyword = Regexs.UnChineseEnglishOrNumber().Replace(keyword, string.Empty);
+        var cleanKeyword = Regexs.UnChineseEnglishOrNumber().Replace(keyword, string.Empty).ToUpper();
         var weapon = (
             from item in Constants.Weapons
             from alias in item.Alias
