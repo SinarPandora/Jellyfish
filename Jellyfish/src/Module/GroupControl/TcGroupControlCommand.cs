@@ -180,14 +180,14 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         if (!rawMention.StartsWith("(chn)"))
         {
-            await channel.SendErrorCardAsync("请在指令中指定引导文字频道，具体内容可以参考：`!频道组 帮助`", true);
+            await channel.SendErrorCardAsync("请在指令中指定引导文字频道，具体内容请参考：`!频道组 帮助`", true);
             return false;
         }
 
         var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
         if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var textChannelId))
         {
-            await channel.SendErrorCardAsync("引导文字频道应是一个频道引用（蓝色文本），具体内容可以参考：`!频道组 帮助`", true);
+            await channel.SendErrorCardAsync("引导文字频道应是一个频道引用（蓝色文本），具体内容请参考：`!频道组 帮助`", true);
             return false;
         }
 
@@ -204,7 +204,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         {
             _log.LogError(e, "解析批量频道定义失败");
             await channel.SendErrorCardAsync(
-                "批量频道定义数据格式不正确，请使用正确的 Yaml 格式，具体内容可以参考：`!频道组 帮助`",
+                "批量频道定义数据格式不正确，请使用正确的 Yaml 格式，具体内容请参考：`!频道组 帮助`",
                 true);
         }
 
