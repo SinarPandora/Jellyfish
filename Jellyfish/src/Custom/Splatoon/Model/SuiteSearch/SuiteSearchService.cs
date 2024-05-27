@@ -37,7 +37,7 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
             return;
         }
 
-        await channel.SendInfoCardAsync("查询中……", true, TimeSpan.FromSeconds(5));
+        await channel.SendInfoCardAsync("已找到武器，正在查询中……", true, TimeSpan.FromSeconds(5));
         var imgUrl = await SearchAndScreenshot(weapon.SendouSlug);
         await channel.SendCardSafeAsync(
             new CardBuilder()
