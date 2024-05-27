@@ -61,12 +61,10 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
     /// <returns>Image URL</returns>
     private async Task<string> SearchAndScreenshot(string slug)
     {
-        await using var page = await bpf.OpenPage();
-        await page.GoToAsync($"{Constants.SendouInkEndpoint}/builds/{slug}?limit={SearchLimit}");
+        await using var page = await bpf.OpenPage($"{Constants.SendouInkEndpoint}/builds/{slug}?limit={SearchLimit}");
         await page.WaitForSelectorAsync(SendouPageContainer);
         var element = await page.QuerySelectorAsync(SendouPageContainer);
         var box = await element.BoundingBoxAsync();
-
         var stream = await page.ScreenshotStreamAsync(new ScreenshotOptions()
         {
             Type = ScreenshotType.Png,

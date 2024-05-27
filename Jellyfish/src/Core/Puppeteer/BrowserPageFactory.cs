@@ -17,11 +17,13 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
     ///     Open new browser page with the resolution ratio is 1920x1080
     ///     Retry when browser crashes
     /// </summary>
+    /// <param name="url">Page url</param>
     /// <returns>New browser page</returns>
-    public async Task<IPage> OpenPage()
+    public async Task<IPage> OpenPage(string url)
     {
         _browser ??= await GetBrowserProcess();
 
+        IPage? page = null;
         return await new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions
             {
@@ -30,15 +32,37 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
                 DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = async retry =>
                 {
-                    log.LogWarning("浏览器已崩溃，正在重启进程（第{Times} 次)", retry.AttemptNumber);
-                    _browser = await GetBrowserProcess();
-                    log.LogWarning("浏览器进程已重启");
+                    if (retry.Outcome.Exception is NavigationException)
+                    {
+                        log.LogWarning("访问超时，正在重试（地址：{Url}，第 {Times} 次)", url, retry.AttemptNumber);
+                        if (page is { IsClosed: false })
+                        {
+                            try
+                            {
+                                await page.CloseAsync();
+                            }
+                            catch (Exception)
+                            {
+                                // Ignore all errors
+                            }
+                        }
+                    }
+                    else
+                    {
+                        log.LogWarning("浏览器已崩溃，正在重启进程（错误：{Err}，第 {Times} 次)",
+                            retry.Outcome.Exception?.GetType().Name ?? "未知错误",
+                            retry.AttemptNumber
+                        );
+                        _browser = await GetBrowserProcess();
+                        log.LogWarning("浏览器进程已重启");
+                    }
                 }
             })
             .Build()
             .ExecuteAsync(async _ =>
             {
-                var page = await _browser.NewPageAsync();
+                page = await _browser.NewPageAsync();
+                await page.GoToAsync(url);
                 await page.SetViewportAsync(new ViewPortOptions
                 {
                     Width = 1920,
@@ -54,6 +78,18 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
     /// <returns>New browser process</returns>
     private async Task<IBrowser> GetBrowserProcess()
     {
+        if (_browser is { IsClosed: false })
+        {
+            try
+            {
+                await _browser.CloseAsync();
+            }
+            catch (Exception)
+            {
+                // Ignore all errors
+            }
+        }
+
         var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(new LaunchOptions
         {
             ExecutablePath = config.ChromiumPath,
