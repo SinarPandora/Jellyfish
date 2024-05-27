@@ -13,14 +13,27 @@ public class CountDownChannelService(DbContextProvider dbProvider)
 {
     private const string CountPlaceHolder = "{COUNT}";
 
+    private static readonly Dictionary<char, string> EmojiNumberMapping = new()
+    {
+        { '0', "0️⃣" },
+        { '1', "1️⃣" },
+        { '2', "2️⃣" },
+        { '3', "3️⃣" },
+        { '4', "4️⃣" },
+        { '5', "5️⃣" },
+        { '6', "6️⃣" },
+        { '7', "7️⃣" },
+        { '8', "8️⃣" },
+        { '9', "9️⃣" }
+    };
+
     /// <summary>
     ///     Parse user input and create the CountDown-Name channel
     /// </summary>
     /// <param name="rawArgs">Raw user input</param>
     /// <param name="channel">Current text channel</param>
-    /// <param name="user">Current user</param>
     /// <returns>Is task success or not</returns>
-    public async Task<bool> ParseAndCreate(string rawArgs, SocketTextChannel channel, SocketUser user)
+    public async Task<bool> ParseAndCreate(string rawArgs, SocketTextChannel channel)
     {
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 3);
         if (args.Length < 2)
@@ -33,14 +46,14 @@ public class CountDownChannelService(DbContextProvider dbProvider)
 
         if (!rawMention.StartsWith("(chn)"))
         {
-            await channel.SendErrorCardAsync("请在指令中引用现有文字频道，具体内容请参考：`!倒计时频道 帮助`", true);
+            await channel.SendErrorCardAsync("请在指令中引用现有频道，具体内容请参考：`!倒计时频道 帮助`", true);
             return false;
         }
 
         var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
-        if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var textChannelId))
+        if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var targetChannelId))
         {
-            await channel.SendErrorCardAsync("现有文字频道引用应是一个频道引用（蓝色文本），具体内容请参考：`!倒计时频道 帮助`", true);
+            await channel.SendErrorCardAsync("现有频道引用应是一个蓝色文本，具体内容请参考：`!倒计时频道 帮助`", true);
             return false;
         }
 
@@ -61,15 +74,58 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         var delta = (dueDate.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days;
 
         await using var dbCtx = dbProvider.Provide();
-        var cdChannel = new CountDownChannel(channel.Guild.Id, channel.Id, pattern, dueDate, delta <= 0);
+        var cdChannel = new CountDownChannel(channel.Guild.Id, targetChannelId, pattern, dueDate, delta <= 0);
         dbCtx.CountDownChannels.Add(cdChannel);
 
         dbCtx.SaveChanges();
 
+        await UpdateChannelText(channel.Guild.GetChannel(targetChannelId)!, cdChannel);
         await channel.SendSuccessCardAsync(
             $"创建成功！{MentionUtils.KMarkdownMentionChannel(channel.Id)} 的频道名称已设置为{(delta <= 0 ? "正计时" : "倒计时")}，距离天数：{Math.Abs(delta)}",
             false
         );
         return true;
+    }
+
+    /// <summary>
+    ///     Persist the due text to the CountDown-Name channel
+    /// </summary>
+    /// <param name="rawArgs">Raw user input</param>
+    /// <param name="channel">Current channel</param>
+    /// <returns>Is task success or not</returns>
+    public Task<bool> PersistDueText(string rawArgs, SocketTextChannel channel)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    ///     Update the channel name based on the pattern
+    /// </summary>
+    /// <param name="target">Target channel</param>
+    /// <param name="cdChannel">CountDown-Name channel object as a pattern</param>
+    public static async Task UpdateChannelText(IGuildChannel target, CountDownChannel cdChannel)
+    {
+        var delta = Math.Abs((cdChannel.DueDate.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days);
+        string name;
+        if (delta == 0)
+        {
+            if (cdChannel.DueText != null)
+            {
+                name = cdChannel.DueText;
+            }
+            else return;
+        }
+        else
+        {
+            name = cdChannel.Pattern.Replace(CountPlaceHolder,
+                delta
+                    .ToString()
+                    .ToCharArray()
+                    .Select(c => EmojiNumberMapping[c])
+                    .StringJoin(string.Empty)
+            );
+        }
+
+        await target.ModifyAsync(c => c.Name = name);
     }
 }
