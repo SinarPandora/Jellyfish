@@ -31,6 +31,7 @@
 ### 斯普拉遁扩展功能
 
 - [x] 与其他相关 Bot 联动
+- [x] 配装搜索
 - [ ] 私房规则选择器
 
 ## 开发指南
@@ -127,6 +128,7 @@
 * [FluentScheduler](https://fluentscheduler.github.io/creating-schedules/)
 * [Polly](https://www.thepollyproject.org/)
 * [Autofac](https://autofac.org/)
+* [PuppeteerSharp](https://www.puppeteersharp.com/index.html)
 
 #### Kook 开发者文档
 
