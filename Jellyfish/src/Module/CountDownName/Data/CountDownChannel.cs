@@ -3,7 +3,7 @@ using Jellyfish.Core.Data;
 namespace Jellyfish.Module.CountDownName.Data;
 
 /// <summary>
-///     Countdown name channel
+///     CountDown-Name channel
 /// </summary>
 public class CountDownChannel(
     ulong guildId,
@@ -17,4 +17,5 @@ public class CountDownChannel(
     public ulong ChannelId { get; set; } = channelId;
     public string Pattern { get; set; } = pattern;
     public DateOnly DueDate { get; set; } = dueDate;
+    public string? DueText { get; set; } = null;
 }
