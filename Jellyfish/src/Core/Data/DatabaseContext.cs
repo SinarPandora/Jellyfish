@@ -1,4 +1,5 @@
 using Jellyfish.Core.Enum;
+using Jellyfish.Module.CountDownChannel.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GroupControl.Data;
 using Jellyfish.Module.GuildSetting.Data;
@@ -30,6 +31,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     public DbSet<TmpTextChannel> TmpTextChannels { get; set; } = null!;
     public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
     public DbSet<GuildSetting> GuildSettings { get; set; } = null!;
+    public DbSet<CountDownChannel> CountDownChannels { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
