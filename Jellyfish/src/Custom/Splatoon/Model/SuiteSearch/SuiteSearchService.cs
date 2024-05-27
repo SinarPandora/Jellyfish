@@ -53,7 +53,7 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
                 .AddModule<ImageGroupModuleBuilder>(m => m.AddElement(new ImageElementBuilder
                 {
                     Source = imgUrl,
-                    Alternative = "图片卡住了，刷新一下试试"
+                    Alternative = "已搜到武器配装，快来看看吧！"
                 }))
                 .AddModule<SectionModuleBuilder>(m => m.WithText(MentionUtils.KMarkdownMentionUser(user.Id), true))
                 .Build()
