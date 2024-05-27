@@ -21,7 +21,8 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
     /// </summary>
     /// <param name="keyword">User input keyword</param>
     /// <param name="channel">Current channel</param>
-    public async Task Search(string keyword, SocketTextChannel channel)
+    /// <param name="user">Message sender</param>
+    public async Task Search(string keyword, SocketTextChannel channel, SocketGuildUser user)
     {
         var cleanKeyword = Regexs.UnChineseEnglishOrNumber().Replace(keyword, string.Empty).ToUpper();
         var weapon = (
@@ -41,15 +42,15 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
         await channel.SendCardSafeAsync(
             new CardBuilder()
                 .AddModule<HeaderModuleBuilder>(m => m.Text = $"{weapon.Name} 常用配装（点图可放大）")
+                .AddModule<SectionModuleBuilder>(m =>
+                    m.WithText($"数据来源：[Sendou.ink]({Constants.SendouInkEndpoint}/builds/{weapon.SendouSlug})", true)
+                )
                 .AddModule<ImageGroupModuleBuilder>(m => m.AddElement(new ImageElementBuilder
                 {
                     Source = imgUrl,
                     Alternative = "图片卡住了，刷新一下试试"
                 }))
-                .AddModule<DividerModuleBuilder>()
-                .AddModule<SectionModuleBuilder>(m =>
-                    m.WithText($"数据来源：[Sendou.ink]({Constants.SendouInkEndpoint}/builds/{weapon.SendouSlug})", true)
-                )
+                .AddModule<SectionModuleBuilder>(m => m.WithText(MentionUtils.KMarkdownMentionUser(user.Id), true))
                 .Build()
         );
     }

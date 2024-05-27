@@ -42,7 +42,7 @@ public class SuiteSearchCommand : GuildMessageCommand
             }
             else
             {
-                await _service.Search(args, channel);
+                await _service.Search(args, channel, user);
             }
         }
     }
