@@ -37,7 +37,12 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
             return;
         }
 
-        await channel.SendInfoCardAsync("已找到武器，正在查询中……", true, TimeSpan.FromSeconds(5));
+        var infoMsg = await channel.SendCardSafeAsync(new CardBuilder()
+            .AddModule<SectionModuleBuilder>(m => m.WithText("💬已找到武器，正在查询中……"))
+            .WithColor(Color.Blue)
+            .Build()
+        );
+
         var imgUrl = await SearchAndScreenshot(weapon.SendouSlug);
         await channel.SendCardSafeAsync(
             new CardBuilder()
@@ -53,6 +58,10 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
                 .AddModule<SectionModuleBuilder>(m => m.WithText(MentionUtils.KMarkdownMentionUser(user.Id), true))
                 .Build()
         );
+        if (infoMsg.HasValue)
+        {
+            await channel.DeleteMessageAsync(infoMsg.Value.Id);
+        }
     }
 
     /// <summary>
