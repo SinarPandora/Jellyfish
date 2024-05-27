@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Jellyfish.Client.SendouInk.Core;
 using Jellyfish.Core.Data;
 using Jellyfish.Core.Enum;
 using Jellyfish.Module.ExpireExtendSession.Data;
@@ -10,7 +9,6 @@ using Kook;
 using Microsoft.EntityFrameworkCore;
 using NLog.Web;
 using Npgsql;
-using Refit;
 using AppContext = Jellyfish.Core.Container.AppContext;
 
 namespace Jellyfish;
@@ -33,13 +31,6 @@ public static class JellyFish
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-
-            // Init Refit Clients
-            builder.Services.AddRefitClient<ISendouInkApi>(new RefitSettings
-                {
-                    ContentSerializer = new NewtonsoftJsonContentSerializer()
-                })
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri("https://sendou.ink"));
 
             // NLog: Setup NLog for Dependency injection
             builder.Logging.ClearProviders();

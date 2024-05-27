@@ -6,6 +6,7 @@ using Jellyfish.Core.Config;
 using Jellyfish.Core.Job;
 using Jellyfish.Core.Kook;
 using Jellyfish.Core.Lifecycle;
+using Jellyfish.Core.Puppeteer;
 using Jellyfish.Module;
 using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.GroupControl;
@@ -46,6 +47,7 @@ public static class AppContext
         container.RegisterType<KookApiFactory>().SingleInstance();
         container.RegisterType<KookEventMatcher>().SingleInstance();
         container.RegisterType<CacheSyncJob>().SingleInstance();
+        container.RegisterType<BrowserPageFactory>().SingleInstance();
         container.RegisterType<JobRegistry>().As<Registry>().SingleInstance();
         container.RegisterType<JobLoader>().SingleInstance();
         container.RegisterType<AppInitializer>().As<IStartupFilter>().SingleInstance();
