@@ -3,6 +3,7 @@ set dotenv-load
 version := "1.4"
 container_name := "jellyfish"
 postgres_container_name := "jellyfish_postgres_container"
+addition_args := ""
 
 backup:
     export BACKUP_FILE_NAME="Jellyfish-$(date '+%Y-%m-%d-%H-%M-%S')-dump.tar" && \
@@ -14,8 +15,14 @@ migrate:
     just backup
     cd ./Jellyfish && dotnet ef database update
 
-deploy:
-    docker build --no-cache -f ./Jellyfish/Dockerfile -t jellyfish:{{ version }} .
+docker-deploy:
+    docker build {{ addition_args }} -f ./Jellyfish/Dockerfile -t jellyfish:{{ version }} .
     docker stop {{ container_name }} || true
     docker rm {{ container_name }} || true
     docker run -d --network=host --name {{ container_name }} jellyfish:{{ version }}
+
+deploy:
+    just docker-deploy
+
+deploy-no-cache:
+    just addition_args='--no-cache' docker-deploy
