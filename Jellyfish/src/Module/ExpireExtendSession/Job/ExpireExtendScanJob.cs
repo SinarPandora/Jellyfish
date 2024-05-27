@@ -59,7 +59,7 @@ public class ExpireExtendScanJob(
             .FirstOrDefault(i => i.Id == session.TargetId);
         if (instance != null)
         {
-            var textChannel = kook.GetGuild(instance.GuildId).GetTextChannel(instance.ChannelId);
+            var textChannel = kook.GetGuild(instance.GuildId)?.GetTextChannel(instance.ChannelId);
             if (textChannel != null)
             {
                 var messages = await textChannel.GetMessagesAsync(1).FirstAsync();

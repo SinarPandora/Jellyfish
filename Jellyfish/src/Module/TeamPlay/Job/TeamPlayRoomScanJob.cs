@@ -59,10 +59,10 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
     /// <param name="room">Room instance</param>
     /// <param name="now">Now datetime</param>
     /// <param name="dbCtx">Database context</param>
-    private async Task CheckAndDeleteRoom(SocketGuild guild, TpRoomInstance room, DateTime now, DatabaseContext dbCtx)
+    private async Task CheckAndDeleteRoom(SocketGuild? guild, TpRoomInstance room, DateTime now, DatabaseContext dbCtx)
     {
-        var voiceChannel = guild.GetVoiceChannel(room.VoiceChannelId);
-        var textChannel = room.TmpTextChannel != null ? guild.GetTextChannel(room.TmpTextChannel.ChannelId) : null;
+        var voiceChannel = guild?.GetVoiceChannel(room.VoiceChannelId);
+        var textChannel = room.TmpTextChannel != null ? guild?.GetTextChannel(room.TmpTextChannel.ChannelId) : null;
         try
         {
             // 1. Sync text channel status to team play room instance
@@ -84,7 +84,7 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
             }
 
             // 3. Check if any user in the room
-            var users = await voiceChannel.GetConnectedUsersAsync()!;
+            var users = await voiceChannel.GetConnectedUsersAsync();
             if (users.Any(u => !(u.IsBot ?? false)))
             {
                 // 4. Refresh the update time to delay the room cleanup
@@ -106,7 +106,7 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
 
                 if (needCleanup)
                 {
-                    await CleanUpTeamPlayRoom(guild, room, textChannel, voiceChannel, dbCtx);
+                    await CleanUpTeamPlayRoom(guild!, room, textChannel, voiceChannel, dbCtx);
                     return; // Break the method
                 }
             }

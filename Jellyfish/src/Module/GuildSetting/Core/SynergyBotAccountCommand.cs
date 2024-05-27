@@ -98,13 +98,13 @@ public class SynergyBotAccountCommand : GuildMessageCommand
                 return false;
             }
 
-            if (!(channel.Guild.GetUser(botId).IsBot ?? false))
+            if (!(channel.Guild.GetUser(botId)?.IsBot ?? false))
             {
                 await channel.SendErrorCardAsync("您指定的账号并非机器人账号", true);
                 return false;
             }
 
-            if (_kook.CurrentUser.Id == botId)
+            if (_kook.CurrentUser!.Id == botId)
             {
                 await channel.SendErrorCardAsync("水母自己不能成为自己的协同机器人", true);
                 return false;

@@ -49,7 +49,7 @@ public static class KookCoreApiHelper
         }
         catch (HttpException e)
         {
-            if (e.Reason.IsNotNullOrEmpty() && e.Reason.Contains(HasBeenBlockedByUser))
+            if (e.Reason.IsNotNullOrEmpty() && e.Reason!.Contains(HasBeenBlockedByUser))
             {
                 Log.Warn("消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
             }
@@ -76,7 +76,7 @@ public static class KookCoreApiHelper
         }
         catch (HttpException e)
         {
-            if (e.Reason.IsNotNullOrEmpty() && e.Reason.Contains(HasBeenBlockedByUser))
+            if (e.Reason.IsNotNullOrEmpty() && e.Reason!.Contains(HasBeenBlockedByUser))
             {
                 Log.Warn("消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
             }
@@ -110,7 +110,7 @@ public static class KookCoreApiHelper
                 OnRetry = async args =>
                 {
                     Log.Warn(args.Outcome.Exception,
-                        $"删除频道 API 调用失败一次，房间名：{channel.Name}，重试次数：{args.AttemptNumber}");
+                        $"删除频道 API 调用失败一次，房间名：{channel?.Name ?? "已删除"}，重试次数：{args.AttemptNumber}");
                     channel = type == ChannelType.Text
                         ? await restGuild.GetTextChannelAsync(channelId)
                         : await restGuild.GetVoiceChannelAsync(channelId);

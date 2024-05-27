@@ -39,7 +39,7 @@ public class KookEventMatcher
         _botJoinGuildCommands = botJoinGuildCommands;
         _guildAvailableCommands = guildAvailableCommands;
         _log = log;
-        _currentUserId = new Lazy<ulong>(() => provider.Resolve<KookSocketClient>().CurrentUser.Id);
+        _currentUserId = new Lazy<ulong>(() => provider.Resolve<KookSocketClient>().CurrentUser!.Id);
     }
 
     /// <summary>

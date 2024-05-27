@@ -134,7 +134,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
         SocketTextChannel channel)
     {
         log.LogInformation("已收到名为 {Name} 的语音频道绑定请求，执行进一步操作", name);
-        var voiceChannel = user.Value.VoiceChannel;
+        var voiceChannel = user.Value?.VoiceChannel;
         if (voiceChannel == null)
         {
             await channel.SendErrorCardAsync("未检测到您加入的语音频道", true);
@@ -211,7 +211,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             return false;
         }
 
-        var bindingChannelName = channel.Guild.GetTextChannel(bindingChannelId).Name;
+        var bindingChannelName = channel.Guild.GetTextChannel(bindingChannelId)!.Name;
 
         await using var dbCtx = dbProvider.Provide();
         log.LogInformation("已收到名为 {Name} 的文字频道绑定请求，执行进一步操作", configName);
@@ -484,7 +484,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
         }
         else
         {
-            var categoryId = channel.Guild.GetTextChannel(textChannelId).CategoryId;
+            var categoryId = channel.Guild.GetTextChannel(textChannelId)?.CategoryId;
 
             if (!categoryId.HasValue)
             {

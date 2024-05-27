@@ -175,7 +175,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             return false;
         }
 
-        // Load origin text channel from message
+        // Load origin text channel from the message
         var rawMention = args[1];
 
         if (!rawMention.StartsWith("(chn)"))
@@ -191,7 +191,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             return false;
         }
 
-        var originalChannel = channel.Guild.GetTextChannel(textChannelId);
+        var originalChannel = channel.Guild.GetTextChannel(textChannelId)!;
 
         // Load a config object from the message
         List<InstanceDef> defMapping = null!;
@@ -376,7 +376,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         else
         {
             // Update room
-            newChannel = guild.GetTextChannel(instance.TextChannelId);
+            newChannel = guild.GetTextChannel(instance.TextChannelId)!;
             await newChannel.ModifyAsync(c => c.CategoryId = originalChannel.CategoryId);
         }
 

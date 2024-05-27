@@ -34,17 +34,17 @@ public class TeamPlayTeammateJoinCommand(
         var restTextChannel = await restGuild.GetTextChannelAsync(tmpInstance.ChannelId);
         if (restTextChannel == null) return CommandResult.Done;
 
-        if (restTextChannel.GetPermissionOverwrite(user.Value) != null) return CommandResult.Done;
+        if (restTextChannel.GetPermissionOverwrite(user.Value!) != null) return CommandResult.Done;
 
         if (channel.HasPassword)
         {
             // If voice room has a password, grant text room access permission to user
-            await restTextChannel.OverrideUserPermissionAsync(user.Value, p => p.Modify(
+            await restTextChannel.OverrideUserPermissionAsync(user.Value!, p => p.Modify(
                 viewChannel: PermValue.Allow,
                 mentionEveryone: PermValue.Allow
             ));
             log.LogInformation("加入语音房间 {TpRoomName} 的用户：{Name}:{Id}，已获得文字房间 {TextRoomName} 的访问权限",
-                room.RoomName, user.Value.DisplayName(), user.Id, restTextChannel.Name
+                room.RoomName, user.Value!.DisplayName(), user.Id, restTextChannel.Name
             );
             await Task.Delay(TimeSpan.FromSeconds(3)); // Delay 3s for Kook app cache refresh
             await restTextChannel.SendSuccessCardAsync(
@@ -57,13 +57,13 @@ public class TeamPlayTeammateJoinCommand(
         }
         else
         {
-            await restTextChannel.OverrideUserPermissionAsync(user.Value, p => p.Modify(
+            await restTextChannel.OverrideUserPermissionAsync(user.Value!, p => p.Modify(
                 sendMessages: PermValue.Allow
             ));
             log.LogInformation("加入语音房间 {TpRoomName} 的用户：{Name}:{Id}，已在文字房间 {TextRoomName} 中被标记",
-                room.RoomName, user.Value.DisplayName(), user.Id, restTextChannel.Name
+                room.RoomName, user.Value!.DisplayName(), user.Id, restTextChannel.Name
             );
-            await restTextChannel.SendSuccessCardAsync($"欢迎 {user.Value.DisplayName()} 加入组队房间！",
+            await restTextChannel.SendSuccessCardAsync($"欢迎 {user.Value!.DisplayName()} 加入组队房间！",
                 false);
         }
 

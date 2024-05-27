@@ -20,9 +20,9 @@ public class TeamPlayButtonActionEntry(TeamPlayManageService service, ILogger<Te
         if (!value.StartsWith("tp_bind_")) return CommandResult.Continue;
 
         var args = Regexs.MatchSingleDash().Split(value[8..], 2);
-        if (!ulong.TryParse(args[0], out var userId) || userId != user.Value.Id)
+        if (!ulong.TryParse(args[0], out var userId) || userId != user.Value!.Id)
         {
-            log.LogInformation("已阻止用户 {Username} 操作不属于他的卡片按钮", user.Value.Username);
+            log.LogInformation("已阻止用户 {Username} 操作不属于他的卡片按钮", user.Value!.Username);
             return CommandResult.Done;
         }
 

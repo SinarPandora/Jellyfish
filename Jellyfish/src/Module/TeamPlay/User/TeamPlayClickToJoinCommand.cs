@@ -22,7 +22,7 @@ public class TeamPlayClickToJoinCommand(TeamPlayRoomService service) : UserConne
             select config).FirstOrDefault();
 
         if (tpConfig == null) return CommandResult.Continue;
-        await service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value, null,
+        await service.CreateAndMoveToRoomAsync(CreateRoomCommandParser.Parse(string.Empty)(tpConfig), user.Value!, null,
             async (_, voiceChannel, textChannel) =>
             {
                 var notifyChannelId = tpConfig.CreationNotifyChannelId ?? tpConfig.TextChannelId;

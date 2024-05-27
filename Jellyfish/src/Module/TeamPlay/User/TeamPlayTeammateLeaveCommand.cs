@@ -34,9 +34,9 @@ public class TeamPlayTeammateLeaveCommand(
 
         if (restTextChannel == null) return CommandResult.Continue;
 
-        await restTextChannel.RemoveUserPermissionOverrideAsync(user.Value);
+        await restTextChannel.RemoveUserPermissionOverrideAsync(user.Value!);
         log.LogInformation("已移除属于 {UserName} 私有组队房间 {RoomName}#{RoomId} 的文字频道访问权限",
-            user.Value.DisplayName(), room.RoomName, room.Id);
+            user.Value!.DisplayName(), room.RoomName, room.Id);
 
         dbCtx.SaveChanges();
 
