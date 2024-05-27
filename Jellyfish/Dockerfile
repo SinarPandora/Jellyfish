@@ -1,8 +1,6 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-RUN echo 'deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm main contrib non-free non-free-firmware' > /etc/apt/sources.list && \
-    echo 'deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm-updates main contrib non-free non-free-firmware' >> /etc/apt/sources.list && \
-    echo 'deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm-backports main contrib non-free non-free-firmware' >> /etc/apt/sources.list && \
-    echo 'deb https://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware' >> /etc/apt/sources.list && \
+RUN echo 'deb https://mirrors.ustc.edu.cn/debian bookworm main contrib non-free non-free-firmware' > /etc/apt/sources.list && \
+    echo 'deb https://mirrors.ustc.edu.cn/debian bookworm-updates main contrib non-free non-free-firmware' >> /etc/apt/sources.list && \
     apt-get update && apt-get install -y chromium fonts-noto-cjk
 RUN useradd -ms /bin/bash jellyfish
 USER jellyfish
