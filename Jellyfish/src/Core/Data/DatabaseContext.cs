@@ -133,7 +133,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
             entity
                 .Property(e => e.Setting)
                 .HasColumnType("jsonb")
-                // Use Newtonsoft json to custom json serialize because it support Hashset
+                // Use Newtonsoft json to custom json serialize because it supports Hashset
                 .HasConversion(r => JsonConvert.SerializeObject(r),
                     json => JsonConvert.DeserializeObject<GuildSettingDetails>(json)!);
 
@@ -144,6 +144,13 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
             entity
                 .Property(e => e.UpdateTime)
                 .HasDefaultValueSql("current_timestamp");
+        });
+
+        modelBuilder.Entity<CountDownChannel>(entity =>
+        {
+            entity
+                .HasIndex(c => new { c.GuildId, c.ChannelId })
+                .IsUnique();
         });
     }
 
