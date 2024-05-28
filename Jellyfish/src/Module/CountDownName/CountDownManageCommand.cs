@@ -42,7 +42,7 @@ public class CountDownManageCommand : GuildMessageCommand
 
     public override string Name() => "频道名称倒计时配置指令";
 
-    public override IEnumerable<string> Keywords() => ["！频道倒计时", "!频道倒计时"];
+    public override IEnumerable<string> Keywords() => ["！频道倒计时", "!频道倒计时", "！倒计时频道", "!倒计时频道"];
 
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
