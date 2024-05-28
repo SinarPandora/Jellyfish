@@ -11,7 +11,7 @@ public abstract class GuildMessageCommand(bool isManagerCommand) : Command
     /// <summary>
     ///     Mark as manager command will be limited by default manager account and role
     /// </summary>
-    public bool IsManagerCommand { get; set; } = isManagerCommand;
+    public bool IsManagerCommand { get; } = isManagerCommand;
 
     private static readonly Card EmptyHelp = new CardBuilder()
         .AddModule<SectionModuleBuilder>(m => m.WithText("该指令没有帮助信息"))
@@ -31,7 +31,7 @@ public abstract class GuildMessageCommand(bool isManagerCommand) : Command
     /// <param name="msg">User message object</param>
     /// <param name="user">Sender</param>
     /// <param name="channel">Current Channel</param>
-    /// <returns>Command result, Done will finished the execution chains</returns>
+    /// <returns>Command result, Done will finish the execution chains</returns>
     public async Task<CommandResult> MatchAndExecute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
     {
         var keyword = Keywords().FirstOrDefault(k => msg.Content.StartsWith(k));
