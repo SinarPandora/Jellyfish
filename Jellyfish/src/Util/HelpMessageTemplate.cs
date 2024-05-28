@@ -6,7 +6,7 @@ namespace Jellyfish.Util;
 /// <summary>
 ///     Common template for Help Message
 /// </summary>
-public abstract class HelpMessageTemplate
+public static class HelpMessageTemplate
 {
     /// <summary>
     ///     Create a help message for message command (already included help as option in the message)

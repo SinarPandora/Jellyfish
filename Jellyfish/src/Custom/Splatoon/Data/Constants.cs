@@ -3,7 +3,7 @@ namespace Jellyfish.Custom.Splatoon.Data;
 /// <summary>
 ///     Splatoon Constants
 /// </summary>
-public abstract class Constants
+public static class Constants
 {
     /// <summary>
     ///     Sendou.ink API endpoint

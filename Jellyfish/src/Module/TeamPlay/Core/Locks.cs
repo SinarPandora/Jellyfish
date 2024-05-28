@@ -5,7 +5,7 @@ namespace Jellyfish.Module.TeamPlay.Core;
 /// <summary>
 ///     Team play global locks
 /// </summary>
-public abstract class Locks
+public static class Locks
 {
     /// <summary>
     ///     Room creation lock
