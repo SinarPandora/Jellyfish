@@ -25,7 +25,7 @@
 - [ ] 自定义投票
 - [ ] 信息收集表
 - [ ] 分页卡片
-- [ ] 倒计时频道名
+- [x] 倒计时频道名
 - [ ] 根据最后消息时间自动排序频道
 
 ### 斯普拉遁扩展功能
@@ -129,6 +129,7 @@
 * [Polly](https://www.thepollyproject.org/)
 * [Autofac](https://autofac.org/)
 * [PuppeteerSharp](https://www.puppeteersharp.com/index.html)
+* [SkiaSharp](https://github.com/mono/SkiaSharp)
 
 #### Kook 开发者文档
 
