@@ -20,7 +20,7 @@ public class SynergyBotAccountCommand : GuildMessageCommand
     {
         _dbProvider = dbProvider;
         _kook = kook;
-        HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
             配置协同机器人账号
             被添加的机器人账号将自动被添加到水母机器人创建的私有/临时频道中（除了频道组指令）
@@ -42,7 +42,7 @@ public class SynergyBotAccountCommand : GuildMessageCommand
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
-        if (args.StartsWith("帮助"))
+        if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {
             await channel.SendCardAsync(HelpMessage);
             return;

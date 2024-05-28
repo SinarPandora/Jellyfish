@@ -17,7 +17,7 @@ public class GuildCustomFeatureCommand : GuildMessageCommand
     public GuildCustomFeatureCommand(DbContextProvider dbProvider) : base(true)
     {
         _dbProvider = dbProvider;
-        HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
             为当前服务器开启/关闭附加功能。
             附加功能指的是针对「特殊游戏」或「场景」专门开发的功能，目前支持下列功能：
@@ -44,7 +44,7 @@ public class GuildCustomFeatureCommand : GuildMessageCommand
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
-        if (args.StartsWith("帮助"))
+        if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {
             await channel.SendCardSafeAsync(HelpMessage);
             return;

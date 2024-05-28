@@ -22,7 +22,7 @@ public class RoleSettingCommand : GuildMessageCommand
     public RoleSettingCommand(IServiceScopeFactory provider, DbContextProvider dbProvider) : base(true)
     {
         _dbProvider = dbProvider;
-        HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
             可以限制「只有某些角色才能使用某指令」
             当指令**没有与任何角色绑定时，所有人都可以使用它**
@@ -62,7 +62,7 @@ public class RoleSettingCommand : GuildMessageCommand
         SocketTextChannel channel)
     {
         var isSuccess = true;
-        if (args.StartsWith("帮助"))
+        if (args.StartsWith(HelpMessageHelper.HelpCommand))
             await channel.SendCardSafeAsync(HelpMessage);
         else if (args.StartsWith("列表"))
             await ListPermissions(channel);

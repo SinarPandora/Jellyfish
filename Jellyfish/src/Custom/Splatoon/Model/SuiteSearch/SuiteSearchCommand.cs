@@ -16,7 +16,7 @@ public class SuiteSearchCommand : GuildMessageCommand
     public SuiteSearchCommand(SuiteSearchService service) : base(false)
     {
         _service = service;
-        HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
             Splatoon3 配装查询指令
 
@@ -36,7 +36,7 @@ public class SuiteSearchCommand : GuildMessageCommand
     {
         if (AppCaches.GuildSettings[channel.Guild.Id].EnabledFeatures.Contains(GuildCustomFeature.SplatoonGame))
         {
-            if (args.StartsWith("帮助") || string.IsNullOrWhiteSpace(args))
+            if (args.StartsWith(HelpMessageHelper.HelpCommand) || string.IsNullOrWhiteSpace(args))
             {
                 await channel.SendCardSafeAsync(HelpMessage);
             }

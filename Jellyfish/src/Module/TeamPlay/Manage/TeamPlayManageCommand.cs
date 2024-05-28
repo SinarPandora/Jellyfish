@@ -15,7 +15,7 @@ public class TeamPlayManageCommand : GuildMessageCommand
     public TeamPlayManageCommand(TeamPlayManageService service) : base(true)
     {
         _service = service;
-        HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
             管理组队配置
 
@@ -45,7 +45,7 @@ public class TeamPlayManageCommand : GuildMessageCommand
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
-        if (args.StartsWith("帮助"))
+        if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {
             await channel.SendCardSafeAsync(HelpMessage);
             return;

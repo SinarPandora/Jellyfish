@@ -24,7 +24,7 @@ public class TcGroupControlCommand : GuildMessageCommand
     {
         _log = log;
         _dbProvider = dbProvider;
-        HelpMessage = HelpMessageTemplate.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
             文字频道组指令
 

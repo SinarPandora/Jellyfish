@@ -6,8 +6,10 @@ namespace Jellyfish.Util;
 /// <summary>
 ///     Common template for Help Message
 /// </summary>
-public static class HelpMessageTemplate
+public static class HelpMessageHelper
 {
+    public const string HelpCommand = "帮助";
+
     /// <summary>
     ///     Create a help message for message command (already included help as option in the message)
     /// </summary>

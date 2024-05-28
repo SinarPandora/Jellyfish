@@ -59,7 +59,7 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
-        if (args.StartsWith("帮助"))
+        if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {
             if (!await Help(channel))
             {
@@ -109,7 +109,7 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
             ? "无限制"
             : tpConfig.DefaultMemberLimit.ToString());
         await channel.SendCardSafeAsync(
-            HelpMessageTemplate.ForMessageCommand(this, "欢迎使用组队指令！", help)
+            HelpMessageHelper.ForMessageCommand(this, "欢迎使用组队指令！", help)
         );
         return true;
     }
