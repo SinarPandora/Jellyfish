@@ -14,7 +14,7 @@ public static class Constants
     ///     Weapons base data
     ///     Please use uppercase and remove white chars for matching alias
     /// </summary>
-    public static readonly HashSet<Weapon> Weapons =
+    public static readonly List<Weapon> Weapons =
     [
         new Weapon(50, "52-gal", ".52加仑", [".52加仑", "52"]),
         new Weapon(51, "52-gal-deco", ".52加仑装饰", [".52加仑装饰", "贴牌52"]),
@@ -75,12 +75,12 @@ public static class Constants
         new Weapon(1120, "painbrush", "文森", ["文森", "重笔"]),
         new Weapon(1121, "painbrush-nouveau", "文森·新艺术", ["文森新艺术", "贴牌文森"]),
         new Weapon(2050, "bamboozler-14-mk-i", "14式竹筒枪甲", ["14式竹筒枪甲", "竹子", "竹筒", "竹狙"]),
+        new Weapon(2030, "e-liter-4k", "公升4K", ["公升4K", "4K", "蓝4K"]),
+        new Weapon(2031, "custom-e-liter-4k", "公升4K改装", ["公升4K改装", "贴牌4K", "红4K"]),
         new Weapon(2040, "e-liter-4k-scope", "4K准星枪", ["4K准星枪", "镜4K", "镜4", "蓝镜4K", "蓝镜4"]),
         new Weapon(2041, "custom-e-liter-4k-scope", "4K准星枪改装", ["4K准星枪改装", "贴牌镜4K", "贴牌镜4", "红镜4K", "红镜4"]),
         new Weapon(2060, "goo-tuber", "高压油管枪", ["高压油管枪", "水管"]),
         new Weapon(2061, "custom-goo-tuber", "高压油管枪改装", ["高压油管枪改装", "贴牌水管"]),
-        new Weapon(2030, "e-liter-4k", "公升4K", ["公升4K", "4K", "蓝4K"]),
-        new Weapon(2031, "custom-e-liter-4k", "公升4K改装", ["公升4K改装", "贴牌4K", "红4K"]),
         new Weapon(2010, "splat-charger", "斯普拉蓄力狙击枪", ["斯普拉蓄力狙击枪", "绿狙"]),
         new Weapon(2011, "zf-splat-charger", "斯普拉蓄力狙击枪联名", ["斯普拉蓄力狙击枪联名", "贴牌绿狙", "红狙"]),
         new Weapon(2020, "splatterscope", "斯普拉准星枪", ["斯普拉准星枪", "镜绿狙"]),
