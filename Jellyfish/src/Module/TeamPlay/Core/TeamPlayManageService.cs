@@ -198,7 +198,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
         var configName = args[0];
         var rawMention = args[1];
 
-        if (!rawMention.StartsWith("(chn)"))
+        if (!rawMention.StartsWith(KookConstants.ChannelMention))
         {
             await channel.SendErrorCardAsync("请在指令中引用现有文字频道，具体内容请参考：`!组队 帮助`", true);
             return false;
@@ -464,7 +464,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
 
         var rawMention = args[1];
 
-        if (!rawMention.StartsWith("(chn)"))
+        if (!rawMention.StartsWith(KookConstants.ChannelMention))
         {
             await channel.SendErrorCardAsync("请在指令中引用现有文字频道，具体内容请参考：`!组队 帮助`", true);
             return false;

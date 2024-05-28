@@ -178,7 +178,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         // Load origin text channel from the message
         var rawMention = args[1];
 
-        if (!rawMention.StartsWith("(chn)"))
+        if (!rawMention.StartsWith(KookConstants.ChannelMention))
         {
             await channel.SendErrorCardAsync("请在指令中指定引导文字频道，具体内容请参考：`!频道组 帮助`", true);
             return false;
