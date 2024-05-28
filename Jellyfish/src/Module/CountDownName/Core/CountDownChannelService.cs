@@ -85,7 +85,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
         if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var targetChannelId))
         {
-            await channel.SendErrorCardAsync("现有频道引用应是一个蓝色文本，具体内容请参考：`!倒计时频道 帮助`", true);
+            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，具体内容请参考：`!倒计时频道 帮助`", true);
             return false;
         }
 
@@ -183,7 +183,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
                     item.ChannelId == targetChannelId && item.GuildId == channel.Guild.Id);
             }
 
-            await channel.SendErrorCardAsync("现有频道引用应是一个蓝色文本，具体内容请参考：`!倒计时频道 帮助`", true);
+            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，具体内容请参考：`!倒计时频道 帮助`", true);
             return null;
         }
 

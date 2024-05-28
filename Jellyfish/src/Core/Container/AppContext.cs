@@ -9,6 +9,7 @@ using Jellyfish.Core.Lifecycle;
 using Jellyfish.Core.Puppeteer;
 using Jellyfish.Custom.Splatoon.Model.SuiteSearch;
 using Jellyfish.Module;
+using Jellyfish.Module.CountDownName;
 using Jellyfish.Module.CountDownName.Core;
 using Jellyfish.Module.CountDownName.Job;
 using Jellyfish.Module.ExpireExtendSession.Job;
@@ -100,5 +101,6 @@ public static class AppContext
         // Countdown-Name Channel Command
         container.RegisterType<CountDownChannelService>().SingleInstance();
         container.RegisterType<CountDownScanJob>().SingleInstance();
+        container.RegisterType<CountDownManageCommand>().As<GuildMessageCommand>().SingleInstance();
     }
 }
