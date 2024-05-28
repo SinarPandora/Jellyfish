@@ -24,7 +24,7 @@ public class JobRegistry : Registry
         Schedule(cacheSyncJob).NonReentrant().ToRunEvery(5).Minutes();
         Schedule(expireExtendScanJob).NonReentrant().ToRunEvery(1).Minutes();
         Schedule(cleanNonExistTmpTextChannelJob).NonReentrant().ToRunEvery(3).Minutes();
-        Schedule(teamPlayConfigCleanUpJob).NonReentrant().ToRunEvery(1).Days();
-        Schedule(countDownScanJob).NonReentrant().ToRunEvery(1).Days();
+        Schedule(teamPlayConfigCleanUpJob).NonReentrant().ToRunEvery(1).Days().At(1, 0);
+        Schedule(countDownScanJob).NonReentrant().ToRunEvery(1).Days().At(0, 0);
     }
 }
