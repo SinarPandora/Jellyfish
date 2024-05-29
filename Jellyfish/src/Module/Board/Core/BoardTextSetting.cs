@@ -5,7 +5,7 @@ namespace Jellyfish.Module.Board.Core;
 /// <summary>
 ///     Setting-Object for drawing score text
 /// </summary>
-public record ScoreTextSetting(
+public record BoardTextSetting(
     SKColor Color,
     SKColor StrokeColor,
     int Width = 300,

@@ -1,4 +1,5 @@
 using FluentScheduler;
+using Jellyfish.Module.Board.Job;
 using Jellyfish.Module.CountDownName.Job;
 using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.TeamPlay.Job;
@@ -18,12 +19,14 @@ public class JobRegistry : Registry
         ExpireExtendScanJob expireExtendScanJob,
         CleanNonExistTmpTextChannelJob cleanNonExistTmpTextChannelJob,
         TeamPlayConfigCleanUpJob teamPlayConfigCleanUpJob,
-        CountDownScanJob countDownScanJob)
+        CountDownScanJob countDownScanJob,
+        BoardScanJob boardScanJob)
     {
         Schedule(teamPlayRoomScanJob).NonReentrant().ToRunEvery(1).Minutes();
         Schedule(cacheSyncJob).NonReentrant().ToRunEvery(5).Minutes();
         Schedule(expireExtendScanJob).NonReentrant().ToRunEvery(1).Minutes();
         Schedule(cleanNonExistTmpTextChannelJob).NonReentrant().ToRunEvery(3).Minutes();
+        Schedule(boardScanJob).NonReentrant().ToRunEvery(3).Minutes();
         Schedule(teamPlayConfigCleanUpJob).NonReentrant().ToRunEvery(1).Days().At(1, 0);
         Schedule(countDownScanJob).NonReentrant().ToRunEvery(1).Days().At(0, 0);
     }

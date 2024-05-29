@@ -9,10 +9,10 @@ namespace Jellyfish.Module.Board.Core;
 public static class BoardDrawingService
 {
     /// <summary>
-    ///     Base score text paint
+    ///     Base text paint
     /// </summary>
     /// <returns>SKPaint object</returns>
-    private static SKPaint BaseScoreText()
+    private static SKPaint BaseText()
     {
         var paint = new SKPaint();
         paint.IsAntialias = true;
@@ -22,13 +22,13 @@ public static class BoardDrawingService
     }
 
     /// <summary>
-    ///     Create stroke layer for score text
+    ///     Create stroke layer for text
     /// </summary>
     /// <param name="setting">Score text setting</param>
     /// <returns>SKPaint object</returns>
-    private static SKPaint TextStrokeLayer(ScoreTextSetting setting)
+    private static SKPaint StrokeLayer(BoardTextSetting setting)
     {
-        var paint = BaseScoreText();
+        var paint = BaseText();
         paint.Color = setting.StrokeColor;
         paint.TextSize = setting.TextSize;
         paint.StrokeWidth = setting.StrokeWidth;
@@ -37,13 +37,13 @@ public static class BoardDrawingService
     }
 
     /// <summary>
-    ///     Create text layer for score text
+    ///     Create text layer
     /// </summary>
     /// <param name="setting">Score text setting</param>
     /// <returns>SKPaint object</returns>
-    private static SKPaint ScoreTextLayer(ScoreTextSetting setting)
+    private static SKPaint TextLayer(BoardTextSetting setting)
     {
-        var paint = BaseScoreText();
+        var paint = BaseText();
         paint.Color = setting.Color;
         paint.TextSize = setting.TextSize;
         paint.Style = SKPaintStyle.Fill;
@@ -56,15 +56,15 @@ public static class BoardDrawingService
     /// <param name="score">Score content</param>
     /// <param name="setting">Setting Object</param>
     /// <returns>Generated image data</returns>
-    public static SKImage DrawScoreTextImage(string score, ScoreTextSetting setting)
+    public static SKImage DrawScoreTextImage(string score, BoardTextSetting setting)
     {
         using var bitmap = new SKBitmap(setting.Width, setting.Height);
         using var canvas = new SKCanvas(bitmap);
         canvas.Clear(SKColors.White);
         var x = bitmap.Width / 2.0f;
         var y = (bitmap.Height + setting.TextSize) / 2;
-        canvas.DrawText(score, x, y, TextStrokeLayer(setting));
-        canvas.DrawText(score, x, y, ScoreTextLayer(setting));
+        canvas.DrawText(score, x, y, StrokeLayer(setting));
+        canvas.DrawText(score, x, y, TextLayer(setting));
         return SKImage.FromBitmap(bitmap);
     }
 }
