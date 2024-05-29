@@ -3,6 +3,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Jellyfish.Core.Data;
 using Jellyfish.Core.Enum;
+using Jellyfish.Module.Board.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GuildSetting.Enum;
 using Kook;
@@ -49,6 +50,7 @@ public static class JellyFish
                     dataSourceBuilder.MapEnum<TimeUnit>();
                     dataSourceBuilder.MapEnum<ExtendTargetType>();
                     dataSourceBuilder.MapEnum<GuildCustomFeature>();
+                    dataSourceBuilder.MapEnum<BoardType>();
                     return new DbContextProvider(new DbContextOptionsBuilder<DatabaseContext>()
                         .UseNpgsql(dataSourceBuilder.Build())
                         .UseSnakeCaseNamingConvention()
