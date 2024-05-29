@@ -19,8 +19,8 @@ public class AppInitializer(IServiceScopeFactory scopeFactory) : IStartupFilter
                 scope.ServiceProvider.GetRequiredService<CacheLoader>().Load().Wait();
                 scope.ServiceProvider.GetRequiredService<KookLoader>().Login().Wait();
                 scope.ServiceProvider.GetRequiredService<JobLoader>().Load();
-                // Warm up Chromium browser
-                scope.ServiceProvider.GetRequiredService<BrowserPageFactory>().OpenPage("https://www.baidu.com").Result
+                // Warm-up Chromium browser
+                scope.ServiceProvider.GetRequiredService<BrowserPageFactory>().OpenPage("about:blank").Result
                     .Dispose();
             }
 
