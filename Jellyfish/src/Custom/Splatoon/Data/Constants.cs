@@ -135,8 +135,8 @@ public static class Constants
         new Weapon(7021, "reef-lux-450-deco", "LACT-450装饰", ["LACT450装饰", "贴牌短弓", "贴牌LACT450"]),
         new Weapon(8000, "splatana-stamper", "工作刮水刀", ["工作刮水刀", "电锯"]),
         new Weapon(8001, "splatana-stamper-nouveau", "工作刮水刀·新艺术", ["工作刮水刀新艺术", "贴牌电锯"]),
-        new Weapon(8010, "splatana-wiper", "雨刷刮水刀", ["雨刷刮水刀", "刮水刀"]),
-        new Weapon(8011, "splatana-wiper-deco", "雨刷刮水刀装饰", ["雨刷刮水刀装饰", "贴牌刮水刀"]),
+        new Weapon(8010, "splatana-wiper", "雨刷刮水刀", ["雨刷刮水刀", "雨刮刀", "雨刮"]),
+        new Weapon(8011, "splatana-wiper-deco", "雨刷刮水刀装饰", ["雨刷刮水刀装饰", "贴牌雨刮刀", "贴牌雨刮", "贴牌雨刷"]),
     ];
 
     /// <summary>
