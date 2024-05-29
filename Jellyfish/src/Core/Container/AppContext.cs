@@ -30,7 +30,7 @@ using Kook.WebSocket;
 namespace Jellyfish.Core.Container;
 
 /// <summary>
-///     The application context, binding all instance which application needs
+///     The application context, binding all instances which application needs
 /// </summary>
 public static class AppContext
 {

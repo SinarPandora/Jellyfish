@@ -38,7 +38,7 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
         }
 
         var infoMsg = await channel.SendCardSafeAsync(new CardBuilder()
-            .AddModule<SectionModuleBuilder>(m => m.WithText("💬 已找到武器，正在查询中……"))
+            .AddModule<SectionModuleBuilder>(m => m.WithText($"💬 正在查询「{weapon.Name}」配装……"))
             .WithColor(Color.Blue)
             .Build()
         );
@@ -46,14 +46,14 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
         var imgUrl = await SearchAndScreenshot(weapon.SendouSlug);
         await channel.SendCardSafeAsync(
             new CardBuilder()
-                .AddModule<HeaderModuleBuilder>(m => m.Text = $"{weapon.Name} 常用配装（点图可放大）")
+                .AddModule<HeaderModuleBuilder>(m => m.Text = $"{weapon.Name} 常用配装（点击图片可放大）")
                 .AddModule<SectionModuleBuilder>(m =>
                     m.WithText($"数据来源：[Sendou.ink]({Constants.SendouInkEndpoint}/builds/{weapon.SendouSlug})", true)
                 )
                 .AddModule<ImageGroupModuleBuilder>(m => m.AddElement(new ImageElementBuilder
                 {
                     Source = imgUrl,
-                    Alternative = "已搜到武器配装，快来看看吧！"
+                    Alternative = "已找到武器配装，快来看看吧！"
                 }))
                 .AddModule<SectionModuleBuilder>(m => m.WithText(MentionUtils.KMarkdownMentionUser(user.Id), true))
                 .Build()
