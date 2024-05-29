@@ -1,11 +1,11 @@
 using SkiaSharp;
 
-namespace Jellyfish.Core.Drawing.Core;
+namespace Jellyfish.Core.Resource;
 
 /// <summary>
-///     Resource for drawing
+///     System built-in resources
 /// </summary>
-public static class DrawingResources
+public static class SystemResources
 {
     /// <summary>
     ///     Base font (WenQuanYi Micro Hei)
