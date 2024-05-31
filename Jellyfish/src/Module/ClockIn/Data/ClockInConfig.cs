@@ -20,6 +20,9 @@ public class ClockInConfig(ulong guildId, string name, string title) : Trackable
     /// </summary>
     public ulong? ResultChannelId { get; set; }
 
+    public uint TodayClockInCount { get; set; }
+    public uint AllClockInCount { get; set; }
+
     // References
     public ICollection<ClockInChannel> Channels { get; set; } = null!;
     public ICollection<ClockInStage> Stages { get; set; } = null!;

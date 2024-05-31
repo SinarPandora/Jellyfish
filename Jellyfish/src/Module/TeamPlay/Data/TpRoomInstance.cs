@@ -17,9 +17,9 @@ public class TpRoomInstance(
 {
     public long Id { get; set; }
     public long TpConfigId { get; set; } = tpConfigId;
-    public ulong VoiceChannelId { get; set; } = voiceChannelId;
+    public ulong VoiceChannelId { get; init; } = voiceChannelId;
     public long? TmpTextChannelId { get; set; }
-    public ulong GuildId { get; set; } = guildId;
+    public ulong GuildId { get; init; } = guildId;
     public string RoomName { get; set; } = roomName;
     public ulong OwnerId { get; set; } = ownerId;
     public string CommandText { get; set; } = commandText;

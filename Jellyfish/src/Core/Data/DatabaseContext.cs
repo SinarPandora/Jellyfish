@@ -86,6 +86,10 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .WithOne(e => e.TpConfig)
                 .HasForeignKey(e => e.TpConfigId)
                 .IsRequired();
+
+            entity
+                .Property(e => e.Enabled)
+                .HasDefaultValue(true);
         });
 
         modelBuilder.Entity<TpRoomInstance>(entity =>
@@ -105,6 +109,10 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .WithOne(e => e.UserRole)
                 .HasForeignKey(e => e.UserRoleId)
                 .IsRequired();
+
+            entity
+                .Property(e => e.Enabled)
+                .HasDefaultValue(true);
         });
 
         modelBuilder.Entity<TcGroup>(entity =>
@@ -164,6 +172,10 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.ConfigId)
                 .IsRequired();
 
+            entity
+                .Property(e => e.Finished)
+                .HasDefaultValue(false);
+
             HasTrackableColumns(entity);
         });
 
@@ -207,6 +219,26 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.ConfigId)
                 .IsRequired();
 
+            entity
+                .HasIndex(e => e.GuildId)
+                .IsUnique();
+
+            entity
+                .Property(e => e.ButtonText)
+                .HasDefaultValue("打卡！");
+
+            entity
+                .Property(e => e.Enabled)
+                .HasDefaultValue(true);
+
+            entity
+                .Property(e => e.TodayClockInCount)
+                .HasDefaultValue(0);
+
+            entity
+                .Property(e => e.AllClockInCount)
+                .HasDefaultValue(0);
+
             HasTrackableColumns(entity);
         });
 
@@ -217,6 +249,14 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .WithOne(e => e.Stage)
                 .HasForeignKey(e => e.StageId)
                 .IsRequired();
+
+            entity
+                .Property(e => e.AllowBreakDays)
+                .HasDefaultValue(0);
+
+            entity
+                .Property(e => e.Enabled)
+                .HasDefaultValue(true);
         });
 
         modelBuilder.Entity<ClockInQualifiedUser>(HasTrackableColumns);

@@ -8,6 +8,6 @@ namespace Jellyfish.Module.GuildSetting.Data;
 public class GuildSetting(ulong guildId) : TrackableEntity
 {
     public long Id { get; set; }
-    public ulong GuildId { get; set; } = guildId;
+    public ulong GuildId { get; init; } = guildId;
     public GuildSettingDetails Setting { get; set; } = new();
 }
