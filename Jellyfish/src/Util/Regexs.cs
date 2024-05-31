@@ -5,7 +5,7 @@ namespace Jellyfish.Util;
 /// <summary>
 ///     Common Regexes (use for code generating)
 /// </summary>
-public abstract partial class Regexs
+public static partial class Regexs
 {
     [GeneratedRegex(@"\s*[，,]\s*")]
     public static partial Regex MatchSpaceComma();

@@ -9,6 +9,9 @@ using Jellyfish.Core.Lifecycle;
 using Jellyfish.Core.Puppeteer;
 using Jellyfish.Custom.Splatoon.Model.SuiteSearch;
 using Jellyfish.Module;
+using Jellyfish.Module.Board;
+using Jellyfish.Module.Board.Core;
+using Jellyfish.Module.Board.Job;
 using Jellyfish.Module.CountDownName;
 using Jellyfish.Module.CountDownName.Core;
 using Jellyfish.Module.CountDownName.Job;
@@ -102,5 +105,11 @@ public static class AppContext
         container.RegisterType<CountDownChannelService>().SingleInstance();
         container.RegisterType<CountDownScanJob>().SingleInstance();
         container.RegisterType<CountDownManageCommand>().As<GuildMessageCommand>().SingleInstance();
+
+        // Board Command
+        container.RegisterType<BoardService>().SingleInstance();
+        container.RegisterType<BoardScanJob>().SingleInstance();
+        container.RegisterType<BoardManageCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<CreateSimpleScoreBoardCommand>().As<GuildMessageCommand>().SingleInstance();
     }
 }

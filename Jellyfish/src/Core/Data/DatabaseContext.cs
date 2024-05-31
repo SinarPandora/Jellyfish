@@ -1,4 +1,5 @@
 using Jellyfish.Core.Enum;
+using Jellyfish.Module.Board.Data;
 using Jellyfish.Module.CountDownName.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GroupControl.Data;
@@ -9,6 +10,7 @@ using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Module.TmpChannel.Data;
 using Kook;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Newtonsoft.Json;
 
 namespace Jellyfish.Core.Data;
@@ -32,6 +34,11 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
     public DbSet<GuildSetting> GuildSettings { get; set; } = null!;
     public DbSet<CountDownChannel> CountDownChannels { get; set; } = null!;
+    public DbSet<BoardConfig> BoardConfigs { get; set; } = null!;
+    public DbSet<BoardItem> BoardItems { get; set; } = null!;
+    public DbSet<BoardInstance> BoardInstances { get; set; } = null!;
+    public DbSet<BoardPermission> BoardPermissions { get; set; } = null!;
+    public DbSet<BoardItemHistory> BoardItemHistories { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,16 +48,11 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         modelBuilder.HasPostgresEnum<TimeUnit>();
         modelBuilder.HasPostgresEnum<ExtendTargetType>();
         modelBuilder.HasPostgresEnum<GuildCustomFeature>();
+        modelBuilder.HasPostgresEnum<BoardType>();
 
         modelBuilder.Entity<TpConfig>(entity =>
         {
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
-
-            entity
-                .Property(e => e.UpdateTime)
-                .HasDefaultValueSql("current_timestamp");
+            HasTrackableColumns(entity);
 
             entity
                 .Property(e => e.DefaultMemberLimit)
@@ -65,13 +67,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
         modelBuilder.Entity<TpRoomInstance>(entity =>
         {
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
-
-            entity
-                .Property(e => e.UpdateTime)
-                .HasDefaultValueSql("current_timestamp");
+            HasTrackableColumns(entity);
 
             entity
                 .HasOne(e => e.TmpTextChannel)
@@ -90,13 +86,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
         modelBuilder.Entity<TcGroup>(entity =>
         {
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
-
-            entity
-                .Property(e => e.UpdateTime)
-                .HasDefaultValueSql("current_timestamp");
+            HasTrackableColumns(entity);
 
             entity
                 .HasMany(e => e.GroupInstances)
@@ -105,27 +95,9 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .IsRequired();
         });
 
-        modelBuilder.Entity<TcGroupInstance>(entity =>
-        {
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
+        modelBuilder.Entity<TcGroupInstance>(HasTrackableColumns);
 
-            entity
-                .Property(e => e.UpdateTime)
-                .HasDefaultValueSql("current_timestamp");
-        });
-
-        modelBuilder.Entity<TmpTextChannel>(entity =>
-        {
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
-
-            entity
-                .Property(e => e.UpdateTime)
-                .HasDefaultValueSql("current_timestamp");
-        });
+        modelBuilder.Entity<TmpTextChannel>(HasTrackableColumns);
 
         modelBuilder.Entity<GuildSetting>(entity =>
         {
@@ -137,13 +109,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasConversion(r => JsonConvert.SerializeObject(r),
                     json => JsonConvert.DeserializeObject<GuildSettingDetails>(json)!);
 
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
-
-            entity
-                .Property(e => e.UpdateTime)
-                .HasDefaultValueSql("current_timestamp");
+            HasTrackableColumns(entity);
         });
 
         modelBuilder.Entity<CountDownChannel>(entity =>
@@ -151,6 +117,51 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
             entity
                 .HasIndex(c => new { c.GuildId, c.ChannelId })
                 .IsUnique();
+
+            HasTrackableColumns(entity);
+        });
+
+        modelBuilder.Entity<BoardConfig>(entity =>
+        {
+            entity
+                .HasMany(e => e.Items)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.ConfigId)
+                .IsRequired();
+
+            entity
+                .HasMany(e => e.Instances)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.ConfigId)
+                .IsRequired();
+
+            entity
+                .HasMany(e => e.Permissions)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.ConfigId)
+                .IsRequired();
+
+            HasTrackableColumns(entity);
+        });
+
+        modelBuilder.Entity<BoardInstance>(HasTrackableColumns);
+
+        modelBuilder.Entity<BoardItem>(entity =>
+        {
+            entity
+                .HasMany(e => e.Histories)
+                .WithOne(e => e.Item)
+                .HasForeignKey(e => e.ItemId)
+                .IsRequired();
+
+            HasTrackableColumns(entity);
+        });
+
+        modelBuilder.Entity<BoardItemHistory>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
         });
     }
 
@@ -181,5 +192,16 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         }
 
         return base.SaveChanges();
+    }
+
+    private static void HasTrackableColumns<T>(EntityTypeBuilder<T> entity) where T : TrackableEntity
+    {
+        entity
+            .Property(e => e.CreateTime)
+            .HasDefaultValueSql("current_timestamp");
+
+        entity
+            .Property(e => e.UpdateTime)
+            .HasDefaultValueSql("current_timestamp");
     }
 }

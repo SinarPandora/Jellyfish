@@ -96,7 +96,6 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
             // Hide the Chromium window
             Headless = true,
             Browser = SupportedBrowser.Chromium,
-            // Use the Chinese language as browser default language
             Args = config.ChromiumArgs
         });
         log.LogInformation("浏览器进程已启动，PID：{Pid}", browser.Process.Id);

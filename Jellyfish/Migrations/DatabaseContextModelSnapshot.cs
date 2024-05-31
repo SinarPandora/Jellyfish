@@ -2,6 +2,7 @@
 using System;
 using Jellyfish.Core.Data;
 using Jellyfish.Core.Enum;
+using Jellyfish.Module.Board.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -22,11 +23,234 @@ namespace Jellyfish.Migrations
                 .HasAnnotation("ProductVersion", "8.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "board_type", new[] { "score", "vote", "match" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "channel_type", new[] { "unspecified", "category", "text", "voice", "dm" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "extend_target_type", new[] { "tmp_text_channel" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "guild_custom_feature", new[] { "splatoon_game", "bot_splatoon3" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "time_unit", new[] { "second", "minute", "hour", "day", "week", "month" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardConfig", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<BoardType>("BoardType")
+                        .HasColumnType("board_type")
+                        .HasColumnName("board_type");
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("create_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("details");
+
+                    b.Property<DateTime>("Due")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("due");
+
+                    b.Property<bool>("Finished")
+                        .HasColumnType("boolean")
+                        .HasColumnName("finished");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<bool>("IsTemplate")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_template");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("update_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.HasKey("Id")
+                        .HasName("pk_board_configs");
+
+                    b.ToTable("board_configs", (string)null);
+                });
+
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardInstance", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("ChannelId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("channel_id");
+
+                    b.Property<long>("ConfigId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("config_id");
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("create_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("guild_id");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("message_id");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("update_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.HasKey("Id")
+                        .HasName("pk_board_instances");
+
+                    b.HasIndex("ConfigId")
+                        .HasDatabaseName("ix_board_instances_config_id");
+
+                    b.ToTable("board_instances", (string)null);
+                });
+
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ButtonId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("button_id");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
+                        .HasColumnName("color");
+
+                    b.Property<long>("ConfigId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("config_id");
+
+                    b.Property<long>("CountCache")
+                        .HasColumnType("bigint")
+                        .HasColumnName("count_cache");
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("create_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("update_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.HasKey("Id")
+                        .HasName("pk_board_items");
+
+                    b.HasIndex("ConfigId")
+                        .HasDatabaseName("ix_board_items_config_id");
+
+                    b.ToTable("board_items", (string)null);
+                });
+
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardItemHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("create_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.Property<long>("ItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("item_id");
+
+                    b.Property<decimal>("UserId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_board_item_histories");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_board_item_histories_item_id");
+
+                    b.ToTable("board_item_histories", (string)null);
+                });
+
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardPermission", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ConfigId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("config_id");
+
+                    b.Property<bool>("IsRole")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_role");
+
+                    b.Property<decimal>("KookId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("kook_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_board_permissions");
+
+                    b.HasIndex("ConfigId")
+                        .HasDatabaseName("ix_board_permissions_config_id");
+
+                    b.ToTable("board_permissions", (string)null);
+                });
 
             modelBuilder.Entity("Jellyfish.Module.CountDownName.Data.CountDownChannel", b =>
                 {
@@ -42,8 +266,10 @@ namespace Jellyfish.Migrations
                         .HasColumnName("channel_id");
 
                     b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp")
-                        .HasColumnName("create_time");
+                        .HasColumnName("create_time")
+                        .HasDefaultValueSql("current_timestamp");
 
                     b.Property<DateOnly>("DueDate")
                         .HasColumnType("date")
@@ -67,8 +293,10 @@ namespace Jellyfish.Migrations
                         .HasColumnName("positive");
 
                     b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp")
-                        .HasColumnName("update_time");
+                        .HasColumnName("update_time")
+                        .HasDefaultValueSql("current_timestamp");
 
                     b.HasKey("Id")
                         .HasName("pk_count_down_channels");
@@ -469,6 +697,54 @@ namespace Jellyfish.Migrations
                     b.ToTable("tmp_text_channels", (string)null);
                 });
 
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardInstance", b =>
+                {
+                    b.HasOne("Jellyfish.Module.Board.Data.BoardConfig", "Config")
+                        .WithMany("Instances")
+                        .HasForeignKey("ConfigId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_board_instances_board_configs_config_id");
+
+                    b.Navigation("Config");
+                });
+
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardItem", b =>
+                {
+                    b.HasOne("Jellyfish.Module.Board.Data.BoardConfig", "Config")
+                        .WithMany("Items")
+                        .HasForeignKey("ConfigId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_board_items_board_configs_config_id");
+
+                    b.Navigation("Config");
+                });
+
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardItemHistory", b =>
+                {
+                    b.HasOne("Jellyfish.Module.Board.Data.BoardItem", "Item")
+                        .WithMany("Histories")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_board_item_histories_board_items_item_id");
+
+                    b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardPermission", b =>
+                {
+                    b.HasOne("Jellyfish.Module.Board.Data.BoardConfig", "Config")
+                        .WithMany("Permissions")
+                        .HasForeignKey("ConfigId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_board_permissions_board_configs_config_id");
+
+                    b.Navigation("Config");
+                });
+
             modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.TcGroupInstance", b =>
                 {
                     b.HasOne("Jellyfish.Module.GroupControl.Data.TcGroup", "Group")
@@ -510,6 +786,20 @@ namespace Jellyfish.Migrations
                     b.Navigation("TmpTextChannel");
 
                     b.Navigation("TpConfig");
+                });
+
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardConfig", b =>
+                {
+                    b.Navigation("Instances");
+
+                    b.Navigation("Items");
+
+                    b.Navigation("Permissions");
+                });
+
+            modelBuilder.Entity("Jellyfish.Module.Board.Data.BoardItem", b =>
+                {
+                    b.Navigation("Histories");
                 });
 
             modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.TcGroup", b =>
