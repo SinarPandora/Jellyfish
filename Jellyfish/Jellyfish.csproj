@@ -45,6 +45,7 @@
 
     <ItemGroup>
         <Folder Include="Migrations\"/>
+        <Folder Include="src\Custom\Splatoon\Core\"/>
     </ItemGroup>
 
     <ItemGroup>

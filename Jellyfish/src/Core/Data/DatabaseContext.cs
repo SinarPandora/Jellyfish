@@ -1,5 +1,6 @@
 using Jellyfish.Core.Enum;
 using Jellyfish.Module.Board.Data;
+using Jellyfish.Module.ClockIn.Data;
 using Jellyfish.Module.CountDownName.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GroupControl.Data;
@@ -24,21 +25,43 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     private const string UpdateTimeProp = nameof(TrackableEntity.UpdateTime);
     private const string GuildSettingDetailsProp = nameof(GuildSetting.Setting);
 
+    // ----------------------------------- Team Play -----------------------------------
     public DbSet<TpConfig> TpConfigs { get; set; } = null!;
+
     public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
+
+    // ----------------------------------- Permission -----------------------------------
     public DbSet<UserRole> UserRoles { get; set; } = null!;
+
     public DbSet<UserCommandPermission> UserCommandPermissions { get; set; } = null!;
+
+    // ----------------------------- Temporary Text Channel -----------------------------
     public DbSet<TcGroup> TcGroups { get; set; } = null!;
     public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
     public DbSet<TmpTextChannel> TmpTextChannels { get; set; } = null!;
+
     public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
+
+    // --------------------------------- Guild Settings ---------------------------------
     public DbSet<GuildSetting> GuildSettings { get; set; } = null!;
+
+    // -------------------------------- Countdown Channel -------------------------------
     public DbSet<CountDownChannel> CountDownChannels { get; set; } = null!;
+
+    // ----------------------------------- Kook Board -----------------------------------
     public DbSet<BoardConfig> BoardConfigs { get; set; } = null!;
     public DbSet<BoardItem> BoardItems { get; set; } = null!;
     public DbSet<BoardInstance> BoardInstances { get; set; } = null!;
     public DbSet<BoardPermission> BoardPermissions { get; set; } = null!;
+
     public DbSet<BoardItemHistory> BoardItemHistories { get; set; } = null!;
+
+    // ------------------------------------ Clock In ------------------------------------
+    public DbSet<ClockInConfig> ClockInConfigs { get; set; } = null!;
+    public DbSet<ClockInChannel> ClockInChannels { get; set; } = null!;
+    public DbSet<ClockInStage> ClockInStages { get; set; } = null!;
+    public DbSet<ClockInHistory> ClockInHistories { get; set; } = null!;
+    public DbSet<ClockInQualifiedUser> ClockInQualifiedUsers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -163,6 +186,40 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .Property(e => e.CreateTime)
                 .HasDefaultValueSql("current_timestamp");
         });
+
+        modelBuilder.Entity<ClockInConfig>(entity =>
+        {
+            entity
+                .HasMany(e => e.Channels)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.ConfigId)
+                .IsRequired();
+
+            entity
+                .HasMany(e => e.Stages)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.ConfigId)
+                .IsRequired();
+
+            entity
+                .HasMany(e => e.Histories)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.ConfigId)
+                .IsRequired();
+
+            HasTrackableColumns(entity);
+        });
+
+        modelBuilder.Entity<ClockInStage>(entity =>
+        {
+            entity
+                .HasMany(e => e.QualifiedUsers)
+                .WithOne(e => e.Stage)
+                .HasForeignKey(e => e.StageId)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<ClockInQualifiedUser>(HasTrackableColumns);
     }
 
     public override int SaveChanges()
