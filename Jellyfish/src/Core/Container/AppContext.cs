@@ -106,10 +106,12 @@ public static class AppContext
         container.RegisterType<CountDownScanJob>().SingleInstance();
         container.RegisterType<CountDownManageCommand>().As<GuildMessageCommand>().SingleInstance();
 
+#if DEBUG
         // Board Command
         container.RegisterType<BoardService>().SingleInstance();
         container.RegisterType<BoardScanJob>().SingleInstance();
         container.RegisterType<BoardManageCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<CreateSimpleScoreBoardCommand>().As<GuildMessageCommand>().SingleInstance();
+#endif
     }
 }
