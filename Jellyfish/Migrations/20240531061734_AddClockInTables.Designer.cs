@@ -6,6 +6,7 @@ using Jellyfish.Module.Board.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -14,9 +15,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jellyfish.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20240531061734_AddClockInTables")]
+    partial class AddClockInTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -265,6 +268,10 @@ namespace Jellyfish.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("config_id");
 
+                    b.Property<bool>("IsSync")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_sync");
+
                     b.Property<decimal>("KookId")
                         .HasColumnType("numeric(20,0)")
                         .HasColumnName("kook_id");
@@ -272,6 +279,10 @@ namespace Jellyfish.Migrations
                     b.Property<Guid?>("MessageId")
                         .HasColumnType("uuid")
                         .HasColumnName("message_id");
+
+                    b.Property<bool>("ReadOnly")
+                        .HasColumnType("boolean")
+                        .HasColumnName("read_only");
 
                     b.HasKey("Id")
                         .HasName("pk_clock_in_channels");
@@ -313,6 +324,10 @@ namespace Jellyfish.Migrations
                     b.Property<decimal>("GuildId")
                         .HasColumnType("numeric(20,0)")
                         .HasColumnName("guild_id");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -424,10 +439,6 @@ namespace Jellyfish.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("AllowBreakDays")
-                        .HasColumnType("bigint")
-                        .HasColumnName("allow_break_days");
-
                     b.Property<long>("ConfigId")
                         .HasColumnType("bigint")
                         .HasColumnName("config_id");
@@ -443,6 +454,10 @@ namespace Jellyfish.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("end_date");
+
+                    b.Property<bool>("MustContinuous")
+                        .HasColumnType("boolean")
+                        .HasColumnName("must_continuous");
 
                     b.Property<string>("QualifiedMessagePattern")
                         .HasColumnType("text")

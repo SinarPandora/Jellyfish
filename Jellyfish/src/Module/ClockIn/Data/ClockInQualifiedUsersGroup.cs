@@ -8,9 +8,9 @@ namespace Jellyfish.Module.ClockIn.Data;
 public class ClockInQualifiedUser(long configId, long stageId, ulong userId) : TrackableEntity
 {
     public Guid Id { get; set; }
-    public long ConfigId { get; set; } = configId;
-    public long StageId { get; set; } = stageId;
-    public ulong UserId { get; set; } = userId;
+    public long ConfigId { get; init; } = configId;
+    public long StageId { get; init; } = stageId;
+    public ulong UserId { get; init; } = userId;
 
     // References
     public ClockInConfig Config { get; set; } = null!;

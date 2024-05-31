@@ -2,18 +2,18 @@ namespace Jellyfish.Module.ClockIn.Data;
 
 /// <summary>
 ///     Stage for clock-in.
-///     For example: Starting today, user can receive prizes by clocking in for 30 cumulatively days!
+///     For example, Starting today, users can receive prizes by clocking in for 30 cumulative days!
 ///                 (Regardless of how many days you have clocked in before)
-///     This actually a validation rule, so a scanning task is needed to handle it.
+///     This actually validation rule, so a scanning task is needed to handle it.
 /// </summary>
-public class ClockInStage(long configId, DateTime startDate, uint days, bool mustContinuous)
+public class ClockInStage(long configId, DateTime startDate, uint days, uint allowBreakDays)
 {
     public long Id { get; set; }
-    public long ConfigId { get; set; } = configId;
+    public long ConfigId { get; init; } = configId;
     public DateTime StartDate { get; set; } = startDate;
     public DateTime? EndDate { get; set; }
     public uint Days { get; set; } = days;
-    public bool MustContinuous { get; set; } = mustContinuous;
+    public uint AllowBreakDays { get; set; } = allowBreakDays;
     public string? QualifiedMessagePattern { get; set; }
     public ulong? QualifiedRoleId { get; set; }
     public bool Enabled { get; set; } = true;
