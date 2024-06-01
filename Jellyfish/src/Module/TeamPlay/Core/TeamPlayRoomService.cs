@@ -59,7 +59,7 @@ public class TeamPlayRoomService(
                     > 这可能是由于 Kook 的客户端缓存有延迟
 
                     1. 请尝试重启 Kook 客户端（网页版请尝试刷新页面）
-                    2. 如果你加入过其他的 Kook 服务器，可尝试进入其他服务器后再回来
+                    2. 如果您加入过其他的 Kook 服务器，可尝试进入其他服务器后再回来
                     """, true, TimeSpan.FromMinutes(2));
             });
             return true;
@@ -257,7 +257,7 @@ public class TeamPlayRoomService(
     {
         var invite = await room.CreateInviteAsync(InviteMaxAge.NeverExpires);
         var card = new CardBuilder();
-        card.AddModule<HeaderModuleBuilder>(m => m.Text = $"✅房间已创建：{room.Name}，等你加入！");
+        card.AddModule<HeaderModuleBuilder>(m => m.Text = $"✅房间已创建：{room.Name}，等您加入！");
         card.AddModule<InviteModuleBuilder>(m => m.Code = invite.Code);
         card.WithSize(CardSize.Large);
         return card.Build();
