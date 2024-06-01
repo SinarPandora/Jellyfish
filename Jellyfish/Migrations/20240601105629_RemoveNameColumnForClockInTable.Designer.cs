@@ -6,6 +6,7 @@ using Jellyfish.Module.Board.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -14,9 +15,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jellyfish.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20240601105629_RemoveNameColumnForClockInTable")]
+    partial class RemoveNameColumnForClockInTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -254,7 +257,7 @@ namespace Jellyfish.Migrations
                     b.ToTable("board_permissions", (string)null);
                 });
 
-            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInCardInstance", b =>
+            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInChannel", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -263,15 +266,15 @@ namespace Jellyfish.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<decimal>("ChannelId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("channel_id");
-
                     b.Property<long>("ConfigId")
                         .HasColumnType("bigint")
                         .HasColumnName("config_id");
 
-                    b.Property<Guid>("MessageId")
+                    b.Property<decimal>("KookId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("kook_id");
+
+                    b.Property<Guid?>("MessageId")
                         .HasColumnType("uuid")
                         .HasColumnName("message_id");
 
@@ -375,10 +378,8 @@ namespace Jellyfish.Migrations
                         .HasColumnName("config_id");
 
                     b.Property<DateTime>("CreateTime")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp")
-                        .HasColumnName("create_time")
-                        .HasDefaultValueSql("current_timestamp");
+                        .HasColumnName("create_time");
 
                     b.Property<decimal>("UserId")
                         .HasColumnType("numeric(20,0)")
@@ -390,14 +391,50 @@ namespace Jellyfish.Migrations
                     b.HasIndex("ConfigId")
                         .HasDatabaseName("ix_clock_in_histories_config_id");
 
-                    b.HasIndex("CreateTime")
-                        .IsDescending()
-                        .HasDatabaseName("ix_clock_in_histories_create_time");
-
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_clock_in_histories_user_id");
-
                     b.ToTable("clock_in_histories", (string)null);
+                });
+
+            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInQualifiedUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<long>("ConfigId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("config_id");
+
+                    b.Property<DateTime>("CreateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("create_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.Property<long>("StageId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("stage_id");
+
+                    b.Property<DateTime>("UpdateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp")
+                        .HasColumnName("update_time")
+                        .HasDefaultValueSql("current_timestamp");
+
+                    b.Property<decimal>("UserId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_clock_in_qualified_users");
+
+                    b.HasIndex("ConfigId")
+                        .HasDatabaseName("ix_clock_in_qualified_users_config_id");
+
+                    b.HasIndex("StageId")
+                        .HasDatabaseName("ix_clock_in_qualified_users_stage_id");
+
+                    b.ToTable("clock_in_qualified_users", (string)null);
                 });
 
             modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInStage", b =>
@@ -457,89 +494,6 @@ namespace Jellyfish.Migrations
                         .HasDatabaseName("ix_clock_in_stages_config_id");
 
                     b.ToTable("clock_in_stages", (string)null);
-                });
-
-            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInStageQualifiedHistory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreateTime")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp")
-                        .HasColumnName("create_time")
-                        .HasDefaultValueSql("current_timestamp");
-
-                    b.Property<long>("StageId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("stage_id");
-
-                    b.Property<long>("UserStatusId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_status_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_clock_in_qualified_users");
-
-                    b.HasIndex("StageId")
-                        .HasDatabaseName("ix_clock_in_qualified_users_stage_id");
-
-                    b.HasIndex("UserStatusId")
-                        .HasDatabaseName("ix_clock_in_qualified_users_user_status_id");
-
-                    b.ToTable("clock_in_qualified_users", (string)null);
-                });
-
-            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.UserClockInStatus", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("AllClockInCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasDefaultValue(0L)
-                        .HasColumnName("all_clock_in_count");
-
-                    b.Property<long>("ConfigId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("config_id");
-
-                    b.Property<DateTime>("CreateTime")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp")
-                        .HasColumnName("create_time")
-                        .HasDefaultValueSql("current_timestamp");
-
-                    b.Property<bool>("IsClockInToday")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_clock_in_today");
-
-                    b.Property<DateTime>("UpdateTime")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp")
-                        .HasColumnName("update_time")
-                        .HasDefaultValueSql("current_timestamp");
-
-                    b.Property<decimal>("UserId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_user_clock_in_status");
-
-                    b.HasIndex("ConfigId")
-                        .HasDatabaseName("ix_user_clock_in_status_config_id");
-
-                    b.ToTable("user_clock_in_status", (string)null);
                 });
 
             modelBuilder.Entity("Jellyfish.Module.CountDownName.Data.CountDownChannel", b =>
@@ -1039,10 +993,10 @@ namespace Jellyfish.Migrations
                     b.Navigation("Config");
                 });
 
-            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInCardInstance", b =>
+            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInChannel", b =>
                 {
                     b.HasOne("Jellyfish.Module.ClockIn.Data.ClockInConfig", "Config")
-                        .WithMany("CardInstances")
+                        .WithMany("Channels")
                         .HasForeignKey("ConfigId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -1063,6 +1017,27 @@ namespace Jellyfish.Migrations
                     b.Navigation("Config");
                 });
 
+            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInQualifiedUser", b =>
+                {
+                    b.HasOne("Jellyfish.Module.ClockIn.Data.ClockInConfig", "Config")
+                        .WithMany()
+                        .HasForeignKey("ConfigId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_clock_in_qualified_users_clock_in_configs_config_id");
+
+                    b.HasOne("Jellyfish.Module.ClockIn.Data.ClockInStage", "Stage")
+                        .WithMany("QualifiedUsers")
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_clock_in_qualified_users_clock_in_stages_stage_id");
+
+                    b.Navigation("Config");
+
+                    b.Navigation("Stage");
+                });
+
             modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInStage", b =>
                 {
                     b.HasOne("Jellyfish.Module.ClockIn.Data.ClockInConfig", "Config")
@@ -1071,39 +1046,6 @@ namespace Jellyfish.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_clock_in_stages_clock_in_configs_config_id");
-
-                    b.Navigation("Config");
-                });
-
-            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInStageQualifiedHistory", b =>
-                {
-                    b.HasOne("Jellyfish.Module.ClockIn.Data.ClockInStage", "Stage")
-                        .WithMany("QualifiedHistories")
-                        .HasForeignKey("StageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_clock_in_qualified_users_clock_in_stages_stage_id");
-
-                    b.HasOne("Jellyfish.Module.ClockIn.Data.UserClockInStatus", "UserStatus")
-                        .WithMany("QualifiedHistories")
-                        .HasForeignKey("UserStatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_clock_in_qualified_users_user_clock_in_status_user_status_id");
-
-                    b.Navigation("Stage");
-
-                    b.Navigation("UserStatus");
-                });
-
-            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.UserClockInStatus", b =>
-                {
-                    b.HasOne("Jellyfish.Module.ClockIn.Data.ClockInConfig", "Config")
-                        .WithMany("UserStatuses")
-                        .HasForeignKey("ConfigId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_clock_in_status_clock_in_configs_config_id");
 
                     b.Navigation("Config");
                 });
@@ -1167,23 +1109,16 @@ namespace Jellyfish.Migrations
 
             modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInConfig", b =>
                 {
-                    b.Navigation("CardInstances");
+                    b.Navigation("Channels");
 
                     b.Navigation("Histories");
 
                     b.Navigation("Stages");
-
-                    b.Navigation("UserStatuses");
                 });
 
             modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInStage", b =>
                 {
-                    b.Navigation("QualifiedHistories");
-                });
-
-            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.UserClockInStatus", b =>
-                {
-                    b.Navigation("QualifiedHistories");
+                    b.Navigation("QualifiedUsers");
                 });
 
             modelBuilder.Entity("Jellyfish.Module.GroupControl.Data.TcGroup", b =>

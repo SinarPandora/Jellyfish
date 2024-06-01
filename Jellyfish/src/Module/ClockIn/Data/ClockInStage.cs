@@ -21,5 +21,5 @@ public class ClockInStage(long configId, string name, DateTime startDate, uint d
 
     // References
     public ClockInConfig Config { get; set; } = null!;
-    public ICollection<ClockInQualifiedUser> QualifiedUsers { get; set; } = null!;
+    public ICollection<ClockInStageQualifiedHistory> QualifiedHistories { get; set; } = null!;
 }

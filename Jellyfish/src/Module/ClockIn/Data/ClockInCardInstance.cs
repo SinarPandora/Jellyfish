@@ -1,14 +1,14 @@
 namespace Jellyfish.Module.ClockIn.Data;
 
 /// <summary>
-///     Channel for displaying the clock-in message.
+///     Living clock-in card instance
 /// </summary>
-public class ClockInChannel(long configId, ulong kookId)
+public class ClockInCardInstance(long configId, ulong channelId, Guid messageId)
 {
     public long Id { get; set; }
     public long ConfigId { get; init; } = configId;
-    public ulong KookId { get; init; } = kookId;
-    public Guid? MessageId { get; set; }
+    public ulong ChannelId { get; init; } = channelId;
+    public Guid MessageId { get; set; } = messageId;
 
     // References
     public ClockInConfig Config { get; set; } = null!;

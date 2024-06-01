@@ -6,6 +6,7 @@ using Jellyfish.Module.Board.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -14,9 +15,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jellyfish.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20240601114738_UpdateClockInTableStructures")]
+    partial class UpdateClockInTableStructures
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -254,7 +257,7 @@ namespace Jellyfish.Migrations
                     b.ToTable("board_permissions", (string)null);
                 });
 
-            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInCardInstance", b =>
+            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInChannel", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -263,15 +266,15 @@ namespace Jellyfish.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<decimal>("ChannelId")
-                        .HasColumnType("numeric(20,0)")
-                        .HasColumnName("channel_id");
-
                     b.Property<long>("ConfigId")
                         .HasColumnType("bigint")
                         .HasColumnName("config_id");
 
-                    b.Property<Guid>("MessageId")
+                    b.Property<decimal>("KookId")
+                        .HasColumnType("numeric(20,0)")
+                        .HasColumnName("kook_id");
+
+                    b.Property<Guid?>("MessageId")
                         .HasColumnType("uuid")
                         .HasColumnName("message_id");
 
@@ -1039,10 +1042,10 @@ namespace Jellyfish.Migrations
                     b.Navigation("Config");
                 });
 
-            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInCardInstance", b =>
+            modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInChannel", b =>
                 {
                     b.HasOne("Jellyfish.Module.ClockIn.Data.ClockInConfig", "Config")
-                        .WithMany("CardInstances")
+                        .WithMany("Channels")
                         .HasForeignKey("ConfigId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
@@ -1167,7 +1170,7 @@ namespace Jellyfish.Migrations
 
             modelBuilder.Entity("Jellyfish.Module.ClockIn.Data.ClockInConfig", b =>
                 {
-                    b.Navigation("CardInstances");
+                    b.Navigation("Channels");
 
                     b.Navigation("Histories");
 

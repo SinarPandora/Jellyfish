@@ -58,10 +58,10 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
     // ------------------------------------ Clock In ------------------------------------
     public DbSet<ClockInConfig> ClockInConfigs { get; set; } = null!;
-    public DbSet<ClockInChannel> ClockInChannels { get; set; } = null!;
+    public DbSet<ClockInCardInstance> ClockInChannels { get; set; } = null!;
     public DbSet<ClockInStage> ClockInStages { get; set; } = null!;
     public DbSet<ClockInHistory> ClockInHistories { get; set; } = null!;
-    public DbSet<ClockInQualifiedUser> ClockInQualifiedUsers { get; set; } = null!;
+    public DbSet<ClockInStageQualifiedHistory> ClockInQualifiedUsers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -202,7 +202,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         modelBuilder.Entity<ClockInConfig>(entity =>
         {
             entity
-                .HasMany(e => e.Channels)
+                .HasMany(e => e.CardInstances)
                 .WithOne(e => e.Config)
                 .HasForeignKey(e => e.ConfigId)
                 .IsRequired();
@@ -220,12 +220,22 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .IsRequired();
 
             entity
+                .HasMany(e => e.UserStatuses)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.ConfigId)
+                .IsRequired();
+
+            entity
                 .HasIndex(e => e.GuildId)
                 .IsUnique();
 
             entity
                 .Property(e => e.ButtonText)
                 .HasDefaultValue("打卡！");
+
+            entity
+                .Property(e => e.Title)
+                .HasDefaultValue("每日打卡");
 
             entity
                 .Property(e => e.Enabled)
@@ -245,7 +255,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         modelBuilder.Entity<ClockInStage>(entity =>
         {
             entity
-                .HasMany(e => e.QualifiedUsers)
+                .HasMany(e => e.QualifiedHistories)
                 .WithOne(e => e.Stage)
                 .HasForeignKey(e => e.StageId)
                 .IsRequired();
@@ -259,7 +269,45 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasDefaultValue(true);
         });
 
-        modelBuilder.Entity<ClockInQualifiedUser>(HasTrackableColumns);
+        modelBuilder.Entity<UserClockInStatus>(entity =>
+        {
+            HasTrackableColumns(entity);
+
+            entity
+                .HasMany(e => e.QualifiedHistories)
+                .WithOne(e => e.UserStatus)
+                .HasForeignKey(e => e.UserStatusId)
+                .IsRequired();
+
+            entity
+                .Property(e => e.AllClockInCount)
+                .HasDefaultValue(0);
+
+            entity
+                .Property(e => e.IsClockInToday)
+                .HasDefaultValue(false);
+        });
+
+        modelBuilder.Entity<ClockInStageQualifiedHistory>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+        });
+
+        modelBuilder.Entity<ClockInHistory>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .HasIndex(e => e.CreateTime)
+                .IsDescending();
+
+            entity
+                .HasIndex(e => e.UserId);
+        });
     }
 
     public override int SaveChanges()
