@@ -82,8 +82,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
             return false;
         }
 
-        var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
-        if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var targetChannelId))
+        if (!MentionUtils.TryParseChannel(rawMention, out var targetChannelId, TagMode.KMarkdown))
         {
             await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，具体内容请参考：`!倒计时频道 帮助`", true);
             return false;
@@ -176,8 +175,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     {
         if (rawMention.StartsWith(KookConstants.ChannelMention))
         {
-            var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
-            if (ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var targetChannelId))
+            if (MentionUtils.TryParseChannel(rawMention, out var targetChannelId, TagMode.KMarkdown))
             {
                 return dbCtx.CountDownChannels.FirstOrDefault(item =>
                     item.ChannelId == targetChannelId && item.GuildId == channel.Guild.Id);

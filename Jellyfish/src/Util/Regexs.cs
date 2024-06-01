@@ -16,9 +16,6 @@ public static partial class Regexs
     [GeneratedRegex("_")]
     public static partial Regex MatchSingleDash();
 
-    [GeneratedRegex(@"\(chn\)(?<channelId>\d+)\(chn\)")]
-    public static partial Regex MatchTextChannelMention();
-
     [GeneratedRegex(@"\(met\)(?<userId>\d+)\(met\)")]
     public static partial Regex MatchUserMention();
 

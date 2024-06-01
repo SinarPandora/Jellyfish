@@ -184,8 +184,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             return false;
         }
 
-        var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
-        if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var textChannelId))
+        if (!MentionUtils.TryParseChannel(rawMention, out var textChannelId, TagMode.KMarkdown))
         {
             await channel.SendErrorCardAsync("引导文字频道应是一个频道引用（蓝色文本），具体内容请参考：`!频道组 帮助`", true);
             return false;
