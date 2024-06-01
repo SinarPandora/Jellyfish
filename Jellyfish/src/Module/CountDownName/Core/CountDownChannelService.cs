@@ -108,7 +108,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
 
         var exists = dbCtx.CountDownChannels.FirstOrDefault(item =>
             item.ChannelId == targetChannelId && item.GuildId == channel.Guild.Id);
-        if (exists != null)
+        if (exists is not null)
         {
             await channel.SendErrorCardAsync("该频道已设置过倒计时，请选择其他频道（或删除倒计时重新创建）", true);
             return false;
@@ -150,7 +150,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         var rawMention = args[0];
         await using var dbCtx = dbProvider.Provide();
         var cdChannel = await ExtractMentionOrId(rawMention, channel, dbCtx);
-        if (cdChannel == null) return false;
+        if (cdChannel is null) return false;
 
         cdChannel.DueText = args[1];
         dbCtx.SaveChanges();
@@ -204,7 +204,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     {
         await using var dbCtx = dbProvider.Provide();
         var cdChannel = await ExtractMentionOrId(rawArgs, channel, dbCtx);
-        if (cdChannel == null) return false;
+        if (cdChannel is null) return false;
 
         cdChannel.DueText = null;
         dbCtx.SaveChanges();
@@ -223,7 +223,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     {
         await using var dbCtx = dbProvider.Provide();
         var cdChannel = await ExtractMentionOrId(rawArgs, channel, dbCtx);
-        if (cdChannel == null) return false;
+        if (cdChannel is null) return false;
 
         dbCtx.CountDownChannels.Remove(cdChannel);
         dbCtx.SaveChanges();
@@ -243,7 +243,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         string name;
         if (delta == 0)
         {
-            if (cdChannel.DueText != null)
+            if (cdChannel.DueText is not null)
             {
                 name = cdChannel.DueText;
             }

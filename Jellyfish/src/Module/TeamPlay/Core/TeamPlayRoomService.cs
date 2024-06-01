@@ -70,7 +70,7 @@ public class TeamPlayRoomService(
         var guild = user.Guild;
         noticeChannel ??= await user.CreateDMChannelAsync();
 
-        var roomName = tpConfig.RoomNamePattern != null
+        var roomName = tpConfig.RoomNamePattern is not null
             ? tpConfig.RoomNamePattern.Replace(TeamPlayManageService.UserInjectKeyword,
                 args.RoomName ?? user.DisplayName)
             : args.RoomName ?? $"{user.DisplayName}的房间";
@@ -111,7 +111,7 @@ public class TeamPlayRoomService(
         }
 
         int? memberLimit;
-        if (args.RawMemberLimit != null)
+        if (args.RawMemberLimit is not null)
         {
             if (!int.TryParse(args.RawMemberLimit, out var limit) || limit < 0 || limit > 99)
             {
@@ -152,7 +152,7 @@ public class TeamPlayRoomService(
 
             log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), voiceChannel.Name);
 
-            if (user.VoiceChannel != null)
+            if (user.VoiceChannel is not null)
             {
                 // Ignore error for moving user to voice channel
                 _ = guild.MoveToRoomAsync(user.Id, voiceChannel);
@@ -204,7 +204,7 @@ public class TeamPlayRoomService(
         if (config.VoiceCategoryId.HasValue)
         {
             var category = guild.GetCategoryChannel(config.VoiceCategoryId.Value);
-            if (category != null)
+            if (category is not null)
             {
                 return category.Id;
             }
@@ -227,7 +227,7 @@ public class TeamPlayRoomService(
         if (config.TextCategoryId.HasValue)
         {
             var category = guild.GetCategoryChannel(config.TextCategoryId.Value);
-            if (category != null)
+            if (category is not null)
             {
                 return category.Id;
             }
@@ -299,7 +299,7 @@ public class TeamPlayRoomService(
                         Task.WhenAll(AppCaches.GuildSettings[roomInstance.GuildId].SynergyBotAccounts.Select(botId =>
                         {
                             var botUser = creator.Guild.GetUser(botId);
-                            if (botUser != null)
+                            if (botUser is not null)
                             {
                                 return newChannel.OverrideUserPermissionAsync(botUser, p =>
                                     p.Modify(

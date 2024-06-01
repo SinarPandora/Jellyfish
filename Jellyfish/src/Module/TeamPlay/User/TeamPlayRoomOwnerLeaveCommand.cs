@@ -23,7 +23,7 @@ public class TeamPlayRoomOwnerLeaveCommand(ILogger<TeamPlayRoomOwnerLeaveCommand
             where instance.GuildId == channel.Guild.Id && instance.VoiceChannelId == channel.Id
             select instance).FirstOrDefault();
 
-        if (room == null || room.OwnerId != user.Value!.Id) return CommandResult.Continue;
+        if (room is null || room.OwnerId != user.Value!.Id) return CommandResult.Continue;
 
         // Remove owner permission
         await channel.RemoveUserPermissionOverrideAsync(user.Value);

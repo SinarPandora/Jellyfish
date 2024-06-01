@@ -119,7 +119,7 @@ public static class KookCoreApiHelper
             .Build()
             .ExecuteAsync(async _ =>
             {
-                if (channel != null)
+                if (channel is not null)
                 {
                     await channel.DeleteAsync();
                 }
@@ -155,14 +155,14 @@ public static class KookCoreApiHelper
             .Build()
             .ExecuteAsync(async token =>
             {
-                if (currentChannel == null) return;
+                if (currentChannel is null) return;
                 if (currentChannel.Id != toChannel.Id)
                 {
                     await guild.MoveUsersAsync(guildUsers, toChannel);
                     // Delay 5s for desktop or mobile app to let user join
                     await Task.Delay(TimeSpan.FromSeconds(MoveUserChannelTimeout), token);
                     currentChannel = (await restUser.GetConnectedVoiceChannelsAsync()).FirstOrDefault();
-                    if (currentChannel == null || currentChannel.Id != toChannel.Id)
+                    if (currentChannel is null || currentChannel.Id != toChannel.Id)
                     {
                         throw new ApplicationException("当前用户可能未成功移动至语音频道，尝试重新移动用户");
                     }
@@ -197,7 +197,7 @@ public static class KookCoreApiHelper
             .Build()
             .ExecuteAsync(async _ =>
             {
-                if (restGuildChannel.GetPermissionOverwrite(role) == null)
+                if (restGuildChannel.GetPermissionOverwrite(role) is null)
                 {
                     await restGuildChannel.AddPermissionOverwriteAsync(role);
                 }
@@ -233,7 +233,7 @@ public static class KookCoreApiHelper
             .Build()
             .ExecuteAsync(async _ =>
             {
-                if (restGuildChannel.GetPermissionOverwrite(user) == null)
+                if (restGuildChannel.GetPermissionOverwrite(user) is null)
                 {
                     await restGuildChannel.AddPermissionOverwriteAsync(user);
                 }
@@ -267,7 +267,7 @@ public static class KookCoreApiHelper
             .Build()
             .ExecuteAsync(async _ =>
             {
-                if (restGuildChannel.GetPermissionOverwrite(user) != null)
+                if (restGuildChannel.GetPermissionOverwrite(user) is not null)
                 {
                     await restGuildChannel.RemovePermissionOverwriteAsync(user);
                 }
@@ -299,7 +299,7 @@ public static class KookCoreApiHelper
             .Build()
             .ExecuteAsync(async _ =>
             {
-                if (restGuildChannel.GetPermissionOverwrite(role) != null)
+                if (restGuildChannel.GetPermissionOverwrite(role) is not null)
                 {
                     await restGuildChannel.RemovePermissionOverwriteAsync(role);
                 }

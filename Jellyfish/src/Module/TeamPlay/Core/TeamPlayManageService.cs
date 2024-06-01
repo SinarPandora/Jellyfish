@@ -135,7 +135,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
     {
         log.LogInformation("已收到名为 {Name} 的语音频道绑定请求，执行进一步操作", name);
         var voiceChannel = user.Value?.VoiceChannel;
-        if (voiceChannel == null)
+        if (voiceChannel is null)
         {
             await channel.SendErrorCardAsync("未检测到您加入的语音频道", true);
         }
@@ -149,7 +149,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
                 .FirstOrDefault(e => e.Name == name);
 
             // Update or Insert
-            if (config != null)
+            if (config is not null)
             {
                 config.VoiceChannelId = voiceChannel.Id;
             }
@@ -216,7 +216,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
         log.LogInformation("已收到名为 {Name} 的文字频道绑定请求，执行进一步操作", configName);
         var config = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
             .FirstOrDefault(e => e.Name == configName);
-        if (config == null)
+        if (config is null)
         {
             config = new TpConfig(configName, channel.Guild.Id)
             {
@@ -257,7 +257,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             where config.Name == name
             select config
         ).FirstOrDefault();
-        if (record == null)
+        if (record is null)
         {
             await channel.SendErrorCardAsync($"规则 {name} 未找到或已被删除", true);
             return false;
@@ -356,7 +356,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             select record
         ).FirstOrDefault();
 
-        if (config == null)
+        if (config is null)
         {
             await channel.SendErrorCardAsync("配置不存在，您可以发送：`!组队 列表` 查看现有配置", true);
             return false;
@@ -399,7 +399,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             select record
         ).FirstOrDefault();
 
-        if (config == null)
+        if (config is null)
         {
             await channel.SendErrorCardAsync("配置不存在，您可以发送：`!组队 列表` 查看现有配置", true);
             return false;
@@ -455,7 +455,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
                 where c.Name == configName
                 select c).FirstOrDefault();
 
-        if (tpConfig == null)
+        if (tpConfig is null)
         {
             await channel.SendErrorCardAsync("配置不存在，您可以发送：`!组队 列表` 查看现有配置", true);
             return false;

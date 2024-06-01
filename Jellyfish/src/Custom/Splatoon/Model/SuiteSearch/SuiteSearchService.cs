@@ -31,7 +31,7 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
             where alias.Contains(cleanKeyword)
             select item
         ).FirstOrDefault();
-        if (weapon == null)
+        if (weapon is null)
         {
             await channel.SendInfoCardAsync($"未找到指定武器：{keyword}，这可能不是该武器的常见名称", true);
             return;

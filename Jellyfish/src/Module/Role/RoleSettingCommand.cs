@@ -157,7 +157,7 @@ public class RoleSettingCommand : GuildMessageCommand
 
         var guildRoleName = args[1];
         var guildRoleId = channel.Guild.GetRoleIdByName(guildRoleName);
-        if (guildRoleId == null)
+        if (guildRoleId is null)
         {
             await channel.SendErrorCardAsync("角色不存在，您可以发送 `!权限 服务器角色` 列出全部角色名称（或查看当前服务器配置）", true);
             return null;
@@ -184,11 +184,11 @@ public class RoleSettingCommand : GuildMessageCommand
         await using var dbCtx = _dbProvider.Provide();
         var parameters = await ExtractPermissionBindingParameters(rawArgs, channel, dbCtx);
 
-        if (parameters == null) return false;
+        if (parameters is null) return false;
 
         var (commandName, guildRoleName, guildRoleId, record) = parameters.Value;
 
-        if (record != null)
+        if (record is not null)
         {
             await channel.SendInfoCardAsync("您已设置过该权限", true);
             return true;
@@ -230,11 +230,11 @@ public class RoleSettingCommand : GuildMessageCommand
         await using var dbCtx = _dbProvider.Provide();
         var parameters = await ExtractPermissionBindingParameters(rawArgs, channel, dbCtx);
 
-        if (parameters == null) return false;
+        if (parameters is null) return false;
 
         var (commandName, guildRoleName, guildRoleId, record) = parameters.Value;
 
-        if (record == null)
+        if (record is null)
         {
             await channel.SendInfoCardAsync("权限已被解绑", false);
         }
@@ -269,7 +269,7 @@ public class RoleSettingCommand : GuildMessageCommand
             where role.KookId == guildRoleId
             select role).FirstOrDefault();
 
-        if (record == null)
+        if (record is null)
         {
             record = new UserRole(guildRoleId, guildId);
             dbCtx.UserRoles.Add(record);

@@ -325,12 +325,12 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
             if (entry.State != EntityState.Added && entry.State != EntityState.Modified) continue;
             var actionTimestamp = DateTime.Now;
-            if (entry.Metadata.FindProperty(UpdateTimeProp) != null)
+            if (entry.Metadata.FindProperty(UpdateTimeProp) is not null)
             {
                 Entry(entry.Entity).Property(UpdateTimeProp).CurrentValue = actionTimestamp;
             }
 
-            if (entry.State == EntityState.Added && entry.Metadata.FindProperty(CreateTimeProp) != null)
+            if (entry.State == EntityState.Added && entry.Metadata.FindProperty(CreateTimeProp) is not null)
             {
                 Entry(entry.Entity).Property(CreateTimeProp).CurrentValue = actionTimestamp;
             }

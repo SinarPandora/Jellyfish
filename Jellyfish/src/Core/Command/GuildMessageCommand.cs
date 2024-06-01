@@ -35,7 +35,7 @@ public abstract class GuildMessageCommand(bool isManagerCommand) : Command
     public async Task<CommandResult> MatchAndExecute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
     {
         var keyword = Keywords().FirstOrDefault(k => msg.Content.StartsWith(k));
-        if (keyword == null) return CommandResult.Continue;
+        if (keyword is null) return CommandResult.Continue;
         await Execute(msg.Content[keyword.Length..].Trim(), keyword, msg, user, channel);
         return CommandResult.Done;
     }

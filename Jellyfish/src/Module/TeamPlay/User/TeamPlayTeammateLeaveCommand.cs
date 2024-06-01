@@ -27,12 +27,12 @@ public class TeamPlayTeammateLeaveCommand(
         var room = dbCtx.TpRoomInstances.Include(e => e.TmpTextChannel)
             .FirstOrDefault(room => room.VoiceChannelId == channel.Id && room.GuildId == channel.Guild.Id);
 
-        if (room?.TmpTextChannel == null || !channel.HasPassword) return CommandResult.Continue;
+        if (room?.TmpTextChannel is null || !channel.HasPassword) return CommandResult.Continue;
 
         var restGuild = await kook.Rest.GetGuildAsync(channel.Guild.Id);
         var restTextChannel = await restGuild.GetTextChannelAsync(room.TmpTextChannel.ChannelId);
 
-        if (restTextChannel == null) return CommandResult.Continue;
+        if (restTextChannel is null) return CommandResult.Continue;
 
         await restTextChannel.RemoveUserPermissionOverrideAsync(user.Value!);
         log.LogInformation("已移除属于 {UserName} 私有组队房间 {RoomName}#{RoomId} 的文字频道访问权限",

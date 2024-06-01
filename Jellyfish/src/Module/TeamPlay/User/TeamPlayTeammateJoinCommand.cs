@@ -26,15 +26,15 @@ public class TeamPlayTeammateJoinCommand(
         var room = dbCtx.TpRoomInstances.Include(e => e.TmpTextChannel)
             .FirstOrDefault(room => room.VoiceChannelId == channel.Id && room.GuildId == channel.Guild.Id);
 
-        if (room?.TmpTextChannel == null) return CommandResult.Continue;
+        if (room?.TmpTextChannel is null) return CommandResult.Continue;
 
         room.UpdateTime = DateTime.Now; // Any user enter will refresh the expiration time
         var tmpInstance = room.TmpTextChannel;
         var restGuild = await kook.Rest.GetGuildAsync(channel.Guild.Id);
         var restTextChannel = await restGuild.GetTextChannelAsync(tmpInstance.ChannelId);
-        if (restTextChannel == null) return CommandResult.Done;
+        if (restTextChannel is null) return CommandResult.Done;
 
-        if (restTextChannel.GetPermissionOverwrite(user.Value!) != null) return CommandResult.Done;
+        if (restTextChannel.GetPermissionOverwrite(user.Value!) is not null) return CommandResult.Done;
 
         if (channel.HasPassword)
         {

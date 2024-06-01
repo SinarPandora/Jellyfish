@@ -22,7 +22,7 @@ public class CountDownScanJob(DbContextProvider dbProvider, KookSocketClient koo
             await foreach (var cdChannel in dbCtx.CountDownChannels)
             {
                 var targetChannel = kook.GetGuild(cdChannel.GuildId)?.GetChannel(cdChannel.ChannelId);
-                if (targetChannel == null)
+                if (targetChannel is null)
                 {
                     dbCtx.CountDownChannels.Remove(cdChannel);
                     continue;
