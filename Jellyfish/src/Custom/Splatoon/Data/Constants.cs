@@ -59,8 +59,8 @@ public static class Constants
         new Weapon(221, "custom-range-blaster", "远距爆破枪 改装", ["远距爆破枪改装", "贴牌长热炮", "贴牌长热泡"]),
         new Weapon(260, "s-blast-92", "S-BLAST92", ["SBLAST92", "SB炮", "SB泡", "92", "92炮", "92泡"]),
         new Weapon(261, "s-blast-91", "S-BLAST91", ["SBLAST91", "贴牌SB炮", "贴牌SB泡", "91", "91炮", "91泡"]),
-        new Weapon(1020, "dynamo-roller", "电动马达滚筒", ["电动马达滚筒", "重刷", "银重刷"]),
-        new Weapon(1021, "gold-dynamo-roller", "电动马达滚筒高磁波", ["电动马达滚筒高磁波", "金重刷", "贴牌重刷"]),
+        new Weapon(1020, "dynamo-roller", "电动马达滚筒", ["电动马达滚筒", "重刷", "银重刷", "大剑"]),
+        new Weapon(1021, "gold-dynamo-roller", "电动马达滚筒高磁波", ["电动马达滚筒高磁波", "金重刷", "贴牌重刷", "贴牌大剑"]),
         new Weapon(1030, "flingza-roller", "可变式滚筒", ["可变式滚筒", "钢笔", "钢笔刷"]),
         new Weapon(1031, "foil-flingza-roller", "可变式滚筒金属箔", ["可变式滚筒金属箔", "贴牌钢笔", "贴牌钢笔刷"]),
         new Weapon(1040, "big-swig-roller", "宽滚筒", ["宽滚筒", "宽刷", "阿宽"]),
@@ -147,9 +147,9 @@ public static class Constants
         new Weapon(8001, "splatana-stamper-nouveau", "工作刮水刀·新艺术", ["工作刮水刀新艺术", "贴牌电锯"]),
         new Weapon(8010, "splatana-wiper", "雨刷刮水刀", ["雨刷刮水刀", "雨刮刀", "雨刮"]),
         new Weapon(8011, "splatana-wiper-deco", "雨刷刮水刀装饰", ["雨刷刮水刀装饰", "贴牌雨刮刀", "贴牌雨刮", "贴牌雨刷"]),
-        new Weapon(8020, "mint-decavitator", "巨齿刮水刀 薄荷", ["巨齿刮水刀薄荷", "薄荷刀", "牙膏刀", "重刀"]),
+        new Weapon(8020, "mint-decavitator", "巨齿刮水刀 薄荷", ["巨齿刮水刀薄荷", "薄荷刀", "牙膏刀", "重刀", "太刀"]),
         new Weapon(8021, "charcoal-decavitator", "巨齿刮水刀 墨黑",
-            ["巨齿刮水刀墨黑", "贴牌薄荷刀", "贴牌牙膏刀", "墨黑刀", "墨刀", "贴牌重刀", "炭黑刀", "炭刀"]),
+            ["巨齿刮水刀墨黑", "贴牌薄荷刀", "贴牌牙膏刀", "墨黑刀", "墨刀", "贴牌重刀", "炭黑刀", "炭刀", "贴牌太刀"]),
     ];
 
     /// <summary>
