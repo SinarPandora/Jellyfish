@@ -14,6 +14,7 @@ public class UserClockInStatus(long configId, ulong userId, string username) : T
     public string Username { get; set; } = username;
     public uint AllClockInCount { get; set; }
     public bool IsClockInToday { get; set; }
+    public DateOnly StartDate { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
     // References
     public ClockInConfig Config { get; set; } = null!;
