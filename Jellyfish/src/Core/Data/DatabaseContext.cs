@@ -58,10 +58,11 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
     // ------------------------------------ Clock In ------------------------------------
     public DbSet<ClockInConfig> ClockInConfigs { get; set; } = null!;
-    public DbSet<ClockInCardInstance> ClockInChannels { get; set; } = null!;
+    public DbSet<ClockInCardInstance> ClockInCardInstances { get; set; } = null!;
     public DbSet<ClockInStage> ClockInStages { get; set; } = null!;
     public DbSet<ClockInHistory> ClockInHistories { get; set; } = null!;
-    public DbSet<ClockInStageQualifiedHistory> ClockInQualifiedUsers { get; set; } = null!;
+    public DbSet<ClockInStageQualifiedHistory> ClockInStageQualifiedHistories { get; set; } = null!;
+    public DbSet<UserClockInStatus> UserClockInStatus { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -307,6 +308,13 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
             entity
                 .HasIndex(e => e.UserId);
+        });
+
+        modelBuilder.Entity<ClockInCardInstance>(entity =>
+        {
+            entity
+                .HasIndex(e => new { e.ConfigId, e.ChannelId })
+                .IsUnique();
         });
     }
 
