@@ -62,7 +62,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     public DbSet<ClockInStage> ClockInStages { get; set; } = null!;
     public DbSet<ClockInHistory> ClockInHistories { get; set; } = null!;
     public DbSet<ClockInStageQualifiedHistory> ClockInStageQualifiedHistories { get; set; } = null!;
-    public DbSet<UserClockInStatus> UserClockInStatus { get; set; } = null!;
+    public DbSet<UserClockInStatus> UserClockInStatuses { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
