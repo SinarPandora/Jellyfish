@@ -186,7 +186,7 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         if (!MentionUtils.TryParseChannel(rawMention, out var textChannelId, TagMode.KMarkdown))
         {
-            await channel.SendErrorCardAsync("引导文字频道应是一个频道引用（蓝色文本），具体内容请参考：`!频道组 帮助`", true);
+            await channel.SendErrorCardAsync("引导文字频道应是一个频道引用（蓝色文本），请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
             return false;
         }
 

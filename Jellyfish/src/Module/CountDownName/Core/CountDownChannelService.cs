@@ -42,7 +42,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
             select $"{cdChannel.Id}：{
                 MentionUtils.KMarkdownMentionChannel(cdChannel.ChannelId)
             }，目标日期：{
-                cdChannel.DueDate
+                cdChannel.DueDate:yyyy-MM-dd
             }{
                 (cdChannel.Positive ? "（正计时" : "（倒计时")
             }{
@@ -84,7 +84,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
 
         if (!MentionUtils.TryParseChannel(rawMention, out var targetChannelId, TagMode.KMarkdown))
         {
-            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，具体内容请参考：`!倒计时频道 帮助`", true);
+            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
             return false;
         }
 
@@ -181,7 +181,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
                     item.ChannelId == targetChannelId && item.GuildId == channel.Guild.Id);
             }
 
-            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，具体内容请参考：`!倒计时频道 帮助`", true);
+            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
             return null;
         }
 
