@@ -1,3 +1,4 @@
+using Jellyfish.Core.Cache;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.ClockIn.Data;
 using Jellyfish.Util;
@@ -96,6 +97,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         dbCtx.ClockInStages.Add(stage);
         dbCtx.SaveChanges();
 
+        AppCaches.ClockInConfigs[channel.Guild.Id].Stages.Add(stage);
         await channel.SendCardSafeAsync(
             new CardBuilder()
                 .AddModule<HeaderModuleBuilder>(b => b.WithText($"打卡阶段：{args.First()} 创建成功！"))
@@ -152,6 +154,8 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
 
         config.ResultChannelId = channelId;
         dbCtx.SaveChanges();
+        AppCaches.ClockInConfigs.AddOrUpdate(channel.Guild.Id, config);
+
         await channel.SendSuccessCardAsync(
             $"""
              打卡结果频道已设置为 {MentionUtils.KMarkdownMentionChannel(channelId)}，请确保 Bot 有权限在指定频道发言。
@@ -177,6 +181,8 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         if (!isSuccess) return false;
 
         dbCtx.SaveChanges();
+        AppCaches.ClockInConfigs[channel.Guild.Id].Stages.RemoveWhere(s => s.Id == stage.Id);
+        AppCaches.ClockInConfigs[channel.Guild.Id].Stages.Add(stage);
         await channel.SendSuccessCardAsync("更新成功！", false);
         return true;
     }
@@ -295,6 +301,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
 
         stage.Enabled = false;
         dbCtx.SaveChanges();
+        AppCaches.ClockInConfigs[channel.Guild.Id].Stages.RemoveWhere(s => s.Id == stage.Id);
 
         await channel.SendSuccessCardAsync($"已禁用打卡阶段：{stage.Name}#{stage.Id}，后续即使用户打卡记录达标，也不会被标记为满足该打卡阶段。", false);
         return true;
@@ -320,6 +327,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
 
         stage.Enabled = true;
         dbCtx.SaveChanges();
+        AppCaches.ClockInConfigs[channel.Guild.Id].Stages.Add(stage);
 
         await channel.SendSuccessCardAsync($"已重新启用该打卡阶段：{stage.Name}#{stage.Id}，明日零点过后满足条件的用户数据将被更新。", false);
         return true;

@@ -1,3 +1,4 @@
+using Jellyfish.Core.Cache;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.ClockIn.Data;
 using Jellyfish.Util;
@@ -39,6 +40,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
         }
 
         dbCtx.SaveChanges();
+        AppCaches.ClockInConfigs.AddOrUpdate(channel.Guild.Id, config);
         await channel.SendSuccessCardAsync(
             """
             打卡功能已开启！
@@ -75,6 +77,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
         config.Enabled = false;
 
         dbCtx.SaveChanges();
+        AppCaches.ClockInConfigs.Remove(channel.Guild.Id, out _);
         await channel.SendSuccessCardAsync("打卡功能已关闭", false);
         return true;
     }
@@ -151,6 +154,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
 
         update(config);
         dbCtx.SaveChanges();
+        AppCaches.ClockInConfigs.AddOrUpdate(channel.Guild.Id, config);
         await channel.SendSuccessCardAsync("更新成功，卡片消息将在一分钟内刷新", false);
         return true;
     }
