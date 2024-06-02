@@ -281,6 +281,13 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .IsRequired();
 
             entity
+                .HasIndex(e => e.UserId);
+
+            entity
+                .HasIndex(e => new { e.ConfigId, e.UserId })
+                .IsUnique();
+
+            entity
                 .Property(e => e.AllClockInCount)
                 .HasDefaultValue(0);
 
