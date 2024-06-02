@@ -63,7 +63,7 @@ public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvi
         userStatus.AllClockInCount += 1;
 
         // Record history
-        dbCtx.ClockInHistories.Add(new ClockInHistory(config.Id, userId, channelId));
+        dbCtx.ClockInHistories.Add(new ClockInHistory(config.Id, userStatus.Id, channelId));
         dbCtx.SaveChanges();
 
         var ongoingDays = (today - userStatus.StartDate.ToDateTime(TimeOnly.MinValue)).Days + 1;
