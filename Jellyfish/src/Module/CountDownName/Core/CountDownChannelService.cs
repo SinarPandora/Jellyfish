@@ -41,9 +41,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
             where cdChannel.GuildId == channel.Guild.Id
             select $"{cdChannel.Id}：{
                 MentionUtils.KMarkdownMentionChannel(cdChannel.ChannelId)
-            }，目标日期：{
-                cdChannel.DueDate:yyyy-MM-dd
-            }{
+            }，目标日期：{cdChannel.DueDate:yyyy-MM-dd}{
                 (cdChannel.Positive ? "（正计时" : "（倒计时")
             }{
                 Math.Abs((cdChannel.DueDate.ToDateTime(TimeOnly.MinValue) - today).Days)

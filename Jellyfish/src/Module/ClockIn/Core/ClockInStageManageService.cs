@@ -34,9 +34,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         var stages = dbCtx.ClockInStages
             .Where(s => s.ConfigId == config.Id && s.Enabled == enabled)
             .OrderBy(s => s.Id)
-            .Select(s => $"{s.Id}：{s.Name} {
-                s.StartDate:yyyy-MM-dd
-            } ~ {
+            .Select(s => $"{s.Id}：{s.Name} {s.StartDate:yyyy-MM-dd} ~ {
                 (s.EndDate.HasValue ? s.EndDate.Value.ToString("yyyy-MM-dd") : "至今")
             } 达标天数： {
                 s.Days
