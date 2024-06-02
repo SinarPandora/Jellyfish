@@ -131,9 +131,26 @@ public class ClockInManageService(DbContextProvider dbProvider)
                     .WithClick(ButtonClickEventType.ReturnValue)
                     .WithValue(ClockInCardAction.CardActionValue)
                     .WithTheme(ButtonTheme.Primary);
-            }))
-            .Build();
-        return (await channel.SendCardAsync(card)).Id;
+            }));
+
+        if (!config.Histories.IsNotNullOrEmpty())
+            return (await channel.SendCardAsync(card.Build())).Id;
+
+        var top3 = config.Histories.OrderBy(h => h.CreateTime)
+            .Select(h => channel.Guild.GetUser(h.UserId))
+            .Where(u => u is not null)
+            .Take(3)
+            .Select(u => $"{u!.Username}#{u.Id}")
+            .ToArray();
+        card.AddModule<DividerModuleBuilder>()
+            .AddModule<SectionModuleBuilder>(b =>
+                b.WithText($"""
+                            今日已有{config.Histories.Count}人打卡
+                            前{top3.Length}名用户：
+                            {top3.StringJoin("\n")}
+                            """));
+
+        return (await channel.SendCardAsync(card.Build())).Id;
     }
 
     /// <summary>
