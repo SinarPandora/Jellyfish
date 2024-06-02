@@ -27,19 +27,16 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
     // ----------------------------------- Team Play -----------------------------------
     public DbSet<TpConfig> TpConfigs { get; set; } = null!;
-
     public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
 
     // ----------------------------------- Permission -----------------------------------
     public DbSet<UserRole> UserRoles { get; set; } = null!;
-
     public DbSet<UserCommandPermission> UserCommandPermissions { get; set; } = null!;
 
     // ----------------------------- Temporary Text Channel -----------------------------
     public DbSet<TcGroup> TcGroups { get; set; } = null!;
     public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
     public DbSet<TmpTextChannel> TmpTextChannels { get; set; } = null!;
-
     public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
 
     // --------------------------------- Guild Settings ---------------------------------
@@ -53,7 +50,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     public DbSet<BoardItem> BoardItems { get; set; } = null!;
     public DbSet<BoardInstance> BoardInstances { get; set; } = null!;
     public DbSet<BoardPermission> BoardPermissions { get; set; } = null!;
-
     public DbSet<BoardItemHistory> BoardItemHistories { get; set; } = null!;
 
     // ------------------------------------ Clock In ------------------------------------
@@ -281,6 +277,12 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .IsRequired();
 
             entity
+                .HasMany(e => e.ClockInHistories)
+                .WithOne(e => e.UserStatus)
+                .HasForeignKey(e => e.UserStatusId)
+                .IsRequired();
+
+            entity
                 .HasIndex(e => e.UserId);
 
             entity
@@ -318,7 +320,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .IsDescending();
 
             entity
-                .HasIndex(e => e.UserId);
+                .HasIndex(e => e.UserStatusId);
         });
 
         modelBuilder.Entity<ClockInCardInstance>(entity =>

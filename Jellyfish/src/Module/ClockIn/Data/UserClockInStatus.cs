@@ -19,4 +19,5 @@ public class UserClockInStatus(long configId, ulong userId, string username) : T
     // References
     public ClockInConfig Config { get; set; } = null!;
     public ICollection<ClockInStageQualifiedHistory> QualifiedHistories { get; set; } = null!;
+    public ICollection<ClockInHistory> ClockInHistories { get; set; } = null!;
 }
