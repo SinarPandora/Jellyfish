@@ -1,4 +1,5 @@
 using Jellyfish.Core.Command;
+using Jellyfish.Module.ClockIn.Core;
 using Jellyfish.Util;
 using Kook.WebSocket;
 
@@ -9,8 +10,11 @@ namespace Jellyfish.Module.ClockIn;
 /// </summary>
 public class ClockInManageCommand : GuildMessageCommand
 {
-    public ClockInManageCommand() : base(true)
+    private readonly ClockInManageService _service;
+
+    public ClockInManageCommand(ClockInManageService service) : base(true)
     {
+        _service = service;
         HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
             打卡配置指令
@@ -23,7 +27,7 @@ public class ClockInManageCommand : GuildMessageCommand
             1. 置底打卡消息
             您可以使用 `！打卡 发送` 指令，向当前频道发送一个带有打卡按钮的卡片消息，该卡片将持续置于频道底部，确保用户进入频道后能第一时间看到。
             该卡片会持续更新显示今日打卡人数，累积打卡人数，以及每日打卡排行榜。
-            该卡片的「标题」和「详情信息」均可配置。
+            该卡片的「标题」和「详情信息」均可配置，消息被管理员删除后将不再发送。
 
             2. 打卡阶段
             打卡阶段指的是连续/非连续的持续打卡次数，使用 `！打卡阶段` 指令配置。
@@ -62,19 +66,19 @@ public class ClockInManageCommand : GuildMessageCommand
 
         var isSuccess = true;
         if (args.StartsWith("启用"))
-            isSuccess = true;
+            isSuccess = await _service.Enable(channel);
         else if (args.StartsWith("禁用"))
-            isSuccess = true;
+            isSuccess = await _service.Disable(channel);
         else if (args.StartsWith("发送"))
-            isSuccess = true;
+            isSuccess = await _service.SendCard(channel);
         else if (args.StartsWith("标题"))
-            isSuccess = true;
+            isSuccess = await _service.SetCardTitle(channel, args[2..].TrimStart());
         else if (args.StartsWith("详情"))
-            isSuccess = true;
+            isSuccess = await _service.SetCardDescription(channel, args[2..].TrimStart());
         else if (args.StartsWith("按钮名称"))
-            isSuccess = true;
+            isSuccess = await _service.SetCardButtonName(channel, args[4..].TrimStart());
         else if (args.StartsWith("排行"))
-            isSuccess = true;
+            isSuccess = await _service.ListTopUsers(channel, args[2..].TrimStart());
         else
             await channel.SendCardAsync(HelpMessage);
 
