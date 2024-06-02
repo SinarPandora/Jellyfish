@@ -19,14 +19,13 @@ public class ClockInMessageSyncJob(
     {
         try
         {
-            log.LogInformation("打开消息扫描任务开始");
+            log.LogInformation("打卡消息扫描任务开始");
             await using var dbCtx = dbProvider.Provide();
             var today = DateTime.Today;
 
             var needDelete = new List<ClockInCardInstance>();
             foreach (var group in dbCtx.ClockInCardInstances
                          .Include(i => i.Config)
-                         .Include(i => i.Config.Histories.Where(h => h.CreateTime >= today))
                          .GroupBy(i => i.Config.GuildId))
             {
                 var guild = kook.GetGuild(group.Key);
@@ -34,6 +33,23 @@ public class ClockInMessageSyncJob(
                 {
                     needDelete.AddRange(group);
                     continue;
+                }
+
+                ClockInCardAppendData? appendData = null;
+                ClockInHistory? lastHistory = null;
+                var todayClockInCount = dbCtx.ClockInHistories.Count(h => h.CreateTime >= today);
+                if (todayClockInCount > 0)
+                {
+                    var top3Usernames = dbCtx.ClockInHistories.Where(h => h.CreateTime >= today)
+                        .OrderBy(h => h.CreateTime)
+                        .Select(h => guild.GetUser(h.UserId))
+                        .Where(u => u != null)
+                        .Take(3)
+                        .Select(u => $"{u!.Username}#{u.Id}")
+                        .ToArray();
+                    appendData = new ClockInCardAppendData(todayClockInCount, top3Usernames);
+                    lastHistory = dbCtx.ClockInHistories.Where(h => h.CreateTime >= today)
+                        .OrderByDescending(h => h.CreateTime).First();
                 }
 
                 foreach (var instance in group)
@@ -45,18 +61,30 @@ public class ClockInMessageSyncJob(
                         continue;
                     }
 
-                    var lastMessage = await channel.GetMessagesAsync(limit: 1).FirstAsync();
-                    if (lastMessage.IsEmpty())
-                    {
-                        instance.MessageId =
-                            await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config);
-                    }
-                    else if (lastMessage.First().Id != instance.MessageId ||
-                             instance.Config.UpdateTime > instance.UpdateTime)
+                    // Check if the config updated
+                    if (instance.Config.UpdateTime > instance.UpdateTime
+                        // Check if new user clocked-in
+                        || lastHistory != null && lastHistory.CreateTime > instance.UpdateTime)
                     {
                         await channel.DeleteMessageAsync(instance.MessageId);
                         instance.MessageId =
-                            await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config);
+                            await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config, appendData);
+                        continue;
+                    }
+
+                    var lastMessage = await channel.GetMessagesAsync(limit: 1).FirstAsync();
+                    // Check if the message deleted
+                    if (lastMessage.IsEmpty())
+                    {
+                        instance.MessageId =
+                            await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config, appendData);
+                    }
+                    // Check if the message is not at the end
+                    else if (lastMessage.First().Id != instance.MessageId)
+                    {
+                        await channel.DeleteMessageAsync(instance.MessageId);
+                        instance.MessageId =
+                            await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config, appendData);
                     }
                 }
             }
@@ -64,7 +92,7 @@ public class ClockInMessageSyncJob(
             dbCtx.ClockInCardInstances.RemoveRange(needDelete);
             dbCtx.SaveChanges();
 
-            log.LogInformation("打开消息扫描任务结束");
+            log.LogInformation("打卡消息扫描任务结束");
         }
         catch (Exception e)
         {

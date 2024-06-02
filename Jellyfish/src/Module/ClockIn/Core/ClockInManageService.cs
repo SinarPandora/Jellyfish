@@ -118,8 +118,10 @@ public class ClockInManageService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="config">Clock-in config</param>
+    /// <param name="appendData">Extra append data for clock-in card</param>
     /// <returns>Card message id</returns>
-    public static async Task<Guid> SendCardToCurrentChannel(SocketTextChannel channel, ClockInConfig config)
+    public static async Task<Guid> SendCardToCurrentChannel(SocketTextChannel channel, ClockInConfig config,
+        ClockInCardAppendData? appendData = null)
     {
         var card = new CardBuilder()
             .AddModule<HeaderModuleBuilder>(e => e.WithText(config.Title))
@@ -133,22 +135,16 @@ public class ClockInManageService(DbContextProvider dbProvider)
                     .WithTheme(ButtonTheme.Primary);
             }));
 
-        if (!config.Histories.IsNotNullOrEmpty())
-            return (await channel.SendCardAsync(card.Build())).Id;
-
-        var top3 = config.Histories.OrderBy(h => h.CreateTime)
-            .Select(h => channel.Guild.GetUser(h.UserId))
-            .Where(u => u is not null)
-            .Take(3)
-            .Select(u => $"{u!.Username}#{u.Id}")
-            .ToArray();
-        card.AddModule<DividerModuleBuilder>()
-            .AddModule<SectionModuleBuilder>(b =>
-                b.WithText($"""
-                            今日已有{config.Histories.Count}人打卡
-                            前{top3.Length}名用户：
-                            {top3.StringJoin("\n")}
-                            """));
+        if (appendData is not null)
+        {
+            card.AddModule<DividerModuleBuilder>()
+                .AddModule<SectionModuleBuilder>(b =>
+                    b.WithText($"""
+                                今日已有{appendData.TodayClockInCount}人打卡
+                                前{appendData.Top3Usernames.Length}名用户：
+                                {appendData.Top3Usernames.StringJoin("\n")}
+                                """));
+        }
 
         return (await channel.SendCardAsync(card.Build())).Id;
     }
