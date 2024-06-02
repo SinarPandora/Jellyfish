@@ -294,6 +294,10 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
             entity
                 .Property(e => e.IsClockInToday)
                 .HasDefaultValue(false);
+
+            entity
+                .Property(e => e.StartDate)
+                .HasDefaultValueSql("current_date");
         });
 
         modelBuilder.Entity<ClockInStageQualifiedHistory>(entity =>
