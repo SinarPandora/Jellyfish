@@ -122,7 +122,7 @@ public static class Constants
         new Weapon(5050, "douser-dualies-ff", "灭熄FF",
             ["灭熄FF", "灭火双", "消防双", "灭熄", "灭息FF", "红灭火双", "红消防双", "红灭熄FF", "红灭息FF"]),
         new Weapon(5051, "custom-douser-dualies-ff", "灭熄FF 改装",
-            ["灭熄FF改装", "贴牌灭火双", "贴牌消防双", "贴牌灭熄", "贴牌灭息FF", "黄灭火双", "黄消防双", "黄灭熄FF", "黄灭息FF"]),
+            ["灭熄FF改装", "贴牌灭火双", "贴牌消防双", "贴牌灭熄FF", "贴牌灭息FF", "黄灭火双", "黄消防双", "黄灭熄FF", "黄灭息FF"]),
         new Weapon(5030, "dualie-squelchers", "双重清洁枪", ["双重清洁枪", "红双"]),
         new Weapon(5031, "custom-dualie-squelchers", "双重清洁枪 改装", ["双重清洁枪改装", "贴牌红双"]),
         new Weapon(5010, "splat-dualies", "斯普拉机动枪", ["斯普拉机动枪", "绿双"]),
