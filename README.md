@@ -68,11 +68,12 @@
 │         ├── appsettings.Development.json // 开发配置文件
 │         ├── appsettings.Production.json  // 生产配置文件
 │         └── appsettings.json             // 应用配置文件模板
-├── CHANGELOG.md  // 更新记录（手动更新）
-├── Jellyfish.sln // 解决方案文件
-├── LICENSE       // 证书文件
-├── README.md     // 项目说明文件
-└── justfile      // 常用指令合集
+├── CHANGELOG.md     // 更新记录（手动更新）
+├── appsettings.json // 程序配置文件模板
+├── Jellyfish.sln    // 解决方案文件
+├── LICENSE          // 证书文件
+├── README.md        // 项目说明文件
+└── justfile         // 常用指令合集
 ```
 
 ### 应用配置文件说明
@@ -87,11 +88,16 @@
       "Default": "Information",
       // 关闭 .Net Core 服务器链接日志，只保留 Warning 级别日志
       "Microsoft.AspNetCore": "Warning"
+    },
+    // 使用 NLog 替代自带日志系统
+    "NLog": {
+      "IncludeScopes": true,
+      "RemoveLoggerFactoryFilter": true
     }
   },
   // .Net Core 服务器开放访问地址范围
   "AllowedHosts": "*",
-  // 数据库连接字符串
+  // Postgres 数据库连接字符串，请在连接前指定时区参数，如：TimeZone=Asia/Shanghai 以使用正确的时区
   "DatabaseConnection": "",
   // Kook 相关配置
   "Kook": {
@@ -101,6 +107,21 @@
     "EnableDebug": false,
     // 连接 Kook 服务器超时
     "ConnectTimeout": 6000
+  },
+  // Puppeteer 配置，用于调用 Chromium 实现爬虫和渲染等功能
+  "Puppeteer": {
+    // 浏览器路径（下面为 Docker 内的浏览器路径）
+    "ChromiumPath": "/usr/bin/chromium",
+    // 额外启动参数
+    "ExtraArgs": [
+      "--no-sandbox",
+      "--accept-lang=zh-CN",
+      "--proxy-server=127.0.0.1:7890",
+      "--ignore-certificate-errors"
+    ]
+  },
+  // NLog 详细配置
+  "NLog": {
   }
 }
 
