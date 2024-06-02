@@ -12,7 +12,6 @@ namespace Jellyfish.Module.ClockIn.Core;
 /// </summary>
 public class ClockInManageService(DbContextProvider dbProvider)
 {
-    public const string CardActionValue = "$clock_in";
     private const int MaxTopUserCountEachRank = 20;
 
     /// <summary>
@@ -119,7 +118,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
             {
                 b.WithText(config.ButtonText)
                     .WithClick(ButtonClickEventType.ReturnValue)
-                    .WithValue(CardActionValue)
+                    .WithValue(ClockInCardAction.CardActionValue)
                     .WithTheme(ButtonTheme.Primary);
             }))
             .Build();
