@@ -34,7 +34,7 @@ public class ClockInManageCommand : GuildMessageCommand
             您可以利用该功能设置持续 N 天的打卡活动，例如：用户在本月内打卡 25 天即可满足条件参与抽奖。
             当用户满足了指定次数后，Bot 会通知该用户「您已合格」（该消息可配置），您也可以随时查询满足条件的用户。
             打卡阶段支持设置「时间段」和「允许中断天数」，也可以配置为当用户满足条件后自动记录到指定频道。
-            同时打卡阶段可以设置多个，方便同时进行多个活动。
+            打卡阶段可以设置多个，方便同时进行多个活动。
             """,
             """
             基础配置：
@@ -80,7 +80,7 @@ public class ClockInManageCommand : GuildMessageCommand
         else if (args.StartsWith("排行"))
             isSuccess = await _service.ListTopUsers(channel, args[2..].TrimStart());
         else
-            await channel.SendCardAsync(HelpMessage);
+            await channel.SendCardSafeAsync(HelpMessage);
 
         if (!isSuccess)
         {

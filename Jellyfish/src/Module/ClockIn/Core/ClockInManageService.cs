@@ -210,13 +210,13 @@ public class ClockInManageService(DbContextProvider dbProvider)
             .Select(g => $"第 {
                 g.Rank
             } 名：{
-                g.Users.Select(u => u.Username).StringJoin("\n")
+                g.Users.Select(u => $"{u.Username}#{u.UserId}").StringJoin("\n")
             }{
                 (g.Users.Count > MaxTopUserCountEachRank ? "（按时间列出前 20 名）" : "")
             }")
             .StringJoin("\n---\n");
 
-        if (topUsers.Length == 0)
+        if (topUsers.IsEmpty())
         {
             await channel.SendInfoCardAsync("该服务器内还没有人打卡", false);
             return true;
@@ -232,7 +232,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
     /// <param name="guildId">Current guild Id</param>
     /// <param name="dbCtx">Database context</param>
     /// <returns>Clock-in config if enable or else null</returns>
-    private static async Task<ClockInConfig?> GetIfEnable(ulong guildId, DatabaseContext dbCtx)
+    public static async Task<ClockInConfig?> GetIfEnable(ulong guildId, DatabaseContext dbCtx)
     {
         var config = await dbCtx.ClockInConfigs.FirstOrDefaultAsync(c => c.GuildId == guildId);
         return config is null || !config.Enabled ? null : config;
