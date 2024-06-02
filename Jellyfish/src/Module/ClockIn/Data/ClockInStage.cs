@@ -18,7 +18,7 @@ public class ClockInStage(long configId, string name, DateOnly startDate, uint d
     public string? QualifiedMessage { get; set; }
     public uint? QualifiedRoleId { get; set; }
     public bool Enabled { get; set; } = true;
-    public DateTime LastScanTime { get; set; } = DateTime.Now.AddDays(-1);
+    public DateTime LastScanTime { get; set; } = DateTime.MinValue;
 
     // References
     public ClockInConfig Config { get; set; } = null!;
