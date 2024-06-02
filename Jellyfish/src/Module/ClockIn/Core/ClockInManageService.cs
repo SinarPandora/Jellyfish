@@ -39,7 +39,15 @@ public class ClockInManageService(DbContextProvider dbProvider)
         }
 
         dbCtx.SaveChanges();
-        await channel.SendSuccessCardAsync("打卡功能已开启", false);
+        await channel.SendSuccessCardAsync(
+            """
+            打卡功能已开启！
+            ---
+            您可以进一步配置打卡阶段。
+            打卡阶段指的是连续/非连续的持续打卡次数，使用 `！打卡阶段` 指令配置。
+            您可以利用该功能设置持续 N 天的打卡活动，例如：用户在本月内打卡 25 天即可满足条件参与抽奖。
+            请使用 `！打卡阶段 帮助` 指令查看详细信息。
+            """, false);
         return true;
     }
 
