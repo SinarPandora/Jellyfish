@@ -323,6 +323,8 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
         modelBuilder.Entity<ClockInCardInstance>(entity =>
         {
+            HasTrackableColumns(entity);
+
             entity
                 .HasIndex(e => new { e.ConfigId, e.ChannelId })
                 .IsUnique();
