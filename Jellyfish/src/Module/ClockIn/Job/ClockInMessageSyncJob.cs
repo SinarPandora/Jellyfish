@@ -40,9 +40,10 @@ public class ClockInMessageSyncJob(
                 var todayClockInCount = dbCtx.ClockInHistories.Count(h => h.CreateTime >= today);
                 if (todayClockInCount > 0)
                 {
-                    var top3Usernames = dbCtx.ClockInHistories.Where(h => h.CreateTime >= today)
+                    var top3Usernames = dbCtx.ClockInHistories.Include(h => h.UserStatus)
+                        .Where(h => h.CreateTime >= today)
                         .OrderBy(h => h.CreateTime)
-                        .Select(h => guild.GetUser(h.UserId))
+                        .Select(h => guild.GetUser(h.UserStatus.UserId))
                         .Where(u => u != null)
                         .Take(3)
                         .Select(u => $"{u!.Username}#{u.Id}")
