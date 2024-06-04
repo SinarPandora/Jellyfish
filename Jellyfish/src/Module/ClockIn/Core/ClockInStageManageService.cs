@@ -102,19 +102,51 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         dbCtx.SaveChanges();
 
         AppCaches.ClockInConfigs[channel.Guild.Id].Stages.Add(stage);
-        await channel.SendCardSafeAsync(
+        await channel.SendSuccessCardAsync($"打卡阶段：{args.First()} 创建成功！", false);
+        await SendInfoCard(channel, stage);
+        return true;
+    }
+
+    /// <summary>
+    ///     Show the stage information
+    /// </summary>
+    /// <param name="channel">Current channel</param>
+    /// <param name="id">Stage id</param>
+    /// <returns>Is task success of not</returns>
+    public async Task<bool> ShowInfo(SocketTextChannel channel, long id)
+    {
+        await using var dbCtx = dbProvider.Provide();
+        var stage = await GetIfExist(channel, id, dbCtx);
+        if (stage is null) return false;
+
+        await SendInfoCard(channel, stage);
+        return true;
+    }
+
+    /// <summary>
+    ///     Send a card with information of the given stage
+    /// </summary>
+    /// <param name="channel">Target channel</param>
+    /// <param name="stage">Current stage</param>
+    /// <returns>Sent message id</returns>
+    private static Task<Cacheable<IUserMessage, Guid>?> SendInfoCard(SocketTextChannel channel, ClockInStage stage)
+    {
+        var roleName = stage.QualifiedRoleId.HasValue
+            ? channel.Guild.GetRole(stage.QualifiedRoleId.Value)?.Name ?? "权限丢失（若权限存在，您可以稍后重新执行该指令）"
+            : "未设置";
+        return channel.SendCardSafeAsync(
             new CardBuilder()
-                .AddModule<HeaderModuleBuilder>(b => b.WithText($"打卡阶段：{args.First()} 创建成功！"))
+                .AddModule<HeaderModuleBuilder>(b => b.WithText($"打卡阶段 {stage.Name} 信息"))
                 .AddModule<SectionModuleBuilder>(b =>
                     b.WithText($"""
                                 当前配置信息如下：
                                 状态：禁用中
-                                开始日期：{startDate:yyyy-MM-dd}
-                                结束日期：一直有效
-                                达标天数：{days}
-                                允许中断天数：0（必须一直连续打卡）
-                                合格消息：未设置
-                                给予身份：未设置
+                                开始日期：{stage.StartDate:yyyy-MM-dd}
+                                结束日期：{stage.EndDate?.ToString("yyyy-MM-dd") ?? "一直有效"}
+                                达标天数：{stage.Days}
+                                允许中断天数：{(stage.AllowBreakDays == 0 ? "0（必须一直连续打卡）" : stage.AllowBreakDays.ToString())}
+                                合格消息：{stage.QualifiedMessage ?? "未设置"}
+                                给予身份：{roleName}
                                 """, true)
                 )
                 .AddModule<DividerModuleBuilder>()
@@ -140,7 +172,6 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
                                 3. 修改合格消息后，之前合格的用户将不会再次发收到新消息。
                                 """, true))
                 .Build());
-        return true;
     }
 
     /// <summary>
@@ -343,7 +374,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         dbCtx.SaveChanges();
         AppCaches.ClockInConfigs[channel.Guild.Id].Stages.Add(stage);
 
-        await channel.SendSuccessCardAsync($"已启用该打卡阶段：{stage.Name}#{stage.Id}，开始扫描合格用户，未确保数据正确，下次修改前请先禁用该阶段", false);
+        await channel.SendSuccessCardAsync($"已启用该打卡阶段：{stage.Name}#{stage.Id}，开始扫描合格用户，为确保数据正确，下次修改前请先禁用该阶段", false);
         return true;
     }
 
