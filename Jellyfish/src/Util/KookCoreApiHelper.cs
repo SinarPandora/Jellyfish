@@ -20,7 +20,7 @@ public static class KookCoreApiHelper
     #region CONST
 
     private const int MoveUserChannelTimeout = 5;
-    private const string HasBeenBlockedByUser = "已被对方屏蔽";
+    public const string HasBeenBlockedByUser = "已被对方屏蔽";
 
     #endregion
 
