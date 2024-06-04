@@ -18,7 +18,7 @@ public class TeamPlayManageCommand : GuildMessageCommand
         HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
             管理组队配置
-
+            ---
             您可以绑定语音入口频道，该频道将成为后续自动创建语音频道的入口
             您也可以绑定任意文字频道为入口频道，在目标频道发送由 /组队 开头的消息将自动创建对应房间
             当绑定了一个语音入口频道或文字入口频道后，配置就可以使用啦

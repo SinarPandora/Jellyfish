@@ -17,8 +17,8 @@ public class CountDownManageCommand : GuildMessageCommand
         _service = service;
         HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
-            频道名称倒/正计时配置指令
-
+            配置频道名称倒/正计时
+            ---
             将频道的名称当成倒计时使用（也可以正计时）
             如：距离劳动节还有1️⃣2️⃣天
             每天零点，Bot 会自动更新倒计时。
@@ -29,11 +29,11 @@ public class CountDownManageCommand : GuildMessageCommand
             3. 删除 [编号/频道引用]：删除指定正/倒计时
             4. 到期名称 [编号/频道引用] [到期频道名称]：设置到达指定日期时显示的频道标题
             5. 到期名称 删除 [编号/频道引用]：删除到达指定日期时显示的频道标题
-
+            ---
             其中：
             日期格式为：四位年份-两位月份-两位日期，如 2024-05-01，代表 2024 年 5 月 1 日（月份和日期中占位的 0 可以省略）
             在名称格式中添加 `{COUNT}` 占位符，代表距离到期的天数
-
+            ---
             举例：
             使用 `！频道倒计时 创建 #频道 2024-05-01 距离劳动节还有{COUNT}天`
             将设置频道名称为：距离劳动节还有1️⃣2️⃣天

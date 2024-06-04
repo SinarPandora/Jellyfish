@@ -26,8 +26,8 @@ public class TcGroupControlCommand : GuildMessageCommand
         _dbProvider = dbProvider;
         HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
-            文字频道组指令
-
+            创建和管理文字频道组
+            ---
             您可以批量创建一组频道，这些频道可以一并显示或隐藏，也可以单独更新信息
             """,
             """
@@ -43,7 +43,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             **配置指令参数解释**
             1. # 引导文字频道：一个普通的文字频道，生成的全部子频道将参考该频道所在的分组信息。
             引导文字频道应是一个 Kook 引用（输入 # 和频道名称进行引用），在消息中为蓝色文本。
-
+            ---
             2. 配置文本：格式如下（[Yaml 格式](https://yaml.cn/)）：
             ```yaml
             - 名称：频道名称1
