@@ -25,7 +25,7 @@ public class ClockInManageCommand : GuildMessageCommand
             为方便管理员利用打卡功能举办活动，打卡模块支持以下功能：
             ---
             1. 置底打卡消息
-            您可以使用 `！打卡 发送` 指令，向当前频道发送一个带有打卡按钮的卡片消息，该卡片将持续置于频道底部，确保用户进入频道后能第一时间看到。
+            您可以使用 `！打卡管理 发送` 指令，向当前频道发送一个带有打卡按钮的卡片消息，该卡片将持续置于频道底部，确保用户进入频道后能第一时间看到。
             该卡片会持续更新显示今日打卡人数，以及每日打卡排行榜。
             该卡片的「标题」和「详情信息」均可配置，消息被管理员删除后将不再发送。
             ---
@@ -53,7 +53,7 @@ public class ClockInManageCommand : GuildMessageCommand
 
     public override string Name() => "打卡管理指令";
 
-    public override IEnumerable<string> Keywords() => ["!打卡", "！打卡"];
+    public override IEnumerable<string> Keywords() => ["!打卡管理", "！打卡管理"];
 
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)

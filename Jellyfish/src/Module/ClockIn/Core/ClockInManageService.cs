@@ -93,7 +93,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
         var config = await GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡 启用` 开启", true);
+            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
             return false;
         }
 
@@ -164,7 +164,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
         var config = await GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡 启用` 开启", true);
+            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
             return false;
         }
 
@@ -214,7 +214,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
         var config = await GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡 启用` 开启", true);
+            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
             return false;
         }
 

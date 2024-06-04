@@ -27,7 +27,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         var config = await ClockInManageService.GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡 启用` 开启", true);
+            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
             return false;
         }
 
@@ -73,7 +73,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 3);
         if (args.Length < 3)
         {
-            await channel.SendWarningCardAsync("创建打卡阶段需要提供名称、开始日期和达标天数，请查看帮助：`！打卡 帮助`", true);
+            await channel.SendWarningCardAsync("创建打卡阶段需要提供名称、开始日期和达标天数，请查看帮助：`！打卡管理 帮助`", true);
             return false;
         }
 
@@ -93,7 +93,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         var config = await ClockInManageService.GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡 启用` 开启", true);
+            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
             return false;
         }
 
@@ -192,7 +192,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         var config = await ClockInManageService.GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡 启用` 开启", true);
+            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
             return false;
         }
 
@@ -457,7 +457,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         var config = await ClockInManageService.GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡 启用` 开启", true);
+            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
             return null;
         }
 
