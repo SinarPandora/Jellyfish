@@ -29,7 +29,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             .Select(c => c.Name)
             .ToHashSet();
 
-        if (string.IsNullOrEmpty(name))
+        if (string.IsNullOrWhiteSpace(name))
         {
             await channel.SendErrorCardAsync("请设置绑定名称，举例：`！组队 绑定 真格上分`", true);
             return false;

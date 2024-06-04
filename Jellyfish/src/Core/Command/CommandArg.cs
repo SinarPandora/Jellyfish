@@ -77,7 +77,7 @@ public record CommandArg
     /// <returns>Is success or not</returns>
     public static bool TryParseChannelRefOrId(string input, out CommandArg arg)
     {
-        if (input.IsNullOrEmpty())
+        if (input.IsNullOrWhiteSpace())
         {
             arg = Empty;
             return false;
