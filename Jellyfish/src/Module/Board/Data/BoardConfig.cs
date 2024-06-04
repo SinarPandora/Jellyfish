@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Jellyfish.Core.Data;
 
 namespace Jellyfish.Module.Board.Data;
@@ -19,7 +20,7 @@ public class BoardConfig(
     public bool IsTemplate { get; init; } = isTemplate;
     public string Title { get; set; } = title;
     public string Details { get; set; } = details;
-    public DateTime Due { get; set; } = due;
+    [Column(TypeName = "timestamp")] public DateTime Due { get; set; } = due;
     public BoardType BoardType { get; init; } = boardType;
     public bool Finished { get; set; }
 

@@ -16,10 +16,10 @@ public class CountDownChannel(
 ) : TrackableEntity
 {
     public long Id { get; set; }
-    public ulong GuildId { get; set; } = guildId;
-    public ulong ChannelId { get; set; } = channelId;
-    public string Pattern { get; set; } = pattern;
-    public DateOnly DueDate { get; set; } = dueDate;
-    public bool Positive { get; set; } = positive;
-    public string? DueText { get; set; } = null;
+    public ulong GuildId { get; init; } = guildId;
+    public ulong ChannelId { get; init; } = channelId;
+    public string Pattern { get; init; } = pattern;
+    public DateOnly DueDate { get; init; } = dueDate;
+    public bool Positive { get; init; } = positive;
+    public string? DueText { get; set; }
 }

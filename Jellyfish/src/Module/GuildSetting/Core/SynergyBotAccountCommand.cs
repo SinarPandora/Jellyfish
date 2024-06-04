@@ -44,7 +44,7 @@ public class SynergyBotAccountCommand : GuildMessageCommand
     {
         if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {
-            await channel.SendCardAsync(HelpMessage);
+            await channel.SendCardSafeAsync(HelpMessage);
             return;
         }
 

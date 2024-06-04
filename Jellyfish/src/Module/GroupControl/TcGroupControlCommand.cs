@@ -26,8 +26,8 @@ public class TcGroupControlCommand : GuildMessageCommand
         _dbProvider = dbProvider;
         HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
-            文字频道组指令
-
+            创建和管理文字频道组
+            ---
             您可以批量创建一组频道，这些频道可以一并显示或隐藏，也可以单独更新信息
             """,
             """
@@ -43,7 +43,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             **配置指令参数解释**
             1. # 引导文字频道：一个普通的文字频道，生成的全部子频道将参考该频道所在的分组信息。
             引导文字频道应是一个 Kook 引用（输入 # 和频道名称进行引用），在消息中为蓝色文本。
-
+            ---
             2. 配置文本：格式如下（[Yaml 格式](https://yaml.cn/)）：
             ```yaml
             - 名称：频道名称1
@@ -126,7 +126,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             where g.Name == groupName && g.GuildId == channel.Guild.Id
             select g).FirstOrDefault();
 
-        if (tcGroup == null)
+        if (tcGroup is null)
         {
             await channel.SendErrorCardAsync("指定频道组不存在！", true);
             return false;
@@ -137,7 +137,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         foreach (var instance in tcGroup.GroupInstances)
         {
             var textChannel = channel.Guild.GetTextChannel(instance.TextChannelId);
-            if (textChannel == null)
+            if (textChannel is null)
             {
                 await channel.SendWarningCardAsync(
                     $"指定文字频道已被删除，请使用 `!频道组 删除 {groupName} {instance.Name}` 指令手动清理已删频道",
@@ -146,7 +146,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                 continue;
             }
 
-            if (textChannel.CategoryId == null)
+            if (textChannel.CategoryId is null)
             {
                 await channel.SendInfoCardAsync($"频道 {instance.Name} 不属于任何分组，已跳过权限同步", false);
                 continue;
@@ -184,10 +184,9 @@ public class TcGroupControlCommand : GuildMessageCommand
             return false;
         }
 
-        var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
-        if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var textChannelId))
+        if (!MentionUtils.TryParseChannel(rawMention, out var textChannelId, TagMode.KMarkdown))
         {
-            await channel.SendErrorCardAsync("引导文字频道应是一个频道引用（蓝色文本），具体内容请参考：`!频道组 帮助`", true);
+            await channel.SendErrorCardAsync("引导文字频道应是一个频道引用（蓝色文本），请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
             return false;
         }
 
@@ -232,7 +231,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                 select g)
             .FirstOrDefault();
 
-        if (tcGroup == null)
+        if (tcGroup is null)
         {
             tcGroup = new TcGroup(groupName, channel.Guild.Id);
             dbCtx.TcGroups.Add(tcGroup);
@@ -252,7 +251,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             {
                 var childChannel = await CloneRoom(instanceMap, originalChannel, def, channel);
                 // Update description
-                if (instance == null)
+                if (instance is null)
                 {
                     await RecordAndDescribeNewChannel(childChannel, def.Name, description, tcGroup, instanceMap,
                         dbCtx);
@@ -289,12 +288,12 @@ public class TcGroupControlCommand : GuildMessageCommand
         if (instance.Description != description)
         {
             var messageId = instance.DescriptionMessageId;
-            if (instance.DescriptionMessageId != null)
+            if (instance.DescriptionMessageId is not null)
             {
                 await channel.DeleteMessageAsync((Guid)instance.DescriptionMessageId);
             }
 
-            if (description != null)
+            if (description is not null)
             {
                 var resp = await channel.SendTextSafeAsync(description);
                 if (!resp.HasValue)
@@ -332,7 +331,7 @@ public class TcGroupControlCommand : GuildMessageCommand
     {
         _log.LogInformation("检测到频道 {Name} 尚未被记录，正在记录", name);
         Guid? messageId = null;
-        if (description != null)
+        if (description is not null)
         {
             var resp = await childChannel.SendTextSafeAsync(description);
             if (!resp.HasValue)
@@ -345,7 +344,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             messageId = resp.Value.Id;
         }
 
-        var instance = messageId == null
+        var instance = messageId is null
             ? new TcGroupInstance(tcGroup.Id, name, childChannel.Id)
             : new TcGroupInstance(tcGroup.Id, name, childChannel.Id, description!, (Guid)messageId);
 
@@ -367,7 +366,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         var guild = originalChannel.Guild;
         var instance = instances.GetValueOrDefault(definition.Name);
         ITextChannel newChannel;
-        if (instance == null || guild.GetTextChannel(instance.TextChannelId) == null)
+        if (instance is null || guild.GetTextChannel(instance.TextChannelId) is null)
         {
             // Create room
             newChannel = await guild.CreateTextChannelAsync(definition.Name,
@@ -380,7 +379,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             await newChannel.ModifyAsync(c => c.CategoryId = originalChannel.CategoryId);
         }
 
-        if (originalChannel.CategoryId != null)
+        if (originalChannel.CategoryId is not null)
         {
             await newChannel.SyncPermissionsAsync();
         }
@@ -397,7 +396,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                     where $"{u.DisplayName()}#{u.IdentifyNumber}" == allowName
                     select u
                 ).FirstOrDefault();
-                if (found == null)
+                if (found is null)
                 {
                     await senderChannel.SendWarningCardAsync(
                         $"未找到用户 {allowName}，将不会为其添加频道 {definition.Name} 的权限",
@@ -416,7 +415,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                     select r
                 ).FirstOrDefault();
 
-                if (found == null)
+                if (found is null)
                 {
                     await senderChannel.SendWarningCardAsync(
                         $"未找到权限 {allowName}，将不会将其添加到频道 {definition.Name}",
@@ -457,7 +456,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                 where g.GuildId == channel.Guild.Id && g.Name == configName
                 select g).FirstOrDefault();
 
-        if (tcGroup == null)
+        if (tcGroup is null)
         {
             await channel.SendErrorCardAsync("指定频道组不存在！", true);
             return false;
@@ -467,7 +466,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             where ins.Name == oldName
             select ins).FirstOrDefault();
 
-        if (instance == null)
+        if (instance is null)
         {
             await channel.SendErrorCardAsync("指定频道不存在！", true);
             return false;
@@ -476,7 +475,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         if (oldName != newName)
         {
             var textChannel = channel.Guild.GetTextChannel(instance.TextChannelId);
-            if (textChannel == null)
+            if (textChannel is null)
             {
                 await channel.SendErrorCardAsync(
                     $"指定文字频道已被删除，请使用 `!频道组 删除 {configName} {oldName}` 指令手动清理已删频道",
@@ -518,7 +517,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                 where g.GuildId == channel.Guild.Id && g.Name == configName
                 select g).FirstOrDefault();
 
-        if (tcGroup == null)
+        if (tcGroup is null)
         {
             await channel.SendErrorCardAsync("指定频道组不存在！", true);
             return false;
@@ -532,7 +531,7 @@ public class TcGroupControlCommand : GuildMessageCommand
                 where ins.Name == channelName
                 select ins).FirstOrDefault();
 
-            if (instance == null)
+            if (instance is null)
             {
                 await channel.SendErrorCardAsync("指定频道不存在！", true);
                 return false;
@@ -569,7 +568,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             if (hardDel)
             {
                 var textChannel = channel.Guild.GetTextChannel(instance.TextChannelId);
-                if (textChannel == null)
+                if (textChannel is null)
                 {
                     await channel.SendWarningCardAsync($"频道 {instance.Name} 早已被删除", true);
                 }
@@ -612,7 +611,7 @@ public class TcGroupControlCommand : GuildMessageCommand
         if (hardDel)
         {
             var textChannel = channel.Guild.GetTextChannel(instance.TextChannelId);
-            return textChannel == null ? channel.SendWarningCardAsync("指定文字频道早已被删除", true) : textChannel.DeleteAsync();
+            return textChannel is null ? channel.SendWarningCardAsync("指定文字频道早已被删除", true) : textChannel.DeleteAsync();
         }
 
         dbCtx.TcGroupInstances.Remove(instance);

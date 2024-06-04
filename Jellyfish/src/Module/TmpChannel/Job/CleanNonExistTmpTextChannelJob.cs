@@ -25,7 +25,7 @@ public class CleanNonExistTmpTextChannelJob(
             foreach (var instance in instances)
             {
                 var textChannel = guild?.GetTextChannel(instance.ChannelId);
-                if (textChannel == null) CleanUpTmpTextChannel(instance, dbCtx);
+                if (textChannel is null) CleanUpTmpTextChannel(instance, dbCtx);
 
                 dbCtx.SaveChanges();
             }

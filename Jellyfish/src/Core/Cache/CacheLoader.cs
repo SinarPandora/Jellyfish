@@ -15,6 +15,7 @@ public class CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
         await LoadPermissions(dbCtx);
         LoadTeamPlayConfigs(dbCtx);
         LoadGuildSettings(dbCtx);
+        LoadClockInConfig(dbCtx);
         log.LogInformation("应用缓存加载完成！");
     }
 
@@ -67,5 +68,17 @@ public class CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
             .AsNoTracking()
             .AsEnumerable()
             .ForEach(s => AppCaches.GuildSettings.AddOrUpdate(s.GuildId, s.Setting));
+    }
+
+    /// <summary>
+    ///     Load clock-in configs
+    /// </summary>
+    /// <param name="dbCtx">Database context</param>
+    private static void LoadClockInConfig(DatabaseContext dbCtx)
+    {
+        dbCtx.ClockInConfigs.Include(c => c.Stages)
+            .AsNoTracking()
+            .AsEnumerable()
+            .ForEach(c => AppCaches.ClockInConfigs.AddOrUpdate(c.GuildId, c));
     }
 }

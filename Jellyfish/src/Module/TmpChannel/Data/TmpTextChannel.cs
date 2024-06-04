@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Jellyfish.Core.Data;
 
 namespace Jellyfish.Module.TmpChannel.Data;
@@ -9,9 +10,9 @@ public class TmpTextChannel(ulong guildId, ulong channelId, string name, ulong c
     : TrackableEntity
 {
     public long Id { get; set; }
-    public ulong GuildId { get; set; } = guildId;
-    public ulong ChannelId { get; set; } = channelId;
+    public ulong GuildId { get; init; } = guildId;
+    public ulong ChannelId { get; init; } = channelId;
     public string Name { get; set; } = name;
-    public ulong CreatorId { get; set; } = creatorId;
-    public DateTime? ExpireTime { get; set; } = expireTime;
+    public ulong CreatorId { get; init; } = creatorId;
+    [Column(TypeName = "timestamp")] public DateTime? ExpireTime { get; set; } = expireTime;
 }

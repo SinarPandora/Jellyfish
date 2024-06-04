@@ -57,10 +57,10 @@ public class ExpireExtendScanJob(
         var handled = false;
         var instance = dbCtx.TmpTextChannels
             .FirstOrDefault(i => i.Id == session.TargetId);
-        if (instance != null)
+        if (instance is not null)
         {
             var textChannel = kook.GetGuild(instance.GuildId)?.GetTextChannel(instance.ChannelId);
-            if (textChannel != null)
+            if (textChannel is not null)
             {
                 var messages = await textChannel.GetMessagesAsync(1).FirstAsync();
                 // Is still alive

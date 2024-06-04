@@ -79,7 +79,7 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
         var tpConfig = (from config in AppCaches.TeamPlayConfigs.Values
             where config.GuildId == channel.Guild.Id && config.TextChannelId == channel.Id
             select config).FirstOrDefault();
-        if (tpConfig == null)
+        if (tpConfig is null)
         {
             var configs =
                 (from config in AppCaches.TeamPlayConfigs.Values
@@ -127,7 +127,7 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
         var tpConfig = (from config in AppCaches.TeamPlayConfigs.Values
             where config.GuildId == channel.Guild.Id && config.TextChannelId == channel.Id
             select config).FirstOrDefault();
-        if (tpConfig == null) return;
+        if (tpConfig is null) return;
 
         var isSuccess = await service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
             async (_, voiceChannel, textChannel) =>
@@ -135,7 +135,7 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
                 await channel.SendCardSafeAsync(await TeamPlayRoomService.CreateInviteCardAsync(voiceChannel));
                 await channel.SendTextSafeAsync(
                     $"👍🏻想一起玩？点击上方按钮加入语音房间！{
-                        (!voiceChannel.HasPassword && textChannel != null
+                        (!voiceChannel.HasPassword && textChannel is not null
                             ? $"不方便语音也可以加入同名文字房间 {MentionUtils.KMarkdownMentionChannel(textChannel.Id)} 哦"
                             : string.Empty
                         )

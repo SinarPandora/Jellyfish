@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Jellyfish.Module.ClockIn.Data;
 using Jellyfish.Module.GuildSetting.Data;
 using Jellyfish.Module.TeamPlay.Data;
 
@@ -23,4 +24,9 @@ public static class AppCaches
     ///     Guild Setting Cache, guild id as the key, setting details as value
     /// </summary>
     public static readonly ConcurrentDictionary<ulong, GuildSettingDetails> GuildSettings = [];
+
+    /// <summary>
+    ///     Clock-In Config Cache, guild id as the key, config (with stages) as value
+    /// </summary>
+    public static readonly ConcurrentDictionary<ulong, ClockInConfig> ClockInConfigs = [];
 }

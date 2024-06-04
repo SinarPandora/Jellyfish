@@ -21,8 +21,8 @@
         <PackageReference Include="JetBrains.Annotations" Version="2023.3.0"/>
         <PackageReference Include="Jitbit.FastCache" Version="1.0.11"/>
         <PackageReference Include="Kook.Net" Version="0.8.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.5"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.5">
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.6"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -39,13 +39,12 @@
         <PackageReference Include="System.Collections.Immutable" Version="8.0.0"/>
         <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0"/>
         <PackageReference Include="System.Reactive" Version="6.0.1"/>
-        <PackageReference Include="YamlDotNet" Version="15.1.4"/>
+        <PackageReference Include="YamlDotNet" Version="15.1.6"/>
         <PackageReference Include="Z.ExtensionMethods" Version="2.1.1"/>
     </ItemGroup>
 
     <ItemGroup>
         <Folder Include="Migrations\"/>
-        <Folder Include="src\Custom\Splatoon\Core\"/>
     </ItemGroup>
 
     <ItemGroup>

@@ -19,7 +19,7 @@ public class SuiteSearchCommand : GuildMessageCommand
         HelpMessage = HelpMessageHelper.ForMessageCommand(this,
             """
             Splatoon3 配装查询指令
-
+            ---
             您可以使用武器原名称或常用别名查询常用配装
             查询贴牌武器请添加「贴牌」前缀，如 /配装 贴牌红双
             数据来源：https://sendou.ink

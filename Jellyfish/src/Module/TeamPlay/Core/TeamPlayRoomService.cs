@@ -59,7 +59,7 @@ public class TeamPlayRoomService(
                     > 这可能是由于 Kook 的客户端缓存有延迟
 
                     1. 请尝试重启 Kook 客户端（网页版请尝试刷新页面）
-                    2. 如果你加入过其他的 Kook 服务器，可尝试进入其他服务器后再回来
+                    2. 如果您加入过其他的 Kook 服务器，可尝试进入其他服务器后再回来
                     """, true, TimeSpan.FromMinutes(2));
             });
             return true;
@@ -70,7 +70,7 @@ public class TeamPlayRoomService(
         var guild = user.Guild;
         noticeChannel ??= await user.CreateDMChannelAsync();
 
-        var roomName = tpConfig.RoomNamePattern != null
+        var roomName = tpConfig.RoomNamePattern is not null
             ? tpConfig.RoomNamePattern.Replace(TeamPlayManageService.UserInjectKeyword,
                 args.RoomName ?? user.DisplayName)
             : args.RoomName ?? $"{user.DisplayName}的房间";
@@ -111,7 +111,7 @@ public class TeamPlayRoomService(
         }
 
         int? memberLimit;
-        if (args.RawMemberLimit != null)
+        if (args.RawMemberLimit is not null)
         {
             if (!int.TryParse(args.RawMemberLimit, out var limit) || limit < 0 || limit > 99)
             {
@@ -152,7 +152,7 @@ public class TeamPlayRoomService(
 
             log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), voiceChannel.Name);
 
-            if (user.VoiceChannel != null)
+            if (user.VoiceChannel is not null)
             {
                 // Ignore error for moving user to voice channel
                 _ = guild.MoveToRoomAsync(user.Id, voiceChannel);
@@ -204,7 +204,7 @@ public class TeamPlayRoomService(
         if (config.VoiceCategoryId.HasValue)
         {
             var category = guild.GetCategoryChannel(config.VoiceCategoryId.Value);
-            if (category != null)
+            if (category is not null)
             {
                 return category.Id;
             }
@@ -227,7 +227,7 @@ public class TeamPlayRoomService(
         if (config.TextCategoryId.HasValue)
         {
             var category = guild.GetCategoryChannel(config.TextCategoryId.Value);
-            if (category != null)
+            if (category is not null)
             {
                 return category.Id;
             }
@@ -257,7 +257,7 @@ public class TeamPlayRoomService(
     {
         var invite = await room.CreateInviteAsync(InviteMaxAge.NeverExpires);
         var card = new CardBuilder();
-        card.AddModule<HeaderModuleBuilder>(m => m.Text = $"✅房间已创建：{room.Name}，等你加入！");
+        card.AddModule<HeaderModuleBuilder>(m => m.Text = $"✅房间已创建：{room.Name}，等您加入！");
         card.AddModule<InviteModuleBuilder>(m => m.Code = invite.Code);
         card.WithSize(CardSize.Large);
         return card.Build();
@@ -299,7 +299,7 @@ public class TeamPlayRoomService(
                         Task.WhenAll(AppCaches.GuildSettings[roomInstance.GuildId].SynergyBotAccounts.Select(botId =>
                         {
                             var botUser = creator.Guild.GetUser(botId);
-                            if (botUser != null)
+                            if (botUser is not null)
                             {
                                 return newChannel.OverrideUserPermissionAsync(botUser, p =>
                                     p.Modify(

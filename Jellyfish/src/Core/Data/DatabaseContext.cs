@@ -27,19 +27,16 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
     // ----------------------------------- Team Play -----------------------------------
     public DbSet<TpConfig> TpConfigs { get; set; } = null!;
-
     public DbSet<TpRoomInstance> TpRoomInstances { get; set; } = null!;
 
     // ----------------------------------- Permission -----------------------------------
     public DbSet<UserRole> UserRoles { get; set; } = null!;
-
     public DbSet<UserCommandPermission> UserCommandPermissions { get; set; } = null!;
 
     // ----------------------------- Temporary Text Channel -----------------------------
     public DbSet<TcGroup> TcGroups { get; set; } = null!;
     public DbSet<TcGroupInstance> TcGroupInstances { get; set; } = null!;
     public DbSet<TmpTextChannel> TmpTextChannels { get; set; } = null!;
-
     public DbSet<ExpireExtendSession> ExpireExtendSessions { get; set; } = null!;
 
     // --------------------------------- Guild Settings ---------------------------------
@@ -53,15 +50,15 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     public DbSet<BoardItem> BoardItems { get; set; } = null!;
     public DbSet<BoardInstance> BoardInstances { get; set; } = null!;
     public DbSet<BoardPermission> BoardPermissions { get; set; } = null!;
-
     public DbSet<BoardItemHistory> BoardItemHistories { get; set; } = null!;
 
     // ------------------------------------ Clock In ------------------------------------
     public DbSet<ClockInConfig> ClockInConfigs { get; set; } = null!;
-    public DbSet<ClockInChannel> ClockInChannels { get; set; } = null!;
+    public DbSet<ClockInCardInstance> ClockInCardInstances { get; set; } = null!;
     public DbSet<ClockInStage> ClockInStages { get; set; } = null!;
     public DbSet<ClockInHistory> ClockInHistories { get; set; } = null!;
-    public DbSet<ClockInQualifiedUser> ClockInQualifiedUsers { get; set; } = null!;
+    public DbSet<ClockInStageQualifiedHistory> ClockInStageQualifiedHistories { get; set; } = null!;
+    public DbSet<UserClockInStatus> UserClockInStatuses { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -86,6 +83,10 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .WithOne(e => e.TpConfig)
                 .HasForeignKey(e => e.TpConfigId)
                 .IsRequired();
+
+            entity
+                .Property(e => e.Enabled)
+                .HasDefaultValue(true);
         });
 
         modelBuilder.Entity<TpRoomInstance>(entity =>
@@ -105,6 +106,10 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .WithOne(e => e.UserRole)
                 .HasForeignKey(e => e.UserRoleId)
                 .IsRequired();
+
+            entity
+                .Property(e => e.Enabled)
+                .HasDefaultValue(true);
         });
 
         modelBuilder.Entity<TcGroup>(entity =>
@@ -164,6 +169,10 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.ConfigId)
                 .IsRequired();
 
+            entity
+                .Property(e => e.Finished)
+                .HasDefaultValue(false);
+
             HasTrackableColumns(entity);
         });
 
@@ -190,7 +199,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         modelBuilder.Entity<ClockInConfig>(entity =>
         {
             entity
-                .HasMany(e => e.Channels)
+                .HasMany(e => e.CardInstances)
                 .WithOne(e => e.Config)
                 .HasForeignKey(e => e.ConfigId)
                 .IsRequired();
@@ -207,19 +216,123 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.ConfigId)
                 .IsRequired();
 
+            entity
+                .HasMany(e => e.UserStatuses)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.ConfigId)
+                .IsRequired();
+
+            entity
+                .HasIndex(e => e.GuildId)
+                .IsUnique();
+
+            entity
+                .Property(e => e.ButtonText)
+                .HasDefaultValue("打卡！");
+
+            entity
+                .Property(e => e.Title)
+                .HasDefaultValue("每日打卡");
+
+            entity
+                .Property(e => e.Enabled)
+                .HasDefaultValue(true);
+
+            entity
+                .Property(e => e.TodayClockInCount)
+                .HasDefaultValue(0);
+
+            entity
+                .Property(e => e.AllClockInCount)
+                .HasDefaultValue(0);
+
             HasTrackableColumns(entity);
         });
 
         modelBuilder.Entity<ClockInStage>(entity =>
         {
+            HasTrackableColumns(entity);
+
             entity
-                .HasMany(e => e.QualifiedUsers)
+                .HasMany(e => e.QualifiedHistories)
                 .WithOne(e => e.Stage)
                 .HasForeignKey(e => e.StageId)
                 .IsRequired();
+
+            entity
+                .Property(e => e.AllowBreakDays)
+                .HasDefaultValue(0);
+
+            entity
+                .Property(e => e.Enabled)
+                .HasDefaultValue(false);
         });
 
-        modelBuilder.Entity<ClockInQualifiedUser>(HasTrackableColumns);
+        modelBuilder.Entity<UserClockInStatus>(entity =>
+        {
+            HasTrackableColumns(entity);
+
+            entity
+                .HasMany(e => e.QualifiedHistories)
+                .WithOne(e => e.UserStatus)
+                .HasForeignKey(e => e.UserStatusId)
+                .IsRequired();
+
+            entity
+                .HasMany(e => e.ClockInHistories)
+                .WithOne(e => e.UserStatus)
+                .HasForeignKey(e => e.UserStatusId)
+                .IsRequired();
+
+            entity
+                .HasIndex(e => e.UserId);
+
+            entity
+                .HasIndex(e => new { e.ConfigId, e.UserId })
+                .IsUnique();
+
+            entity
+                .Property(e => e.AllClockInCount)
+                .HasDefaultValue(0);
+
+            entity
+                .Property(e => e.IsClockInToday)
+                .HasDefaultValue(false);
+
+            entity
+                .Property(e => e.StartDate)
+                .HasDefaultValueSql("current_date");
+        });
+
+        modelBuilder.Entity<ClockInStageQualifiedHistory>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+        });
+
+        modelBuilder.Entity<ClockInHistory>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .HasIndex(e => e.CreateTime)
+                .IsDescending();
+
+            entity
+                .HasIndex(e => e.UserStatusId);
+        });
+
+        modelBuilder.Entity<ClockInCardInstance>(entity =>
+        {
+            HasTrackableColumns(entity);
+
+            entity
+                .HasIndex(e => new { e.ConfigId, e.ChannelId })
+                .IsUnique();
+        });
     }
 
     public override int SaveChanges()
@@ -237,12 +350,12 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
             if (entry.State != EntityState.Added && entry.State != EntityState.Modified) continue;
             var actionTimestamp = DateTime.Now;
-            if (entry.Metadata.FindProperty(UpdateTimeProp) != null)
+            if (entry.Metadata.FindProperty(UpdateTimeProp) is not null)
             {
                 Entry(entry.Entity).Property(UpdateTimeProp).CurrentValue = actionTimestamp;
             }
 
-            if (entry.State == EntityState.Added && entry.Metadata.FindProperty(CreateTimeProp) != null)
+            if (entry.State == EntityState.Added && entry.Metadata.FindProperty(CreateTimeProp) is not null)
             {
                 Entry(entry.Entity).Property(CreateTimeProp).CurrentValue = actionTimestamp;
             }

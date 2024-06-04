@@ -6,8 +6,8 @@ namespace Jellyfish.Module.Role.Data;
 public class UserCommandPermission(long userRoleId, string commandName)
 {
     public long Id { get; set; }
-    public long UserRoleId { get; set; } = userRoleId;
-    public string CommandName { get; set; } = commandName;
+    public long UserRoleId { get; init; } = userRoleId;
+    public string CommandName { get; init; } = commandName;
 
     // References
     public UserRole UserRole { get; set; } = null!;

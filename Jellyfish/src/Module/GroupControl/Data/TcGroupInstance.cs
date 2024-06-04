@@ -14,7 +14,7 @@ public class TcGroupInstance(
     : TrackableEntity
 {
     public long Id { get; set; }
-    public long TcGroupId { get; set; } = tcGroupId;
+    public long TcGroupId { get; init; } = tcGroupId;
     public string Name { get; set; } = name;
     public string? Description { get; set; } = description;
     public Guid? DescriptionMessageId { get; set; } = descriptionMessageId;

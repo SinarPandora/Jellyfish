@@ -29,7 +29,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             .Select(c => c.Name)
             .ToHashSet();
 
-        if (string.IsNullOrEmpty(name))
+        if (string.IsNullOrWhiteSpace(name))
         {
             await channel.SendErrorCardAsync("请设置绑定名称，举例：`！组队 绑定 真格上分`", true);
             return false;
@@ -73,7 +73,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
                             💬您也可以同时绑定任意文字频道为入口频道，在目标频道发送由 /组队 开头的消息将自动创建对应房间
                             绑定方法为：`!组队 绑定文字频道 {name} [#引用文字频道]`
                             ---
-                            引用的频道必须是一个 Kook 引用（在消息中显示为蓝色）
+                            引用的频道必须是一个 Kook 引用，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道
                             """, true);
             })
             .AddModule<DividerModuleBuilder>()
@@ -135,7 +135,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
     {
         log.LogInformation("已收到名为 {Name} 的语音频道绑定请求，执行进一步操作", name);
         var voiceChannel = user.Value?.VoiceChannel;
-        if (voiceChannel == null)
+        if (voiceChannel is null)
         {
             await channel.SendErrorCardAsync("未检测到您加入的语音频道", true);
         }
@@ -149,7 +149,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
                 .FirstOrDefault(e => e.Name == name);
 
             // Update or Insert
-            if (config != null)
+            if (config is not null)
             {
                 config.VoiceChannelId = voiceChannel.Id;
             }
@@ -189,7 +189,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             await channel.SendErrorCardAsync(
                 """
                 参数不足！举例：`!组队 绑定文字频道 配置名称 #引用现有文字频道`
-                 引用的频道必须是一个 Kook 引用（在消息中显示为蓝色）
+                 引用的频道必须是一个 Kook 引用，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道
                 """,
                 true);
             return false;
@@ -204,10 +204,9 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             return false;
         }
 
-        var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
-        if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var bindingChannelId))
+        if (!MentionUtils.TryParseChannel(rawMention, out var bindingChannelId, TagMode.KMarkdown))
         {
-            await channel.SendErrorCardAsync("现有文字频道引用应是一个频道引用（蓝色文本），具体内容请参考：`!组队 帮助`", true);
+            await channel.SendErrorCardAsync("现有文字频道引用应是一个频道引用（蓝色文本），请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
             return false;
         }
 
@@ -217,7 +216,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
         log.LogInformation("已收到名为 {Name} 的文字频道绑定请求，执行进一步操作", configName);
         var config = dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
             .FirstOrDefault(e => e.Name == configName);
-        if (config == null)
+        if (config is null)
         {
             config = new TpConfig(configName, channel.Guild.Id)
             {
@@ -258,7 +257,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             where config.Name == name
             select config
         ).FirstOrDefault();
-        if (record == null)
+        if (record is null)
         {
             await channel.SendErrorCardAsync($"规则 {name} 未找到或已被删除", true);
             return false;
@@ -357,7 +356,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             select record
         ).FirstOrDefault();
 
-        if (config == null)
+        if (config is null)
         {
             await channel.SendErrorCardAsync("配置不存在，您可以发送：`!组队 列表` 查看现有配置", true);
             return false;
@@ -400,7 +399,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             select record
         ).FirstOrDefault();
 
-        if (config == null)
+        if (config is null)
         {
             await channel.SendErrorCardAsync("配置不存在，您可以发送：`!组队 列表` 查看现有配置", true);
             return false;
@@ -442,7 +441,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             await channel.SendErrorCardAsync(
                 $"""
                  参数不足！举例：`!组队 {channelTypeName} 配置名称 #引用现有文字频道`
-                  引用的频道必须是一个 Kook 引用（在消息中显示为蓝色）
+                  引用的频道必须是一个 Kook 引用，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道
                  """,
                 true);
             return false;
@@ -456,7 +455,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
                 where c.Name == configName
                 select c).FirstOrDefault();
 
-        if (tpConfig == null)
+        if (tpConfig is null)
         {
             await channel.SendErrorCardAsync("配置不存在，您可以发送：`!组队 列表` 查看现有配置", true);
             return false;
@@ -470,10 +469,9 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
             return false;
         }
 
-        var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
-        if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var textChannelId))
+        if (!MentionUtils.TryParseChannel(rawMention, out var textChannelId, TagMode.KMarkdown))
         {
-            await channel.SendErrorCardAsync("现有文字频道引用应是一个频道引用（蓝色文本），具体内容请参考：`!组队 帮助`", true);
+            await channel.SendErrorCardAsync("现有文字频道引用应是一个频道引用（蓝色文本），请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
             return false;
         }
 

@@ -41,9 +41,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
             where cdChannel.GuildId == channel.Guild.Id
             select $"{cdChannel.Id}：{
                 MentionUtils.KMarkdownMentionChannel(cdChannel.ChannelId)
-            }，目标日期：{
-                cdChannel.DueDate
-            }{
+            }，目标日期：{cdChannel.DueDate:yyyy-MM-dd}{
                 (cdChannel.Positive ? "（正计时" : "（倒计时")
             }{
                 Math.Abs((cdChannel.DueDate.ToDateTime(TimeOnly.MinValue) - today).Days)
@@ -82,10 +80,9 @@ public class CountDownChannelService(DbContextProvider dbProvider)
             return false;
         }
 
-        var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
-        if (!ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var targetChannelId))
+        if (!MentionUtils.TryParseChannel(rawMention, out var targetChannelId, TagMode.KMarkdown))
         {
-            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，具体内容请参考：`!倒计时频道 帮助`", true);
+            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
             return false;
         }
 
@@ -109,7 +106,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
 
         var exists = dbCtx.CountDownChannels.FirstOrDefault(item =>
             item.ChannelId == targetChannelId && item.GuildId == channel.Guild.Id);
-        if (exists != null)
+        if (exists is not null)
         {
             await channel.SendErrorCardAsync("该频道已设置过倒计时，请选择其他频道（或删除倒计时重新创建）", true);
             return false;
@@ -151,7 +148,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         var rawMention = args[0];
         await using var dbCtx = dbProvider.Provide();
         var cdChannel = await ExtractMentionOrId(rawMention, channel, dbCtx);
-        if (cdChannel == null) return false;
+        if (cdChannel is null) return false;
 
         cdChannel.DueText = args[1];
         dbCtx.SaveChanges();
@@ -176,14 +173,13 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     {
         if (rawMention.StartsWith(KookConstants.ChannelMention))
         {
-            var chnMatcher = Regexs.MatchTextChannelMention().Match(rawMention);
-            if (ulong.TryParse(chnMatcher.Groups["channelId"].Value, out var targetChannelId))
+            if (MentionUtils.TryParseChannel(rawMention, out var targetChannelId, TagMode.KMarkdown))
             {
                 return dbCtx.CountDownChannels.FirstOrDefault(item =>
                     item.ChannelId == targetChannelId && item.GuildId == channel.Guild.Id);
             }
 
-            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，具体内容请参考：`!倒计时频道 帮助`", true);
+            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
             return null;
         }
 
@@ -206,7 +202,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     {
         await using var dbCtx = dbProvider.Provide();
         var cdChannel = await ExtractMentionOrId(rawArgs, channel, dbCtx);
-        if (cdChannel == null) return false;
+        if (cdChannel is null) return false;
 
         cdChannel.DueText = null;
         dbCtx.SaveChanges();
@@ -225,7 +221,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     {
         await using var dbCtx = dbProvider.Provide();
         var cdChannel = await ExtractMentionOrId(rawArgs, channel, dbCtx);
-        if (cdChannel == null) return false;
+        if (cdChannel is null) return false;
 
         dbCtx.CountDownChannels.Remove(cdChannel);
         dbCtx.SaveChanges();
@@ -245,7 +241,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         string name;
         if (delta == 0)
         {
-            if (cdChannel.DueText != null)
+            if (cdChannel.DueText is not null)
             {
                 name = cdChannel.DueText;
             }

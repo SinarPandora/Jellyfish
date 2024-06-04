@@ -8,8 +8,8 @@ namespace Jellyfish.Module.ExpireExtendSession.Data;
 public class ExpireExtendSession(long targetId, ExtendTargetType targetType, uint value, TimeUnit timeUnit)
 {
     public long Id { get; set; }
-    public long TargetId { get; set; } = targetId;
-    public ExtendTargetType TargetType { get; set; } = targetType;
-    public uint Value { get; set; } = value;
-    public TimeUnit TimeUnit { get; set; } = timeUnit;
+    public long TargetId { get; init; } = targetId;
+    public ExtendTargetType TargetType { get; init; } = targetType;
+    public uint Value { get; init; } = value;
+    public TimeUnit TimeUnit { get; init; } = timeUnit;
 }

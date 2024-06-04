@@ -20,13 +20,13 @@ public static class HelpMessageHelper
     public static Card ForMessageCommand(GuildMessageCommand command, string description, string options) =>
         new CardBuilder()
             .AddModule<HeaderModuleBuilder>(m => m.WithText(command.Name()))
-            .AddModule<SectionModuleBuilder>(m => m.WithText($"> {string.Join("\n> ", description.Split("\n"))}", true))
+            .AddModule<SectionModuleBuilder>(m => m.WithText(description, true))
             .AddModule<DividerModuleBuilder>()
             .AddModule<SectionModuleBuilder>(
                 m => m.WithText(
                     $"""
                      指令名称：{string.Join(" 或 ", command.Keywords())}
-
+                     ---
                      **选项：**
                      {options}
                      """, true)
