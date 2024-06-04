@@ -140,6 +140,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
                 .AddModule<SectionModuleBuilder>(b =>
                     b.WithText($"""
                                 当前配置信息如下：
+                                编号：{stage.Id}
                                 状态：禁用中
                                 开始日期：{stage.StartDate:yyyy-MM-dd}
                                 结束日期：{stage.EndDate?.ToString("yyyy-MM-dd") ?? "一直有效"}
@@ -427,7 +428,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         }
 
         var text = qualifiedUsers
-            .Select(h => $"{h.UserStatus.Username}#{h.UserStatus.UserId}（累计打卡{h.UserStatus.AllClockInCount}）")
+            .Select(h => $"{h.UserStatus.Username}#{h.UserStatus.IdNumber}（累计打卡{h.UserStatus.AllClockInCount}）")
             .StringJoin("\n");
 
         var cb = new CardBuilder()

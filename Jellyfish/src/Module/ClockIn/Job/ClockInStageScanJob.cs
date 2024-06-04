@@ -107,16 +107,19 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
 
         dbCtx.SaveChanges();
         log.LogInformation("用户已合格，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
-            user.Username, user.UserId, stage.Name, stage.Id, guild.Name);
+            user.Username, user.IdNumber, stage.Name, stage.Id, guild.Name);
+
+        var guildUser = guild.GetUser(user.UserId);
+        if (guildUser is null) return;
 
         // Send the qualified message
         if (stage.QualifiedMessage.IsNotNullOrEmpty())
         {
             try
             {
-                kook.GetUser(user.UserId)?.SendTextAsync(stage.QualifiedMessage!);
+                await guildUser.SendTextAsync(stage.QualifiedMessage!);
                 log.LogInformation("用户合格，已发送合格消息，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
-                    user.Username, user.UserId, stage.Name, stage.Id, guild.Name);
+                    user.Username, user.IdNumber, stage.Name, stage.Id, guild.Name);
             }
             catch (HttpException e)
             {
@@ -131,12 +134,11 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
         if (stage.QualifiedRoleId.HasValue)
         {
             var role = guild.GetRole(stage.QualifiedRoleId.Value);
-            var kookUser = guild.GetUser(user.UserId);
-            if (role is not null && kookUser is not null && kookUser.Roles.FirstOrDefault(r => r.Id == role.Id) == null)
+            if (role is not null && guildUser.Roles.FirstOrDefault(r => r.Id == role.Id) == null)
             {
-                await kookUser.AddRoleAsync(role);
+                await guildUser.AddRoleAsync(role);
                 log.LogInformation("用户合格，已赋予指定角色，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
-                    user.Username, user.UserId, stage.Name, stage.Id, guild.Name);
+                    user.Username, user.IdNumber, stage.Name, stage.Id, guild.Name);
             }
         }
     }

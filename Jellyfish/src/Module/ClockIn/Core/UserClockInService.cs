@@ -41,7 +41,7 @@ public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvi
         if (userStatus is null)
         {
             firstTimeClockIn = true;
-            userStatus = new UserClockInStatus(config.Id, userId, user.DisplayName())
+            userStatus = new UserClockInStatus(config.Id, userId, user.DisplayName(), user.IdentifyNumber)
             {
                 AllClockInCount = 1
             };
@@ -72,6 +72,8 @@ public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvi
 
             // Update cache
             userStatus.AllClockInCount += 1;
+            userStatus.Username = user.DisplayName();
+            userStatus.IdNumber = user.IdentifyNumber;
         }
 
         // Record history
@@ -82,6 +84,6 @@ public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvi
         await channel.SendSuccessCardAsync($"{MentionUtils.KMarkdownMentionUser(userId)} 打卡成功！您已连续打卡 {ongoingDays} 天",
             fromButton);
         log.LogInformation("用户打卡成功，用户名：{UserName}#{UserId}，服务器：{GuildName}",
-            userStatus.Username, userStatus.UserId, guild!.Name);
+            userStatus.Username, userStatus.IdNumber, guild!.Name);
     }
 }

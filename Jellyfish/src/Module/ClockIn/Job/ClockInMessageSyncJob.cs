@@ -49,7 +49,7 @@ public class ClockInMessageSyncJob(
                         .Where(h => h.ConfigId == group.First().ConfigId && h.CreateTime >= today)
                         .OrderBy(h => h.CreateTime)
                         .Take(3)
-                        .Select(u => $"{u.UserStatus.Username}#{u.UserStatus.UserId}")
+                        .Select(u => $"{u.UserStatus.Username}#{u.UserStatus.IdNumber}")
                         .ToArray();
                     appendData = new ClockInCardAppendData(todayClockInCount, top3Usernames);
                     lastHistory = dbCtx.ClockInHistories.Where(h => h.CreateTime >= today)

@@ -237,7 +237,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
             .Select(g => $"第 {
                 g.Rank
             } 名：{
-                g.Users.Select(u => $"{u.Username}#{u.UserId}").StringJoin("\n")
+                g.Users.Select(u => $"{u.Username}#{u.IdNumber}").StringJoin("\n")
             }{
                 (g.Users.Count > MaxTopUserCountEachRank ? "（按时间列出前 20 名）" : "")
             }")
