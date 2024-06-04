@@ -52,7 +52,11 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
             .StringJoin("\n---\n");
 
         if (stages.IsEmpty())
+        {
             await channel.SendSuccessCardAsync("当前服务器未设置打卡阶段", false);
+            return true;
+        }
+
         await channel.SendSuccessCardAsync($"{(enabled ? "启用的" : "禁用/过期的")}打卡阶段列表\n---\n" + stages, false);
 
         return true;
@@ -104,6 +108,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
                 .AddModule<SectionModuleBuilder>(b =>
                     b.WithText($"""
                                 当前配置信息如下：
+                                状态：禁用中
                                 开始日期：{startDate:yyyy-MM-dd}
                                 结束日期：一直有效
                                 达标天数：{days}
@@ -111,6 +116,10 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
                                 合格消息：未设置
                                 给予身份：未设置
                                 """, true)
+                )
+                .AddModule<DividerModuleBuilder>()
+                .AddModule<SectionModuleBuilder>(b =>
+                    b.WithText($"当一切都设置好后，请使用 `！打卡阶段 {stage.Id} 启用` 启用该打卡阶段", true)
                 )
                 .AddModule<DividerModuleBuilder>()
                 .AddModule<SectionModuleBuilder>(b =>
@@ -122,10 +131,13 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
                                 4. `！打卡阶段 {stage.Id} 合格消息 [消息内容]`：设置合格时向用户发送的消息
                                 5. `！打卡阶段 {stage.Id} 给予身份 [@身份引用]`：设置合格时颁发给用户的 Kook 角色
                                 6. `！打卡阶段 {stage.Id} 允许中断天数 [非负整数]`：修改允许中断天数，设置为 0 时不允许中断打卡
-                                7. `！打卡阶段 {stage.Id} 禁用`：禁用该阶段
-                                8. `！打卡阶段 {stage.Id} 启用`：启用该阶段
-                                9. `！打卡阶段 {stage.Id} 满足条件的用户`：列出全部满足条件的用户（由于消息长度限制，当超过 50 名用户时只列出最多前 50 名，您可以设置合格身份，并在 Kook 的管理页面中使用身份进行过滤）
-                                """))
+                                ---
+                                当一切都设置好后，请使用 `！打卡阶段 {stage.Id} 启用` 启用该打卡阶段
+                                ---
+                                ！请注意：
+                                打卡扫描任务持续在后台运行，若修改「合格消息」和「给予身份」的过程中有人满足条件则可能不会应用更改。
+                                请务必在每次修改前禁用该阶段。
+                                """, true))
                 .Build());
         return true;
     }

@@ -16,7 +16,7 @@ public class UserClockInCommand(ClockInBuffer buffer) : GuildMessageCommand(fals
     protected override Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
-        buffer.Instance.OnNext((channel.Guild.Id, channel.Id, user.Id));
+        buffer.Instance.OnNext((channel.Guild.Id, channel.Id, user.Id, false));
         return Task.CompletedTask;
     }
 }

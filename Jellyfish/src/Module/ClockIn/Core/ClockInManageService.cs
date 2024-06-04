@@ -123,21 +123,15 @@ public class ClockInManageService(DbContextProvider dbProvider)
     public static async Task<Guid> SendCardToCurrentChannel(SocketTextChannel channel, ClockInConfig config,
         ClockInCardAppendData? appendData = null)
     {
-        var card = new CardBuilder()
-            .AddModule<HeaderModuleBuilder>(e => e.WithText(config.Title))
-            .AddModule<SectionModuleBuilder>(e => e.WithText(config.Description, true))
-            .AddModule<DividerModuleBuilder>()
-            .AddModule<ActionGroupModuleBuilder>(e => e.AddElement(b =>
-            {
-                b.WithText(config.ButtonText)
-                    .WithClick(ButtonClickEventType.ReturnValue)
-                    .WithValue(ClockInCardAction.CardActionValue)
-                    .WithTheme(ButtonTheme.Primary);
-            }));
+        var cardBuilder = new CardBuilder()
+            .AddModule<HeaderModuleBuilder>(e => e.WithText(config.Title));
+
+        if (config.Description.IsNotNullOrEmpty())
+            cardBuilder.AddModule<SectionModuleBuilder>(e => e.WithText(config.Description, true));
 
         if (appendData is not null)
         {
-            card.AddModule<DividerModuleBuilder>()
+            cardBuilder.AddModule<DividerModuleBuilder>()
                 .AddModule<SectionModuleBuilder>(b =>
                     b.WithText($"""
                                 今日已有{appendData.TodayClockInCount}人打卡
@@ -146,7 +140,16 @@ public class ClockInManageService(DbContextProvider dbProvider)
                                 """));
         }
 
-        return (await channel.SendCardAsync(card.Build())).Id;
+        cardBuilder.AddModule<DividerModuleBuilder>()
+            .AddModule<ActionGroupModuleBuilder>(e => e.AddElement(b =>
+            {
+                b.WithText(config.ButtonText)
+                    .WithClick(ButtonClickEventType.ReturnValue)
+                    .WithValue(ClockInCardAction.CardActionValue)
+                    .WithTheme(ButtonTheme.Primary);
+            }));
+
+        return (await channel.SendCardAsync(cardBuilder.Build())).Id;
     }
 
     /// <summary>

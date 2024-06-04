@@ -18,7 +18,7 @@ public class ClockInCardAction(ClockInBuffer buffer) : ButtonActionCommand
         Cacheable<IMessage, Guid> message, SocketTextChannel channel)
     {
         if (value != CardActionValue) return Task.FromResult(CommandResult.Continue);
-        buffer.Instance.OnNext((channel.Guild.Id, channel.Id, user.Id));
+        buffer.Instance.OnNext((channel.Guild.Id, channel.Id, user.Id, true));
         return Task.FromResult(CommandResult.Done);
     }
 }

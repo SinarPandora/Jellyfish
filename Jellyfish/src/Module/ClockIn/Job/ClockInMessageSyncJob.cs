@@ -23,11 +23,14 @@ public class ClockInMessageSyncJob(
             await using var dbCtx = dbProvider.Provide();
             var today = DateTime.Today;
 
+            var scope = dbCtx.ClockInCardInstances
+                .Include(i => i.Config)
+                .Where(i => i.Config.Enabled)
+                .GroupBy(i => i.Config.GuildId)
+                .ToArray();
+
             var needDelete = new List<ClockInCardInstance>();
-            foreach (var group in dbCtx.ClockInCardInstances
-                         .Include(i => i.Config)
-                         .Where(i => i.Config.Enabled)
-                         .GroupBy(i => i.Config.GuildId))
+            foreach (var group in scope)
             {
                 var guild = kook.GetGuild(group.Key);
                 if (guild is null)
@@ -38,16 +41,15 @@ public class ClockInMessageSyncJob(
 
                 ClockInCardAppendData? appendData = null;
                 ClockInHistory? lastHistory = null;
-                var todayClockInCount = dbCtx.ClockInHistories.Count(h => h.CreateTime >= today);
+                var todayClockInCount =
+                    dbCtx.ClockInHistories.Count(h => h.ConfigId == group.First().ConfigId && h.CreateTime >= today);
                 if (todayClockInCount > 0)
                 {
                     var top3Usernames = dbCtx.ClockInHistories.Include(h => h.UserStatus)
-                        .Where(h => h.CreateTime >= today)
+                        .Where(h => h.ConfigId == group.First().ConfigId && h.CreateTime >= today)
                         .OrderBy(h => h.CreateTime)
-                        .Select(h => guild.GetUser(h.UserStatus.UserId))
-                        .Where(u => u != null)
                         .Take(3)
-                        .Select(u => $"{u!.Username}#{u.Id}")
+                        .Select(u => $"{u.UserStatus.Username}#{u.UserStatus.UserId}")
                         .ToArray();
                     appendData = new ClockInCardAppendData(todayClockInCount, top3Usernames);
                     lastHistory = dbCtx.ClockInHistories.Where(h => h.CreateTime >= today)

@@ -17,7 +17,7 @@ public class ClockInStage(long configId, string name, DateOnly startDate, uint d
     public uint AllowBreakDays { get; set; }
     public string? QualifiedMessage { get; set; }
     public uint? QualifiedRoleId { get; set; }
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; } = false;
     public DateTime LastScanTime { get; set; } = DateTime.MinValue;
 
     // References
