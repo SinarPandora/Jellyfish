@@ -316,7 +316,8 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         dbCtx.SaveChanges();
         AppCaches.ClockInConfigs[channel.Guild.Id].Stages.RemoveWhere(s => s.Id == stage.Id);
 
-        await channel.SendSuccessCardAsync($"已禁用打卡阶段：{stage.Name}#{stage.Id}，后续即使用户打卡记录达标，也不会被标记为满足该打卡阶段。", false);
+        await channel.SendSuccessCardAsync($"已禁用打卡阶段：{stage.Name}#{stage.Id}，您可以开始修改打卡阶段配置，禁用的这段时间即使用户满足了条件也不会被标记为合格",
+            false);
         return true;
     }
 
@@ -342,7 +343,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         dbCtx.SaveChanges();
         AppCaches.ClockInConfigs[channel.Guild.Id].Stages.Add(stage);
 
-        await channel.SendSuccessCardAsync($"已重新启用该打卡阶段：{stage.Name}#{stage.Id}，明日零点过后满足条件的用户数据将被更新。", false);
+        await channel.SendSuccessCardAsync($"已启用该打卡阶段：{stage.Name}#{stage.Id}，开始扫描合格用户，未确保数据正确，下次修改前请先禁用该阶段", false);
         return true;
     }
 
