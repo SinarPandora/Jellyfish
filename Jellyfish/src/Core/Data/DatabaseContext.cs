@@ -263,7 +263,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
             entity
                 .Property(e => e.Enabled)
-                .HasDefaultValue(true);
+                .HasDefaultValue(false);
         });
 
         modelBuilder.Entity<UserClockInStatus>(entity =>
