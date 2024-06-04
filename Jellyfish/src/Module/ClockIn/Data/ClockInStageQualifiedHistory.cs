@@ -7,7 +7,7 @@ namespace Jellyfish.Module.ClockIn.Data;
 /// </summary>
 public class ClockInStageQualifiedHistory(long stageId, long userStatusId)
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public long StageId { get; init; } = stageId;
     public long UserStatusId { get; init; } = userStatusId;
     [Column(TypeName = "timestamp")] public DateTime CreateTime { get; init; } = DateTime.Now;

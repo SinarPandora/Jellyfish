@@ -7,7 +7,7 @@ namespace Jellyfish.Module.ClockIn.Data;
 /// </summary>
 public class ClockInHistory(long configId, long userStatusId, ulong channelId)
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public long ConfigId { get; init; } = configId;
     public long UserStatusId { get; init; } = userStatusId;
     public ulong ChannelId { get; init; } = channelId;
