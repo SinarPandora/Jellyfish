@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Jellyfish.Core.Data;
 
 namespace Jellyfish.Module.ClockIn.Data;
@@ -19,8 +20,8 @@ public class ClockInStage(long configId, string name, DateOnly startDate, uint d
     public uint AllowBreakDays { get; set; }
     public string? QualifiedMessage { get; set; }
     public uint? QualifiedRoleId { get; set; }
-    public bool Enabled { get; set; } = false;
-    public DateTime LastScanTime { get; set; } = DateTime.MinValue;
+    public bool Enabled { get; set; }
+    [Column(TypeName = "timestamp")] public DateTime LastScanTime { get; set; } = DateTime.MinValue;
 
     // References
     public ClockInConfig Config { get; set; } = null!;

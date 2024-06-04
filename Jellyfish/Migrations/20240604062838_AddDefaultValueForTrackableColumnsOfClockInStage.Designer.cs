@@ -6,6 +6,7 @@ using Jellyfish.Module.Board.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -14,9 +15,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jellyfish.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20240604062838_AddDefaultValueForTrackableColumnsOfClockInStage")]
+    partial class AddDefaultValueForTrackableColumnsOfClockInStage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -55,7 +58,7 @@ namespace Jellyfish.Migrations
                         .HasColumnName("details");
 
                     b.Property<DateTime>("Due")
-                        .HasColumnType("timestamp")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("due");
 
                     b.Property<bool>("Finished")
@@ -453,7 +456,7 @@ namespace Jellyfish.Migrations
                         .HasColumnName("end_date");
 
                     b.Property<DateTime>("LastScanTime")
-                        .HasColumnType("timestamp")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_scan_time");
 
                     b.Property<string>("Name")
@@ -1015,7 +1018,7 @@ namespace Jellyfish.Migrations
                         .HasColumnName("creator_id");
 
                     b.Property<DateTime?>("ExpireTime")
-                        .HasColumnType("timestamp")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("expire_time");
 
                     b.Property<decimal>("GuildId")

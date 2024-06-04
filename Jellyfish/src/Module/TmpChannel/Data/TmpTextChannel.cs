@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Jellyfish.Core.Data;
 
 namespace Jellyfish.Module.TmpChannel.Data;
@@ -13,5 +14,5 @@ public class TmpTextChannel(ulong guildId, ulong channelId, string name, ulong c
     public ulong ChannelId { get; init; } = channelId;
     public string Name { get; set; } = name;
     public ulong CreatorId { get; init; } = creatorId;
-    public DateTime? ExpireTime { get; set; } = expireTime;
+    [Column(TypeName = "timestamp")] public DateTime? ExpireTime { get; set; } = expireTime;
 }
