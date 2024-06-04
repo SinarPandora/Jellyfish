@@ -18,7 +18,7 @@ public class ClockInBuffer
         // Control the pressure to one operation per second
         Instance
             .Buffer(TimeSpan.FromSeconds(1))
-            .SelectMany(ids => ids.DistinctBy(g => (g.Item1, g.Item2, g.Item3)))
+            .SelectMany(args => args.DistinctBy(g => (g.Item1, g.Item2, g.Item3)))
             .Subscribe(pair => _ = service.ClockIn(pair.Item1, pair.Item2, pair.Item3, pair.Item4));
     }
 }

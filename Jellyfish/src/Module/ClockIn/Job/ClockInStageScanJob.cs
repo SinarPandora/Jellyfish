@@ -102,8 +102,10 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
 
         // User is qualified
         dbCtx.ClockInStageQualifiedHistories.Add(
-            new ClockInStageQualifiedHistory(stage.Id, user.Id)
+            new ClockInStageQualifiedHistory(stage.Id, user.Id, stage.QualifiedRoleId)
         );
+
+        dbCtx.SaveChanges();
 
         // Send the qualified message
         if (stage.QualifiedMessage.IsNotNullOrEmpty())
@@ -131,7 +133,5 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
                 await kookUser.AddRoleAsync(role);
             }
         }
-
-        dbCtx.SaveChanges();
     }
 }
