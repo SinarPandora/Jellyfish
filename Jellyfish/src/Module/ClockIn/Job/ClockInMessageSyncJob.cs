@@ -26,6 +26,7 @@ public class ClockInMessageSyncJob(
             var needDelete = new List<ClockInCardInstance>();
             foreach (var group in dbCtx.ClockInCardInstances
                          .Include(i => i.Config)
+                         .Where(i => i.Config.Enabled)
                          .GroupBy(i => i.Config.GuildId))
             {
                 var guild = kook.GetGuild(group.Key);
