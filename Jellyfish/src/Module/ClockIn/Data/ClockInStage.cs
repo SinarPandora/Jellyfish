@@ -1,3 +1,5 @@
+using Jellyfish.Core.Data;
+
 namespace Jellyfish.Module.ClockIn.Data;
 
 /// <summary>
@@ -6,7 +8,7 @@ namespace Jellyfish.Module.ClockIn.Data;
 ///                 (Regardless of how many days you have clocked in before)
 ///     This actually validation rule, so a scanning task is needed to handle it.
 /// </summary>
-public class ClockInStage(long configId, string name, DateOnly startDate, uint days)
+public class ClockInStage(long configId, string name, DateOnly startDate, uint days) : TrackableEntity
 {
     public long Id { get; set; }
     public long ConfigId { get; init; } = configId;
