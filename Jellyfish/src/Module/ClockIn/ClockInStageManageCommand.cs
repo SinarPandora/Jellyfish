@@ -83,7 +83,7 @@ public class ClockInStageManageCommand : GuildMessageCommand
     private async Task<bool> DispatchSubCommand(string rawArgs, SocketTextChannel channel)
     {
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
-        if (args.Length < 2)
+        if (args.Length < 1)
         {
             await channel.SendCardSafeAsync(HelpMessage);
             return true;
@@ -96,6 +96,9 @@ public class ClockInStageManageCommand : GuildMessageCommand
             return true;
         }
 
+        if (args.Length < 2)
+            return await _service.ShowInfo(channel, id);
+
         var furtherArg = args[1];
         if (furtherArg.StartsWith("开始日期"))
             return await _service.SetStartDate(channel, id, furtherArg[4..].TrimStart());
@@ -106,7 +109,7 @@ public class ClockInStageManageCommand : GuildMessageCommand
         if (furtherArg.StartsWith("合格消息"))
             return await _service.SetQualifiedMessage(channel, id, furtherArg[4..].TrimStart());
         if (furtherArg.StartsWith("给予身份"))
-            return await _service.SetQualifiedMessage(channel, id, furtherArg[4..].TrimStart());
+            return await _service.SetQualifiedRole(channel, id, furtherArg[4..].TrimStart());
         if (furtherArg.StartsWith("允许中断天数"))
             return await _service.SetAllowBreakDays(channel, id, furtherArg[6..].TrimStart());
         if (furtherArg.StartsWith("禁用"))
@@ -115,8 +118,6 @@ public class ClockInStageManageCommand : GuildMessageCommand
             return await _service.Enable(channel, id);
         if (furtherArg.StartsWith("满足条件的用户"))
             return await _service.ListQualifiedUsers(channel, id);
-        if (furtherArg.IsNullOrWhiteSpace())
-            return await _service.ShowInfo(channel, id);
         await channel.SendCardSafeAsync(HelpMessage);
         return true;
     }

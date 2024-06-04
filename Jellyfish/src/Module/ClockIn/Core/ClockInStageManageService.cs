@@ -306,6 +306,26 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         });
 
     /// <summary>
+    ///     Set the stage qualified role
+    /// </summary>
+    /// <param name="channel">Current channel</param>
+    /// <param name="id">Stage id</param>
+    /// <param name="roleRef">Role reference</param>
+    /// <returns>Is task success or not</returns>
+    public Task<bool> SetQualifiedRole(SocketTextChannel channel, long id, string roleRef) =>
+        UpdateStage(channel, id, async stage =>
+        {
+            if (!MentionUtils.TryParseRole(roleRef, out var roleId, TagMode.KMarkdown))
+            {
+                await channel.SendWarningCardAsync("角色引用应是一个蓝色文本，请在消息框中输入@（艾特符号）并在弹出的菜单中选择指定角色（不要选择用户）", true);
+                return false;
+            }
+
+            stage.QualifiedRoleId = roleId;
+            return true;
+        });
+
+    /// <summary>
     ///     Set the stage allow break days
     /// </summary>
     /// <param name="channel">Current channel</param>
@@ -374,7 +394,10 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         dbCtx.SaveChanges();
         AppCaches.ClockInConfigs[channel.Guild.Id].Stages.Add(stage);
 
-        await channel.SendSuccessCardAsync($"已启用该打卡阶段：{stage.Name}#{stage.Id}，开始扫描合格用户，为确保数据正确，下次修改前请先禁用该阶段", false);
+        await channel.SendSuccessCardAsync($"""
+                                            已启用该打卡阶段：{stage.Name}#{stage.Id}，开始扫描合格用户
+                                            为确保数据正确，下次修改前请依然先禁用该阶段
+                                            """, false);
         return true;
     }
 
