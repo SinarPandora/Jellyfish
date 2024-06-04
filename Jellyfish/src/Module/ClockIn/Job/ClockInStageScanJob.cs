@@ -116,6 +116,18 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
         var guildUser = guild.GetUser(user.UserId);
         if (guildUser is null) return;
 
+        if (stage.Config.ResultChannelId.HasValue)
+        {
+            var channel = guild.GetTextChannel(stage.Config.ResultChannelId.Value);
+            if (channel is not null)
+            {
+                await channel.SendSuccessCardAsync(
+                    $"{user.Username}#{user.IdNumber} 已合格！打卡阶段：{stage.Name}，累积打卡 {user.AllClockInCount} 天",
+                    false
+                );
+            }
+        }
+
         // Send the qualified message
         if (stage.QualifiedMessage.IsNotNullOrEmpty())
         {
