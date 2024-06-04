@@ -26,7 +26,7 @@ public static class HelpMessageHelper
                 m => m.WithText(
                     $"""
                      指令名称：{string.Join(" 或 ", command.Keywords())}
-
+                     ---
                      **选项：**
                      {options}
                      """, true)
