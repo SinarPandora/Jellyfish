@@ -9,9 +9,9 @@ using Jellyfish.Core.Lifecycle;
 using Jellyfish.Core.Puppeteer;
 using Jellyfish.Custom.Splatoon.Model.SuiteSearch;
 using Jellyfish.Module;
-using Jellyfish.Module.Board;
-using Jellyfish.Module.Board.Core;
-using Jellyfish.Module.Board.Job;
+using Jellyfish.Module.ClockIn;
+using Jellyfish.Module.ClockIn.Core;
+using Jellyfish.Module.ClockIn.Job;
 using Jellyfish.Module.CountDownName;
 using Jellyfish.Module.CountDownName.Core;
 using Jellyfish.Module.CountDownName.Job;
@@ -106,12 +106,25 @@ public static class AppContext
         container.RegisterType<CountDownScanJob>().SingleInstance();
         container.RegisterType<CountDownManageCommand>().As<GuildMessageCommand>().SingleInstance();
 
+        // Clock-In Command
+        container.RegisterType<ClockInManageService>().SingleInstance();
+        container.RegisterType<ClockInStageManageService>().SingleInstance();
+        container.RegisterType<UserClockInService>().SingleInstance();
+        container.RegisterType<ClockInMessageSyncJob>().SingleInstance();
+        container.RegisterType<ClockInStageQualifiedRoleSyncJob>().SingleInstance();
+        container.RegisterType<ClockInStageScanJob>().SingleInstance();
+        container.RegisterType<ClockInBuffer>().SingleInstance();
+        container.RegisterType<ClockInStageManageCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<ClockInManageCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<UserClockInCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<ClockInCardAction>().As<ButtonActionCommand>().SingleInstance();
+
 #if DEBUG
         // Board Command
-        container.RegisterType<BoardService>().SingleInstance();
-        container.RegisterType<BoardScanJob>().SingleInstance();
-        container.RegisterType<BoardManageCommand>().As<GuildMessageCommand>().SingleInstance();
-        container.RegisterType<CreateSimpleScoreBoardCommand>().As<GuildMessageCommand>().SingleInstance();
+        // container.RegisterType<BoardService>().SingleInstance();
+        // container.RegisterType<BoardScanJob>().SingleInstance();
+        // container.RegisterType<BoardManageCommand>().As<GuildMessageCommand>().SingleInstance();
+        // container.RegisterType<CreateSimpleScoreBoardCommand>().As<GuildMessageCommand>().SingleInstance();
 #endif
     }
 }
