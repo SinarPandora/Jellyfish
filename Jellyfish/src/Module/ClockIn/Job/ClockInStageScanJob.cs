@@ -24,6 +24,7 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
         {
             log.LogInformation("打卡阶段合格状态扫描任务开始");
             await using var dbCtx = dbProvider.Provide();
+            var now = DateTime.Now;
             var today = DateTime.Today;
             var todayDate = DateOnly.FromDateTime(today);
 
@@ -48,13 +49,12 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
                             // User has not been qualified
                             u.QualifiedHistories.FirstOrDefault(h => h.StageId == stage.Id) == null
                             // User has clocked after stage scanned
-                            && u.ClockInHistories.FirstOrDefault(h => h.CreateTime.Date > stage.LastScanTime) != null
+                            && u.ClockInHistories.FirstOrDefault(h => h.CreateTime > stage.LastScanTime) != null
                         )
                         .ToArray();
 
                     await Task.WhenAll(userNeedScan.Select(u => ScanStageForUser(u, stage, guild)));
-
-                    stage.LastScanTime = DateTime.Now;
+                    stage.LastScanTime = now;
                     dbCtx.SaveChanges();
                 }
             }
@@ -98,7 +98,7 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
         }
 
         var qualifiedDays = histories.Length - lastContinuousIndex;
-        if (qualifiedDays <= stage.Days) return;
+        if (qualifiedDays < stage.Days) return;
 
         // User is qualified
         dbCtx.ClockInStageQualifiedHistories.Add(
@@ -106,6 +106,8 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
         );
 
         dbCtx.SaveChanges();
+        log.LogInformation("用户已合格，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
+            user.Username, user.UserId, stage.Name, stage.Id, guild.Name);
 
         // Send the qualified message
         if (stage.QualifiedMessage.IsNotNullOrEmpty())
@@ -113,6 +115,8 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
             try
             {
                 kook.GetUser(user.UserId)?.SendTextAsync(stage.QualifiedMessage!);
+                log.LogInformation("用户合格，已发送合格消息，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
+                    user.Username, user.UserId, stage.Name, stage.Id, guild.Name);
             }
             catch (HttpException e)
             {
@@ -131,6 +135,8 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
             if (role is not null && kookUser is not null && kookUser.Roles.FirstOrDefault(r => r.Id == role.Id) == null)
             {
                 await kookUser.AddRoleAsync(role);
+                log.LogInformation("用户合格，已赋予指定角色，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
+                    user.Username, user.UserId, stage.Name, stage.Id, guild.Name);
             }
         }
     }

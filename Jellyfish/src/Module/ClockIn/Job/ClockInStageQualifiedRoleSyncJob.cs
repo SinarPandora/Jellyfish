@@ -102,6 +102,8 @@ public class ClockInStageQualifiedRoleSyncJob : IAsyncJob
                 kookUser.Roles.FirstOrDefault(r => r.Id == history.GivenRoleId) != null)
             {
                 await kookUser.RemoveRoleAsync(history.GivenRoleId!.Value);
+                _log.LogInformation("已删除旧用户合格角色，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
+                    kookUser.Username, kookUser.Id, stage.Name, stage.Id, guild.Name);
             }
             else if (stage.QualifiedRoleId.HasValue)
             {
@@ -113,7 +115,14 @@ public class ClockInStageQualifiedRoleSyncJob : IAsyncJob
 
                 if (kookUser.Roles.FirstOrDefault(r => r.Id == history.GivenRoleId) == null)
                 {
-                    await kookUser.AddRoleAsync(stage.QualifiedRoleId.Value);
+                    var role = guild.GetRole(stage.QualifiedRoleId.Value);
+                    if (role is not null)
+                    {
+                        await kookUser.AddRoleAsync(role.Id);
+                        _log.LogInformation(
+                            "用户合格角色已更新，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，角色：{RoleName}#{RoleId}，服务器：{GuildName}",
+                            kookUser.Username, kookUser.Id, stage.Name, stage.Id, role.Name, role.Id, guild.Name);
+                    }
                 }
             }
 

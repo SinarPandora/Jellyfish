@@ -10,7 +10,7 @@ namespace Jellyfish.Module.ClockIn.Core;
 /// <summary>
 ///     Logic for user clock-in
 /// </summary>
-public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvider)
+public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvider, ILogger<UserClockInService> log)
 {
     /// <summary>
     ///     User clock-in
@@ -81,5 +81,7 @@ public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvi
         var ongoingDays = (today - userStatus.StartDate.ToDateTime(TimeOnly.MinValue)).Days + 1;
         await channel.SendSuccessCardAsync($"{MentionUtils.KMarkdownMentionUser(userId)} 打卡成功！您已连续打卡 {ongoingDays} 天",
             fromButton);
+        log.LogInformation("用户打卡成功，用户名：{UserName}#{UserId}，服务器：{GuildName}",
+            userStatus.Username, userStatus.UserId, guild!.Name);
     }
 }
