@@ -70,6 +70,8 @@ public class ClockInMessageSyncJob(
                         // Check if new user clocked-in
                         || lastHistory != null && lastHistory.CreateTime > instance.UpdateTime)
                     {
+                        log.LogInformation("打卡消息配置/历史更新，重新发送消息，频道：{ChannelName}#{ChannelId}，服务器：{GuildName}",
+                            channel.Name, channel.Id, guild.Name);
                         await channel.DeleteMessageAsync(instance.MessageId);
                         instance.MessageId =
                             await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config, appendData);
@@ -80,12 +82,15 @@ public class ClockInMessageSyncJob(
                     // Check if the message deleted
                     if (lastMessage.IsEmpty())
                     {
-                        instance.MessageId =
-                            await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config, appendData);
+                        needDelete.Add(instance);
+                        log.LogInformation("打卡消息被删除，该频道打卡消息发送功能关闭，频道：{ChannelName}#{ChannelId}，服务器：{GuildName}",
+                            channel.Name, channel.Id, guild.Name);
                     }
                     // Check if the message is not at the end
                     else if (lastMessage.First().Id != instance.MessageId)
                     {
+                        log.LogInformation("打卡消息不在频道最底部，重新发送消息，频道：{ChannelName}#{ChannelId}，服务器：{GuildName}",
+                            channel.Name, channel.Id, guild.Name);
                         await channel.DeleteMessageAsync(instance.MessageId);
                         instance.MessageId =
                             await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config, appendData);
