@@ -77,13 +77,17 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
     {
         await using var dbCtx = dbProvider.Provide();
         var histories = dbCtx.ClockInHistories
-            .Where(h => h.UserStatusId == user.Id)
+            .Where(h =>
+                h.UserStatusId == user.Id
+                && h.CreateTime >= stage.StartDate.ToDateTime(TimeOnly.MinValue)
+                && (stage.EndDate == null || h.CreateTime <= ((DateOnly)stage.EndDate).ToDateTime(TimeOnly.MaxValue))
+            )
             .OrderBy(h => h.CreateTime)
             .ToArray();
 
         var window = new Queue<ClockInHistory>();
         var lastContinuousIndex = 0;
-        var allowBreakDuration = TimeSpan.FromDays(stage.AllowBreakDays + 1);
+        var allowBreakDuration = stage.AllowBreakDays + 1;
 
         for (var i = 0; i < histories.Length; i++)
         {
@@ -91,7 +95,7 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
             window.Enqueue(history);
             if (window.Count > WindowSize) window.Dequeue();
             if (window.Count != WindowSize) continue;
-            if (window.Last().CreateTime.Date - window.First().CreateTime.Date > allowBreakDuration)
+            if ((window.Last().CreateTime.Date - window.First().CreateTime.Date).Days > allowBreakDuration)
             {
                 lastContinuousIndex = i;
             }

@@ -226,6 +226,9 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         var isSuccess = await update(stage);
         if (!isSuccess) return false;
 
+        // Rescan all records after update
+        stage.LastScanTime = DateTime.MinValue;
+
         dbCtx.SaveChanges();
         AppCaches.ClockInConfigs[channel.Guild.Id].Stages.RemoveWhere(s => s.Id == stage.Id);
         AppCaches.ClockInConfigs[channel.Guild.Id].Stages.Add(stage);
