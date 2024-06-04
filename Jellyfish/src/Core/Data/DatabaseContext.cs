@@ -251,6 +251,8 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
 
         modelBuilder.Entity<ClockInStage>(entity =>
         {
+            HasTrackableColumns(entity);
+
             entity
                 .HasMany(e => e.QualifiedHistories)
                 .WithOne(e => e.Stage)
