@@ -120,7 +120,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
     /// <param name="config">Clock-in config</param>
     /// <param name="appendData">Extra append data for clock-in card</param>
     /// <returns>Card message id</returns>
-    public static async Task<Guid> SendCardToCurrentChannel(SocketTextChannel channel, ClockInConfig config,
+    public static async Task<Guid> SendCardToCurrentChannel(IMessageChannel channel, ClockInConfig config,
         ClockInCardAppendData? appendData = null)
     {
         var cardBuilder = new CardBuilder()

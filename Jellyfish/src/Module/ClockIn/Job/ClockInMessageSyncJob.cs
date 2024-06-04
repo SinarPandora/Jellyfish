@@ -32,8 +32,8 @@ public class ClockInMessageSyncJob(
             var needDelete = new List<ClockInCardInstance>();
             foreach (var group in scope)
             {
-                var guild = kook.GetGuild(group.Key);
-                if (guild is null)
+                var guild = await kook.Rest.GetGuildAsync(group.Key);
+                if (guild.IsNull())
                 {
                     needDelete.AddRange(group);
                     continue;
@@ -58,7 +58,7 @@ public class ClockInMessageSyncJob(
 
                 foreach (var instance in group)
                 {
-                    var channel = guild.GetTextChannel(instance.ChannelId);
+                    var channel = await guild.GetTextChannelAsync(instance.ChannelId);
                     if (channel is null)
                     {
                         needDelete.Add(instance);
@@ -78,7 +78,7 @@ public class ClockInMessageSyncJob(
                         continue;
                     }
 
-                    var lastMessage = await channel.GetMessagesAsync(limit: 1).FirstAsync();
+                    var lastMessage = await channel.GetMessagesAsync(1).FirstAsync();
                     // Check if the message deleted
                     if (lastMessage.IsEmpty())
                     {
