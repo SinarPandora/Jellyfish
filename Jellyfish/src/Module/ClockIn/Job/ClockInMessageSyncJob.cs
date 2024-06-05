@@ -68,7 +68,7 @@ public class ClockInMessageSyncJob(
                     // Check if the config updated
                     if (instance.Config.UpdateTime > instance.UpdateTime
                         // Check if the last update time is yeasty day
-                        || (instance.UpdateTime.Date - today).Days >= 1
+                        || (today - instance.UpdateTime.Date).Days >= 1
                         // Check if new user clocked-in
                         || lastHistory != null && lastHistory.CreateTime > instance.UpdateTime)
                     {
