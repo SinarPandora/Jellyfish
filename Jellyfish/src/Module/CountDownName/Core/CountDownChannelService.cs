@@ -31,7 +31,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     ///     List all CountDown-Name channels in this Guild
     /// </summary>
     /// <param name="channel">Current channel</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> List(SocketTextChannel channel)
     {
         await using var dbCtx = dbProvider.Provide();
@@ -62,7 +62,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="rawArgs">Raw user input</param>
     /// <param name="channel">Current text channel</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> ParseAndCreate(string rawArgs, SocketTextChannel channel)
     {
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 3);
@@ -135,7 +135,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="rawArgs">Raw user input</param>
     /// <param name="channel">Current channel</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> PersistDueText(string rawArgs, SocketTextChannel channel)
     {
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
@@ -197,7 +197,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="rawArgs">Raw user input</param>
     /// <param name="channel">Current channel</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> RemoveDueText(string rawArgs, SocketTextChannel channel)
     {
         await using var dbCtx = dbProvider.Provide();
@@ -216,7 +216,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="rawArgs">Raw user input</param>
     /// <param name="channel">Current channel</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> Delete(string rawArgs, SocketTextChannel channel)
     {
         await using var dbCtx = dbProvider.Provide();

@@ -20,7 +20,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="type">The type of stage</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> List(SocketTextChannel channel, string type)
     {
         await using var dbCtx = dbProvider.Provide();
@@ -67,7 +67,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="rawArgs">Arguments</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> Create(SocketTextChannel channel, string rawArgs)
     {
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 3);
@@ -181,7 +181,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="rawRef">Raw channel reference</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> SetResultChannel(SocketTextChannel channel, string rawRef)
     {
         if (!MentionUtils.TryParseChannel(rawRef, out var channelId, TagMode.KMarkdown))
@@ -216,7 +216,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
     /// <param name="update">Update logic</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     private async Task<bool> UpdateStage(SocketTextChannel channel, long id, Func<ClockInStage, Task<bool>> update)
     {
         await using var dbCtx = dbProvider.Provide();
@@ -242,7 +242,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
     /// <param name="rawDate">Raw date</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public Task<bool> SetStartDate(SocketTextChannel channel, long id, string rawDate) =>
         UpdateStage(channel, id, async stage =>
         {
@@ -262,7 +262,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
     /// <param name="rawDate">Raw date</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public Task<bool> SetEndDate(SocketTextChannel channel, long id, string rawDate) =>
         UpdateStage(channel, id, async stage =>
         {
@@ -282,7 +282,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
     /// <param name="rawCount">Raw count</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public Task<bool> SetCount(SocketTextChannel channel, long id, string rawCount) =>
         UpdateStage(channel, id, async stage =>
         {
@@ -302,7 +302,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
     /// <param name="message">Message text</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public Task<bool> SetQualifiedMessage(SocketTextChannel channel, long id, string message) =>
         UpdateStage(channel, id, stage =>
         {
@@ -316,7 +316,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
     /// <param name="roleRef">Role reference</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public Task<bool> SetQualifiedRole(SocketTextChannel channel, long id, string roleRef) =>
         UpdateStage(channel, id, async stage =>
         {
@@ -336,7 +336,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
     /// <param name="rawCount">Raw count</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public Task<bool> SetAllowBreakDays(SocketTextChannel channel, long id, string rawCount) =>
         UpdateStage(channel, id, async stage =>
         {
@@ -355,7 +355,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> Disable(SocketTextChannel channel, long id)
     {
         await using var dbCtx = dbProvider.Provide();
@@ -382,7 +382,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> Enable(SocketTextChannel channel, long id)
     {
         await using var dbCtx = dbProvider.Provide();
@@ -411,7 +411,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     public async Task<bool> ListQualifiedUsers(SocketTextChannel channel, long id)
     {
         await using var dbCtx = dbProvider.Provide();
@@ -456,7 +456,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
     /// <param name="channel">Current channel</param>
     /// <param name="id">Stage id</param>
     /// <param name="dbCtx">Database context</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     private static async Task<ClockInStage?> GetIfExist(SocketTextChannel channel, long id, DatabaseContext dbCtx)
     {
         var config = await ClockInManageService.GetIfEnable(channel.Guild.Id, dbCtx);
