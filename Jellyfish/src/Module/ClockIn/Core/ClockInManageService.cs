@@ -102,7 +102,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
 
         if (exist is not null)
         {
-            await channel.SendWarningCardAsync("当前频道已存在打卡消息，若需重新发送，请删除消息后等待一分钟再试", true);
+            await channel.SendWarningCardAsync("当前频道已存在打卡消息，若需重新发送，请先使用 `！打卡管理 撤回消息` 指令删除", true);
             return false;
         }
 
@@ -110,7 +110,40 @@ public class ClockInManageService(DbContextProvider dbProvider)
         var instance = new ClockInCardInstance(config.Id, channel.Id, messageId);
         dbCtx.ClockInCardInstances.Add(instance);
         dbCtx.SaveChanges();
-        return true;
+        return false; // Return false to delete user message
+    }
+
+
+    /// <summary>
+    ///     Recall clock-in card in the current channel
+    /// </summary>
+    /// <param name="channel">Current channel</param>
+    /// <returns>Should keep the user message or not</returns>
+    public async Task<bool> RecallCard(SocketTextChannel channel)
+    {
+        await using var dbCtx = dbProvider.Provide();
+        var config = await GetIfEnable(channel.Guild.Id, dbCtx);
+        if (config is null)
+        {
+            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
+            return false;
+        }
+
+        var exist = dbCtx.ClockInCardInstances
+            .FirstOrDefault(e => e.ConfigId == config.Id && e.ChannelId == channel.Id);
+
+        if (exist is null)
+        {
+            await channel.SendWarningCardAsync("当前频道不存在打卡消息", true);
+            return false;
+        }
+
+        await channel.DeleteMessageAsync(exist.MessageId);
+        dbCtx.ClockInCardInstances.Remove(exist);
+        dbCtx.SaveChanges();
+
+        await channel.SendSuccessCardAsync("撤回成功！", true);
+        return false; // Return false to delete user message
     }
 
     /// <summary>
@@ -157,7 +190,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="update">Update action</param>
-    /// <returns>Is task success or not</returns>
+    /// <returns>Should keep the user message or not</returns>
     private async Task<bool> UpdateClockInCardConfig(SocketTextChannel channel, Action<ClockInConfig> update)
     {
         await using var dbCtx = dbProvider.Provide();

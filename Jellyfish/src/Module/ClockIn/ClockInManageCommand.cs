@@ -25,9 +25,9 @@ public class ClockInManageCommand : GuildMessageCommand
             为方便管理员利用打卡功能举办活动，打卡模块支持以下功能：
             ---
             1. 置底打卡消息
-            您可以使用 `！打卡管理 发送` 指令，向当前频道发送一个带有打卡按钮的卡片消息，该卡片将持续置于频道底部，确保用户进入频道后能第一时间看到。
+            您可以使用 `！打卡管理 发送消息` 指令，向当前频道发送一个带有打卡按钮的卡片消息，该卡片将持续置于频道底部，确保用户进入频道后能第一时间看到。
             该卡片会持续更新显示今日打卡人数，以及每日打卡排行榜。
-            该卡片的「标题」和「详情信息」均可配置，消息被管理员删除后将不再发送。
+            该卡片的「标题」和「详情信息」均可配置，在相同频道发送 `！打卡管理 撤回消息` 后消息会被删除并不再发送。
             ---
             2. 打卡阶段
             打卡阶段指的是连续/非连续的持续打卡次数，使用 `！打卡阶段` 指令配置。
@@ -69,8 +69,10 @@ public class ClockInManageCommand : GuildMessageCommand
             isSuccess = await _service.Enable(channel);
         else if (args.StartsWith("禁用"))
             isSuccess = await _service.Disable(channel);
-        else if (args.StartsWith("发送"))
+        else if (args.StartsWith("发送消息"))
             isSuccess = await _service.SendCard(channel);
+        else if (args.StartsWith("撤回消息"))
+            isSuccess = await _service.RecallCard(channel);
         else if (args.StartsWith("标题"))
             isSuccess = await _service.SetCardTitle(channel, args[2..].TrimStart());
         else if (args.StartsWith("详情"))
