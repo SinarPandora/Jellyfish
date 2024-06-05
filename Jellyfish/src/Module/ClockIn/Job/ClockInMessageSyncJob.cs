@@ -82,8 +82,9 @@ public class ClockInMessageSyncJob(
                     // Check if the message deleted
                     if (lastMessage.IsEmpty())
                     {
-                        needDelete.Add(instance);
-                        log.LogInformation("打卡消息被删除，该频道打卡消息发送功能关闭，频道：{ChannelName}#{ChannelId}，服务器：{GuildName}",
+                        instance.MessageId =
+                            await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config, appendData);
+                        log.LogInformation("打卡消息被删除，重新发送消息，频道：{ChannelName}#{ChannelId}，服务器：{GuildName}",
                             channel.Name, channel.Id, guild.Name);
                     }
                     // Check if the message is not at the end
