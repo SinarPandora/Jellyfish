@@ -16,6 +16,8 @@ migrate:
     cd ./Jellyfish && dotnet ef database update
 
 docker-deploy:
+    # Replace mirror for the aliyun ECS
+    sed -i 's|mirrors.aliyun.com|mirrors.cloud.aliyuncs.com|g' ./Jellyfish/Dockerfile
     docker build {{ addition_args }} -f ./Jellyfish/Dockerfile -t jellyfish:{{ version }} .
     docker stop {{ container_name }} || true
     docker rm {{ container_name }} || true
