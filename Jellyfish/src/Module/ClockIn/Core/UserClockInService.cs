@@ -80,8 +80,10 @@ public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvi
         dbCtx.ClockInHistories.Add(new ClockInHistory(config.Id, userStatus.Id, channelId));
         dbCtx.SaveChanges();
 
-        var ongoingDays = (today - userStatus.StartDate.ToDateTime(TimeOnly.MinValue)).Days + 1;
-        await channel.SendSuccessCardAsync($"{MentionUtils.KMarkdownMentionUser(userId)} 打卡成功！您已连续打卡 {ongoingDays} 天",
+        var ongoingDays = (today - userStatus.StartDate.ToDateTime(TimeOnly.MinValue)).Days.ToUInt32() + 1;
+        var dayText = ongoingDays == 1 ? $"您已累积打卡 {userStatus.AllClockInCount} 天" : $"您已连续打卡 {ongoingDays} 天";
+
+        await channel.SendSuccessCardAsync($"{MentionUtils.KMarkdownMentionUser(userId)} 打卡成功！{dayText}",
             fromButton);
         log.LogInformation("用户打卡成功，用户名：{UserName}#{UserId}，服务器：{GuildName}",
             userStatus.Username, userStatus.IdNumber, guild!.Name);
