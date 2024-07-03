@@ -6,7 +6,7 @@ using Kook.WebSocket;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 
-namespace Jellyfish.Custom.Splatoon.Model.SuiteSearch;
+namespace Jellyfish.Custom.Splatoon.Module.SuiteSearch;
 
 /// <summary>
 ///     Service logic for the suite-build search

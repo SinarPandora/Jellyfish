@@ -4,7 +4,7 @@ using Jellyfish.Module.GuildSetting.Enum;
 using Jellyfish.Util;
 using Kook.WebSocket;
 
-namespace Jellyfish.Custom.Splatoon.Model.SuiteSearch;
+namespace Jellyfish.Custom.Splatoon.Module.SuiteSearch;
 
 /// <summary>
 ///     Kook command for suite-build search
