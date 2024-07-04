@@ -7,7 +7,7 @@ using Jellyfish.Core.Job;
 using Jellyfish.Core.Kook;
 using Jellyfish.Core.Lifecycle;
 using Jellyfish.Core.Puppeteer;
-using Jellyfish.Custom.Splatoon.Model.SuiteSearch;
+using Jellyfish.Custom.Splatoon.Module.SuiteSearch;
 using Jellyfish.Module;
 using Jellyfish.Module.ClockIn;
 using Jellyfish.Module.ClockIn.Core;
@@ -93,6 +93,7 @@ public static class AppContext
         // Guild Setting Command
         container.RegisterType<GuildCustomFeatureCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<SynergyBotAccountCommand>().As<GuildMessageCommand>().SingleInstance();
+        container.RegisterType<SynergyBotConflictResolveCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<InitSettingsForNewGuildCommand>().As<BotJoinGuildCommand>().SingleInstance();
         container.RegisterType<InitSettingOnConnectUnregisteredGuildCommand>().As<GuildAvailableCommand>()
             .SingleInstance();

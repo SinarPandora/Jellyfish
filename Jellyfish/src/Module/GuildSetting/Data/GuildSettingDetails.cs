@@ -20,6 +20,12 @@ public class GuildSettingDetails
     public HashSet<ulong> SynergyBotAccounts { get; set; } = [];
 
     /// <summary>
+    ///     Synergy Bot conflict message will be deleted directly
+    ///     if the message is sent by a synergy Bot
+    /// </summary>
+    public HashSet<string> SynergyBotConflictMessage { get; set; } = [];
+
+    /// <summary>
     ///     Default manager accounts, by default, all commands starting with an "!" are only authorized
     ///     to these accounts, unless manually authorized using the 权限配置指令 directive
     /// </summary>
