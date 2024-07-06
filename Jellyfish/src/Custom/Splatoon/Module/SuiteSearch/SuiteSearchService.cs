@@ -48,7 +48,9 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
             new CardBuilder()
                 .AddModule<HeaderModuleBuilder>(m => m.Text = $"{weapon.Name} 常用配装（点击图片可放大）")
                 .AddModule<SectionModuleBuilder>(m =>
-                    m.WithText($"数据来源：[Sendou.ink]({Constants.SendouInkEndpoint}/builds/{weapon.SendouSlug})", true)
+                    m.WithText(
+                        $"数据来源：[Sendou.ink]({Constants.SendouInkEndpoint}/builds/{weapon.SendouSlug}?{Constants.BuildFilter})",
+                        true)
                 )
                 .AddModule<ImageGroupModuleBuilder>(m => m.AddElement(new ImageElementBuilder
                 {
@@ -71,7 +73,9 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
     /// <returns>Image URL</returns>
     private async Task<string> SearchAndScreenshot(string slug)
     {
-        await using var page = await bpf.OpenPage($"{Constants.SendouInkEndpoint}/builds/{slug}?limit={SearchLimit}");
+        await using var page =
+            await bpf.OpenPage(
+                $"{Constants.SendouInkEndpoint}/builds/{slug}?limit={SearchLimit}&{Constants.BuildFilter}");
         await page.WaitForSelectorAsync(SendouPageContainer);
         var element = await page.QuerySelectorAsync(SendouPageContainer);
         var box = await element.BoundingBoxAsync();

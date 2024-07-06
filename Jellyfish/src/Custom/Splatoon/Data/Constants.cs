@@ -11,6 +11,11 @@ public static class Constants
     public const string SendouInkEndpoint = "https://sendou.ink";
 
     /// <summary>
+    ///     Filtered builds with the latest version of the game
+    /// </summary>
+    public const string BuildFilter = "f=[{\"type\":\"date\",\"date\":\"2024-05-31\"}]";
+
+    /// <summary>
     ///     Weapons base data
     ///     Please use uppercase and remove white chars for matching alias
     /// </summary>
