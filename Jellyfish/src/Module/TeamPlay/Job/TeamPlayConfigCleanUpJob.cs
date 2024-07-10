@@ -20,7 +20,7 @@ public class TeamPlayConfigCleanUpJob(DbContextProvider dbProvider, ILogger<Team
         {
             var dbCtx = dbProvider.Provide();
             var outdatedConfigs = (from config in dbCtx.TpConfigs.Include(c => c.RoomInstances)
-                    where !config.Enabled && config.RoomInstances.IsNotEmpty()
+                    where !config.Enabled && config.RoomInstances.Count > 0
                     select config)
                 .ToArray();
 
