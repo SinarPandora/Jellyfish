@@ -81,7 +81,9 @@ public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvi
         dbCtx.SaveChanges();
 
         var ongoingDays = (today - userStatus.StartDate.ToDateTime(TimeOnly.MinValue)).Days.ToUInt32() + 1;
-        var dayText = ongoingDays == 1 ? $"您已累积打卡 {userStatus.AllClockInCount} 天" : $"您已连续打卡 {ongoingDays} 天";
+        var dayText = ongoingDays == 1
+            ? $"您已累积打卡 {userStatus.AllClockInCount} 天"
+            : $"您已连续打卡 {ongoingDays} 天，累积打卡 {userStatus.AllClockInCount} 天";
 
         await channel.SendSuccessCardAsync($"{MentionUtils.KMarkdownMentionUser(userId)} 打卡成功！{dayText}",
             fromButton);
