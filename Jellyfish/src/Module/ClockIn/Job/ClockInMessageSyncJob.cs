@@ -22,6 +22,7 @@ public class ClockInMessageSyncJob(
             log.LogInformation("打卡消息扫描任务开始");
             await using var dbCtx = dbProvider.Provide();
             var today = DateTime.Today;
+            var now = DateTime.Now;
 
             var scope = dbCtx.ClockInCardInstances
                 .Include(i => i.Config)
@@ -65,21 +66,45 @@ public class ClockInMessageSyncJob(
                         continue;
                     }
 
+                    // --------------------------------------- Check history -------------------------------------------
+                    var needResend = false;
+                    var resendReason = string.Empty;
+
                     // Check if the config updated
-                    if (instance.Config.UpdateTime > instance.UpdateTime
-                        // Check if the last update time is yeasty day
-                        || (today - instance.UpdateTime.Date).Days >= 1
-                        // Check if new user clocked-in
-                        || lastHistory != null && lastHistory.CreateTime > instance.UpdateTime)
+                    if (instance.Config.UpdateTime > instance.UpdateTime)
                     {
-                        log.LogInformation("打卡消息配置/历史更新，重新发送消息，频道：{ChannelName}#{ChannelId}，服务器：{GuildName}",
-                            channel.Name, channel.Id, guild.Name);
+                        needResend = true;
+                        resendReason = "打卡配置更新";
+                    }
+                    // Check if the last update time is yesterday
+                    else if ((today - instance.UpdateTime.Date).Days >= 1)
+                    {
+                        needResend = true;
+                        resendReason = "现在是新的一天，每日打卡排行榜需重置";
+                    }
+                    // Check if the last update time is 1 hour ago
+                    else if ((now - instance.UpdateTime).Hours >= 1)
+                    {
+                        needResend = true;
+                        resendReason = "超过一小时未更新打卡信息";
+                    }
+                    else if (lastHistory != null && lastHistory.CreateTime > instance.UpdateTime)
+                    {
+                        needResend = true;
+                        resendReason = "有新用户打卡";
+                    }
+
+                    if (needResend)
+                    {
+                        log.LogInformation("{Reason}，重新发送消息，频道：{ChannelName}#{ChannelId}，服务器：{GuildName}",
+                            resendReason, channel.Name, channel.Id, guild.Name);
                         await channel.DeleteMessageAsync(instance.MessageId);
                         instance.MessageId =
                             await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config, appendData);
                         continue;
                     }
 
+                    // --------------------------------------- Check last message --------------------------------------
                     var lastMessage = await channel.GetMessagesAsync(1).FirstAsync();
                     // Check if the message deleted
                     if (lastMessage.IsEmpty())
