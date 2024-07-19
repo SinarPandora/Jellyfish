@@ -25,7 +25,7 @@ public class JobRegistry : Registry
         ClockInStageQualifiedRoleSyncJob clockInStageQualifiedRoleSyncJob)
     {
         Schedule(teamPlayRoomScanJob).NonReentrant().ToRunEvery(1).Minutes();
-        Schedule(cacheSyncJob).NonReentrant().ToRunEvery(5).Minutes();
+        Schedule(cacheSyncJob).NonReentrant().ToRunEvery(10).Minutes();
         Schedule(expireExtendScanJob).NonReentrant().ToRunEvery(1).Minutes();
         Schedule(cleanNonExistTmpTextChannelJob).NonReentrant().ToRunEvery(3).Minutes();
         Schedule(teamPlayConfigCleanUpJob).NonReentrant().ToRunEvery(1).Days().At(1, 0);

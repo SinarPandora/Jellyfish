@@ -1,3 +1,4 @@
+using FluentScheduler;
 using Jellyfish.Core.Config;
 using Kook;
 using Kook.WebSocket;
@@ -16,7 +17,8 @@ public class KookLoader(
     public async Task Login()
     {
         client.Log += KookLog;
-        client.Ready += KookReady;
+        client.Ready += OnKookReady;
+        client.Disconnected += OnKookDisconnected;
         RegisterActions();
         await client.LoginAsync(TokenType.Bot, appConfig.KookToken);
         await client.StartAsync();
@@ -47,12 +49,28 @@ public class KookLoader(
         return Task.CompletedTask;
     }
 
-    private Task KookReady()
+    /// <summary>
+    ///     Run when the socket client is ready
+    /// </summary>
+    private Task OnKookReady()
     {
         log.LogInformation("{ClientCurrentUser} 登录成功！", client.CurrentUser);
+        JobManager.Start();
+        log.LogInformation("定时任务已启用");
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    ///     Run when the socket client is disconnected
+    /// </summary>
+    /// <param name="error">The error which causes the client disconnected</param>
+    private Task OnKookDisconnected(Exception error)
+    {
+        log.LogWarning(error, "Kook 连接断开！正在尝试重新连接");
+        JobManager.StopAndBlock();
+        log.LogWarning("定时任务已暂停");
+        return Task.CompletedTask;
+    }
 
     /// <summary>
     ///     Create a socket client
@@ -69,6 +87,7 @@ public class KookLoader(
             MessageCacheSize = 100,
             LogLevel = config.KookEnableDebug ? LogSeverity.Debug : LogSeverity.Info,
             ConnectionTimeout = config.KookConnectTimeout,
+            StartupCacheFetchMode = StartupCacheFetchMode.Synchronous,
             HandlerTimeout = 5_000
         });
     }
