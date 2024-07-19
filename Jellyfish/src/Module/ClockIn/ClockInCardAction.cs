@@ -17,7 +17,7 @@ public class ClockInCardAction(ClockInBuffer buffer) : ButtonActionCommand
     public override Task<CommandResult> Execute(string value, Cacheable<SocketGuildUser, ulong> user,
         Cacheable<IMessage, Guid> message, SocketTextChannel channel)
     {
-        if (value != CardActionValue) return Task.FromResult(CommandResult.Continue);
+        if (!value.StartsWith(CardActionValue)) return Task.FromResult(CommandResult.Continue);
         buffer.Instance.OnNext((channel.Guild.Id, channel.Id, user.Id, true));
         return Task.FromResult(CommandResult.Done);
     }

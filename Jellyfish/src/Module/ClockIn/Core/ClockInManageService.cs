@@ -14,6 +14,7 @@ namespace Jellyfish.Module.ClockIn.Core;
 public class ClockInManageService(DbContextProvider dbProvider)
 {
     private const int MaxTopUserCountEachRank = 20;
+    private const string TimeSuffixFormat = "HHmmss";
 
     /// <summary>
     ///     Enable clock-in for the guild
@@ -178,7 +179,8 @@ public class ClockInManageService(DbContextProvider dbProvider)
             {
                 b.WithText(config.ButtonText)
                     .WithClick(ButtonClickEventType.ReturnValue)
-                    .WithValue(ClockInCardAction.CardActionValue)
+                    // Add time-based suffix to make sure the button is always new for the Kook server
+                    .WithValue($"{ClockInCardAction.CardActionValue}_{DateTime.Now.ToString(TimeSuffixFormat)}")
                     .WithTheme(ButtonTheme.Primary);
             }));
 
@@ -227,7 +229,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
         UpdateClockInCardConfig(channel, config => config.Description = details);
 
     /// <summary>
-    ///     Set card button name
+    ///     Set the card button name
     /// </summary>
     /// <param name="channel">Current channel</param>
     /// <param name="name">Card button name</param>
