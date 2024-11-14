@@ -17,4 +17,13 @@ public record WeiboItem(string Username, string Time, string Content, string[] I
     {
         return HashCode.Combine(Content, string.Empty.Join(Images));
     }
+
+    /// <summary>
+    ///     Is all contents in this item empty
+    /// </summary>
+    /// <returns>Is empty or not</returns>
+    public bool IsEmpty()
+    {
+        return Username.IsEmpty() && Time.IsEmpty() && Content.IsEmpty() && Images.IsEmpty();
+    }
 }

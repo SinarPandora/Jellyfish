@@ -91,17 +91,21 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
             .Select(img => img.EvaluateFunctionAsync<string>("e => e.src"))
         );
 
-        return new WeiboItem(
+        var item = new WeiboItem(
             Username: contents[0],
             Time: contents[1],
             Content: expandBtn is null ? contents[2] : contents[2][..^2],
             Images: images
         );
+
+        return item.IsEmpty() ? null : item;
     }
 
     private static async Task<string> ExtractText(IElementHandle elm, string cssName)
     {
         var child = await elm.QuerySelectorAsync($"[class*='{cssName}']");
-        return await child.InnerTextAsync();
+        return child is null
+            ? string.Empty
+            : await child.InnerTextAsync();
     }
 }
