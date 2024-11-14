@@ -19,6 +19,7 @@ using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.GroupControl;
 using Jellyfish.Module.GuildSetting.Core;
 using Jellyfish.Module.Help;
+using Jellyfish.Module.Push.Weibo.Core;
 using Jellyfish.Module.Role;
 using Jellyfish.Module.TeamPlay;
 using Jellyfish.Module.TeamPlay.Core;
@@ -119,6 +120,9 @@ public static class AppContext
         container.RegisterType<ClockInManageCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<UserClockInCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<ClockInCardAction>().As<ButtonActionCommand>().SingleInstance();
+
+        // Weibo Push Command
+        container.RegisterType<WeiboCrawlerService>().SingleInstance();
 
 #if DEBUG
         // Board Command
