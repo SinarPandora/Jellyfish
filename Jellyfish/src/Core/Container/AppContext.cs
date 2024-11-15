@@ -19,6 +19,7 @@ using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.GroupControl;
 using Jellyfish.Module.GuildSetting.Core;
 using Jellyfish.Module.Help;
+using Jellyfish.Module.Push.Weibo;
 using Jellyfish.Module.Push.Weibo.Core;
 using Jellyfish.Module.Role;
 using Jellyfish.Module.TeamPlay;
@@ -123,6 +124,8 @@ public static class AppContext
 
         // Weibo Push Command
         container.RegisterType<WeiboCrawlerService>().SingleInstance();
+        container.RegisterType<WeiboPushManageService>().SingleInstance();
+        container.RegisterType<WeiboPushManageCommand>().As<GuildMessageCommand>().SingleInstance();
 
 #if DEBUG
         // Board Command

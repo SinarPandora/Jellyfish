@@ -17,7 +17,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
     /// </summary>
     /// <param name="uid">User's id</param>
     /// <returns>Recent five more Weibo items</returns>
-    public async Task<ImmutableArray<WeiboItem>> CrawlForUserAsync(string uid)
+    public async Task<ImmutableArray<WeiboItem>> CrawlAsync(string uid)
     {
         await using var page = pbf.OpenPage(Constants.WeiboRootUrl + uid).Result;
         await page.WaitForNetworkIdleAsync();
@@ -33,6 +33,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
             if (items.Count >= ScanItemLimit) break;
         }
 
+        await page.CloseAsync();
         return [..results];
     }
 
