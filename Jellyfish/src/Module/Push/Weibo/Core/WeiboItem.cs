@@ -19,7 +19,7 @@ public record WeiboItem(string Username, string Time, string Content, string[] I
     }
 
     /// <summary>
-    ///     Is all contents in this item empty
+    ///     Are all contents in this item empty?
     /// </summary>
     /// <returns>Is empty or not</returns>
     public bool IsEmpty()

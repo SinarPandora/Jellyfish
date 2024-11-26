@@ -6,6 +6,7 @@ using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GroupControl.Data;
 using Jellyfish.Module.GuildSetting.Data;
 using Jellyfish.Module.GuildSetting.Enum;
+using Jellyfish.Module.Push.Weibo.Data;
 using Jellyfish.Module.Role.Data;
 using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Module.TmpChannel.Data;
@@ -130,9 +131,8 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         modelBuilder.Entity<GuildSetting>(entity =>
         {
             // Store GuildSettingDetails as JSON
-            entity
-                .Property(e => e.Setting)
-                .HasColumnType("jsonb")
+            RelationalPropertyBuilderExtensions.HasColumnType(entity
+                    .Property(e => e.Setting), "jsonb")
                 // Use Newtonsoft json to custom json serialize because it supports Hashset
                 .HasConversion(r => JsonConvert.SerializeObject(r),
                     json => JsonConvert.DeserializeObject<GuildSettingDetails>(json)!);
@@ -332,6 +332,50 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
             entity
                 .HasIndex(e => new { e.ConfigId, e.ChannelId })
                 .IsUnique();
+        });
+
+        modelBuilder.Entity<WeiboPushConfig>(entity =>
+        {
+            entity
+                .HasMany(e => e.Instances)
+                .WithOne(e => e.Config)
+                .HasForeignKey(e => e.ConfigId)
+                .IsRequired();
+
+            entity
+                .HasIndex(e => new { e.Uid, e.GuildId })
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<WeiboPushInstance>(entity =>
+        {
+            entity
+                .HasMany(e => e.PushHistories)
+                .WithOne(e => e.Instance)
+                .HasForeignKey(e => e.InstanceId)
+                .IsRequired();
+
+            entity
+                .HasIndex(e => new { e.Config, e.ChannelId })
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<WeiboPushHistory>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
+
+            entity
+                .HasIndex(e => new { e.InstanceId, e.CrawlHistoryId })
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<WeiboCrawlHistory>(entity =>
+        {
+            entity
+                .Property(e => e.CreateTime)
+                .HasDefaultValueSql("current_timestamp");
         });
     }
 
