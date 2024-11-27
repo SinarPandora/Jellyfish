@@ -59,7 +59,14 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     public DbSet<ClockInStage> ClockInStages { get; set; } = null!;
     public DbSet<ClockInHistory> ClockInHistories { get; set; } = null!;
     public DbSet<ClockInStageQualifiedHistory> ClockInStageQualifiedHistories { get; set; } = null!;
+
     public DbSet<UserClockInStatus> UserClockInStatuses { get; set; } = null!;
+
+    // ------------------------------------ Weibo Push ------------------------------------
+    public DbSet<WeiboCrawlHistory> WeiboCrawlHistories { get; set; } = null!;
+    public DbSet<WeiboPushConfig> WeiboPushConfigs { get; set; } = null!;
+    public DbSet<WeiboPushHistory> WeiboPushHistories { get; set; } = null!;
+    public DbSet<WeiboPushInstance> WeiboPushInstances { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -345,6 +352,10 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
             entity
                 .HasIndex(e => new { e.Uid, e.GuildId })
                 .IsUnique();
+
+            entity
+                .HasIndex(e => new { e.Alias, e.GuildId })
+                .IsUnique();
         });
 
         modelBuilder.Entity<WeiboPushInstance>(entity =>
@@ -356,7 +367,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .IsRequired();
 
             entity
-                .HasIndex(e => new { e.Config, e.ChannelId })
+                .HasIndex(e => new { e.ConfigId, e.ChannelId })
                 .IsUnique();
         });
 

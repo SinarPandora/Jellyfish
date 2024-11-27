@@ -27,10 +27,11 @@ public class WeiboPushManageCommand : GuildMessageCommand
             他/她的 UID 为：1234567890
             ---
             基础功能：
-            1. `添加 [UID] [#引用现有文字频道]`：定期向指定频道推送指定用户微博
-            2. `删除 [UID/用户名] [#引用现有文字频道]`：取消对应用户在对应频道的微博推送
-            3. `删除 [UID/用户名]`：取消对应用户在所有频道的微博推送
-            4. `列表`：列出全部推送信息
+            1. `添加 [UID/别名] [#引用现有文字频道]`：定期向指定频道推送指定用户微博，第一次添加时必须使用 UID
+            2. `别名 [UID] [别名]`：给对应微博用户起别名，可以在相关指令中使用
+            3. `删除 [UID/别名] [#引用现有文字频道]`：取消对应用户在对应频道的微博推送
+            4. `删除 [UID/别名]`：取消对应用户在所有频道的微博推送
+            5. `列表`：列出全部推送信息
             ---
             [#引用现有文字频道]：指的是一个文字频道的 Kook 引用（在软件中为蓝色文字），用于将消息推送到指定频道）
             """);
@@ -40,9 +41,30 @@ public class WeiboPushManageCommand : GuildMessageCommand
 
     public override IEnumerable<string> Keywords() => ["！微博推送", "!微博推送"];
 
-    protected override Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
+    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
     {
-        throw new NotImplementedException();
+        if (args.StartsWith(HelpMessageHelper.HelpCommand))
+        {
+            await channel.SendCardSafeAsync(HelpMessage);
+            return;
+        }
+
+        var isSuccess = true;
+        if (args.StartsWith("添加"))
+            isSuccess = await _service.CreateOrAppendPushConfig(channel, args[2..].TrimStart());
+        else if (args.StartsWith("别名"))
+            isSuccess = await _service.RenameConfig(channel, args[2..].TrimStart());
+        else if (args.StartsWith("删除"))
+            isSuccess = await _service.RemovePushInstance(channel, args[2..].TrimStart());
+        else if (args.StartsWith("列表"))
+            await _service.ListPushConfig(channel);
+        else
+            await channel.SendCardSafeAsync(HelpMessage);
+
+        if (!isSuccess)
+        {
+            _ = channel.DeleteMessageWithTimeoutAsync(msg.Id);
+        }
     }
 }
