@@ -8,6 +8,7 @@ using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GuildSetting.Enum;
 using Kook;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 using NLog.Web;
 using Npgsql;
 using AppContext = Jellyfish.Core.Container.AppContext;
@@ -46,13 +47,13 @@ public static class JellyFish
                         builder.Configuration.GetValue<string>("DatabaseConnection")
                     );
 
-                    dataSourceBuilder.MapEnum<ChannelType>();
-                    dataSourceBuilder.MapEnum<TimeUnit>();
-                    dataSourceBuilder.MapEnum<ExtendTargetType>();
-                    dataSourceBuilder.MapEnum<GuildCustomFeature>();
-                    dataSourceBuilder.MapEnum<BoardType>();
                     return new DbContextProvider(new DbContextOptionsBuilder<DatabaseContext>()
-                        .UseNpgsql(dataSourceBuilder.Build())
+                        .UseNpgsql(dataSourceBuilder.Build(), options => options
+                            .MapEnum<ChannelType>()
+                            .MapEnum<TimeUnit>()
+                            .MapEnum<ExtendTargetType>()
+                            .MapEnum<GuildCustomFeature>()
+                            .MapEnum<BoardType>())
                         .UseSnakeCaseNamingConvention()
                         .Options);
                 }).SingleInstance();
@@ -79,7 +80,7 @@ public static class JellyFish
         finally
         {
             // Flush log buffer when application shutting down
-            NLog.LogManager.Shutdown();
+            LogManager.Shutdown();
         }
     }
 
