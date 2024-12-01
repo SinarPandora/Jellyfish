@@ -40,7 +40,7 @@ public class WeiboCrawlHistory(string uid, string hash, string username, string 
         }
 
         return cardBuilder
-            .AddModule<ContextModuleBuilder>(c => c.AddElement(new KMarkdownElementBuilder(Url)))
+            .AddModule<ContextModuleBuilder>(c => c.AddElement(new KMarkdownElementBuilder($"[原帖地址]({Url})")))
             .WithSize(CardSize.Large)
             .Build();
     }
