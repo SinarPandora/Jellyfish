@@ -1,6 +1,6 @@
 set dotenv-load
 
-version := "1.5"
+version := "1.6"
 container_name := "jellyfish"
 postgres_container_name := "jellyfish_postgres_container"
 addition_args := ""
