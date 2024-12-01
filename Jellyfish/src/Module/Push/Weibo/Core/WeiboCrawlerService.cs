@@ -145,7 +145,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
     private static async Task<string> ExtractTextAll(IElementHandle elm, string selector)
     {
         var child = (await elm.QuerySelectorAllAsync(selector)).ToList();
-        return child.IsNotNullOrEmpty()
+        return child.IsNullOrEmpty()
             ? string.Empty
             : (await Task.WhenAll(child.Select(it => it.InnerTextAsync()))).StringJoin("\n---\n");
     }
