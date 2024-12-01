@@ -41,7 +41,11 @@ public class WeiboPushFallbackJob(
             .Include(h => h.PushHistories)
             .Include(h => h.Config)
             .AsNoTracking()
-            .Where(it => !md5.All(m => it.PushHistories.Any(h => h.Hash == m)))
+            .Where(it =>
+                // Not all md5,
+                !md5.All(m =>
+                    // exist in push history
+                    it.PushHistories.Any(h => h.Hash == m)))
             .GroupBy(it => it.Id)
             .ToList();
 
