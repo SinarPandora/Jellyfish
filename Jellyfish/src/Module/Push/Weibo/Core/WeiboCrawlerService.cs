@@ -117,6 +117,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
         )).Select(url => url
             .Replace("http://", Constants.WeiboPicProxy)
             .Replace("https://", Constants.WeiboPicProxy)
+            .ReplaceLast("...全文", "...更多信息请查看原微博")
         ).ToArray();
 
         var content = contents[1]
