@@ -21,6 +21,7 @@ using Jellyfish.Module.GuildSetting.Core;
 using Jellyfish.Module.Help;
 using Jellyfish.Module.Push.Weibo;
 using Jellyfish.Module.Push.Weibo.Core;
+using Jellyfish.Module.Push.Weibo.Job;
 using Jellyfish.Module.Role;
 using Jellyfish.Module.TeamPlay;
 using Jellyfish.Module.TeamPlay.Core;
@@ -125,6 +126,9 @@ public static class AppContext
         // Weibo Push Command
         container.RegisterType<WeiboCrawlerService>().SingleInstance();
         container.RegisterType<WeiboPushManageService>().SingleInstance();
+        container.RegisterType<WeiboScanAndPushJob>().SingleInstance();
+        container.RegisterType<WeiboPushCleanupJob>().SingleInstance();
+        container.RegisterType<WeiboPushFallbackJob>().SingleInstance();
         container.RegisterType<WeiboPushManageCommand>().As<GuildMessageCommand>().SingleInstance();
 
 #if DEBUG

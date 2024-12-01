@@ -37,7 +37,7 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
         var rawMention = args[1];
 
         var isUid = false;
-        if (!long.TryParse(uidOrAlias, out var uid))
+        if (long.TryParse(uidOrAlias, out var uid))
         {
             uidOrAlias = uid.ToString();
             isUid = true;
@@ -76,8 +76,7 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
             dbCtx.WeiboPushConfigs.Add(config);
             dbCtx.SaveChanges();
         }
-
-        if (config.Instances.Any(i => i.ChannelId == channelId))
+        else if (config.Instances.Any(i => i.ChannelId == channelId))
         {
             await channel.SendErrorCardAsync("此微博用户推送已绑定过该频道", true);
             return false;
@@ -201,7 +200,16 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
         dbCtx.WeiboPushInstances.Remove(instance);
         dbCtx.SaveChanges();
 
-        await channel.SendSuccessCardAsync("删除成功！", true);
+        if (dbCtx.WeiboPushInstances.All(c => c.ConfigId != instance.ConfigId))
+        {
+            dbCtx.WeiboPushConfigs.Remove(config);
+            await channel.SendSuccessCardAsync($"删除成功！当前用户{uidOrAlias}不再关联任何频道，配置已清除", false);
+        }
+        else
+        {
+            await channel.SendSuccessCardAsync("删除成功！", false);
+        }
+
         return true;
     }
 

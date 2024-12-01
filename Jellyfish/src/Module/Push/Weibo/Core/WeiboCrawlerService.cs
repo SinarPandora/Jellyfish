@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Jellyfish.Core.Puppeteer;
+using Jellyfish.Util;
 using PuppeteerSharp;
 
 namespace Jellyfish.Module.Push.Weibo.Core;
@@ -11,6 +12,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
 {
     private const int MaxScanTimes = 3;
     private const int ScanItemLimit = 5;
+
 
     /// <summary>
     ///     Crawl Weibo item for user with uid
@@ -28,7 +30,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
         for (var tryTime = 0; tryTime < MaxScanTimes; tryTime++)
         {
             var items = await CrawlAsync(page, uid);
-            if (items.IsEmpty()) break;
+            if (items.IsEmpty()) continue;
             results.AddRange(items.Where(item => !results.Contains(item)));
             if (items.Count >= ScanItemLimit) break;
         }
@@ -87,16 +89,24 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
             ExtractText(elm, Constants.ClassNames.Content)
         );
 
-        var images = await Task.WhenAll(
+        var images = (await Task.WhenAll(
             (await elm.QuerySelectorAllAsync(Constants.Selectors.Image))
             .Select(img => img.EvaluateFunctionAsync<string>("e => e.src"))
-        );
+        )).Select(url => url
+            .Replace("http://", Constants.WeiboPicProxy)
+            .Replace("https://", Constants.WeiboPicProxy)
+        ).ToArray();
+
+        var content = (expandBtn is null ? contents[2] : contents[2][..^2])
+            // Remove [ZWSP]
+            .Replace("\u200b", string.Empty);
 
         var item = new WeiboItem(
             Username: contents[0],
             Time: contents[1],
-            Content: expandBtn is null ? contents[2] : contents[2][..^2],
-            Images: images
+            Content: content,
+            Images: images,
+            Md5: (contents + string.Empty.Join(images)).ToMd5Hash()
         );
 
         return item.IsEmpty() ? null : item;

@@ -53,6 +53,10 @@ public static class KookCoreApiHelper
             {
                 Log.Warn("消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
             }
+            else
+            {
+                Log.Warn(e, "消息发送失败，遇到未知网络问题");
+            }
 
             return null;
         }

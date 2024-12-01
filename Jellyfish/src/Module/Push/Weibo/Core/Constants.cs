@@ -6,6 +6,7 @@ namespace Jellyfish.Module.Push.Weibo.Core;
 public static class Constants
 {
     public const string WeiboRootUrl = "https://weibo.com/u/";
+    public const string WeiboPicProxy = "https://i0.wp.com/";
 
     public static class Selectors
     {

@@ -376,10 +376,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
             entity
                 .Property(e => e.CreateTime)
                 .HasDefaultValueSql("current_timestamp");
-
-            entity
-                .HasIndex(e => new { e.InstanceId, e.CrawlHistoryId })
-                .IsUnique();
         });
 
         modelBuilder.Entity<WeiboCrawlHistory>(entity =>
