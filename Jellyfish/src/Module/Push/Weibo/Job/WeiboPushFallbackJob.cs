@@ -37,19 +37,19 @@ public class WeiboPushFallbackJob(
             .ToList();
 
         var md5 = histories.Select(h => h.Hash).ToArray();
-        var existedGroups = dbCtx.WeiboPushHistories
-            .Include(h => h.Instance)
-            .Include(h => h.Instance.Config)
+        var existedGroups = dbCtx.WeiboPushInstances
+            .Include(h => h.PushHistories)
+            .Include(h => h.Config)
             .AsNoTracking()
-            .Where(it => md5.Contains(it.Hash))
-            .GroupBy(it => it.InstanceId)
+            .Where(it => !md5.All(m => it.PushHistories.Any(h => h.Hash == m)))
+            .GroupBy(it => it.Id)
             .ToList();
 
         foreach (var existed in existedGroups)
         {
-            var newWeiboList = histories.Where(it => existed.All(h => h.Hash != it.Hash)).ToList();
-            var instance = existed.FirstOrDefault()?.Instance;
-            if (instance is null || newWeiboList.IsEmpty()) continue;
+            var instance = existed.First();
+            var newWeiboList = histories.Where(it => instance.PushHistories.All(h => h.Hash != it.Hash)).ToList();
+            if (newWeiboList.IsEmpty()) continue;
 
             var channel = kook.GetGuild(instance.Config.GuildId)?.GetTextChannel(instance.ChannelId);
             if (channel is null) continue;
