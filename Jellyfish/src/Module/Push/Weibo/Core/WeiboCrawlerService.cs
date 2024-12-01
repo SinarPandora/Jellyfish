@@ -61,7 +61,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
                     Enumerable
                         .Select<JToken, string>(json.SelectToken("$.data.cards")?
                                 .Where(it => it["profile_type_id"]?.ToString().StartsWith("proweibo_") ?? false),
-                            it => it["scheme"]?.ToString() ?? "") ?? []
+                            it => it["scheme"]?.ToString() ?? "")
                 );
             }
 
@@ -108,7 +108,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
 
         var contents = await Task.WhenAll(
             ExtractText(elm, Constants.Selectors.Username),
-            ExtractText(elm, Constants.Selectors.Content)
+            ExtractTextAll(elm, Constants.Selectors.Content)
         );
 
         var images = (await Task.WhenAll(
@@ -140,5 +140,13 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
         return child is null
             ? string.Empty
             : await child.InnerTextAsync();
+    }
+
+    private static async Task<string> ExtractTextAll(IElementHandle elm, string selector)
+    {
+        var child = (await elm.QuerySelectorAllAsync(selector)).ToList();
+        return child.IsNotNullOrEmpty()
+            ? string.Empty
+            : (await Task.WhenAll(child.Select(it => it.InnerTextAsync()))).StringJoin("\n---\n");
     }
 }

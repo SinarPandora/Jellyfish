@@ -14,6 +14,6 @@ public static class Constants
         public const string PinTopBadge = "div.card-title h4";
         public const string Image = "div.weibo-media-wraps img";
         public const string Username = "h3.m-text-cut";
-        public const string Content = "article.weibo-main div.weibo-text";
+        public const string Content = "div.weibo-text";
     }
 }
