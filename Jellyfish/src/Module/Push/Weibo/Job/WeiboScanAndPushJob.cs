@@ -2,7 +2,6 @@ using FluentScheduler;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.Push.Weibo.Core;
 using Jellyfish.Module.Push.Weibo.Data;
-using Jellyfish.Util;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,7 +52,7 @@ public class WeiboScanAndPushJob(
 
         // Save to crawl history
         var histories = newWeiboList
-            .Select(w => new WeiboCrawlHistory(uid, w.Md5, w.Username, w.Content, w.Images.StringJoin(",")))
+            .Select(w => new WeiboCrawlHistory(uid, w.Md5, w.Username, w.Content, w.Images.StringJoin(","), w.Url))
             .ToList();
         dbCtx.WeiboCrawlHistories.AddRange(histories);
         dbCtx.SaveChanges();
@@ -82,7 +81,7 @@ public class WeiboScanAndPushJob(
             {
                 try
                 {
-                    await channel.SendCardSafeAsync(weibo.ToCard());
+                    await channel.SendCardAsync(weibo.ToCard());
                     dbCtx.WeiboPushHistories.Add(new WeiboPushHistory(instance.Id, weibo.Md5));
                 }
                 catch (Exception e)

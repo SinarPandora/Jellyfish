@@ -6,7 +6,7 @@ namespace Jellyfish.Module.Push.Weibo.Data;
 /// <summary>
 ///     Crawl history for Weibo
 /// </summary>
-public class WeiboCrawlHistory(string uid, string hash, string username, string content, string images)
+public class WeiboCrawlHistory(string uid, string hash, string username, string content, string images, string url)
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Uid { get; set; } = uid;
@@ -14,6 +14,7 @@ public class WeiboCrawlHistory(string uid, string hash, string username, string 
     public string Username { get; set; } = username;
     public string Content { get; set; } = content;
     public string Images { get; set; } = images;
+    public string Url { get; set; } = url;
     [Column(TypeName = "timestamp")] public DateTime CreateTime { get; init; } = DateTime.Now;
 
     /// <summary>
@@ -39,6 +40,7 @@ public class WeiboCrawlHistory(string uid, string hash, string username, string 
         }
 
         return cardBuilder
+            .AddModule<ContextModuleBuilder>(c => c.AddElement(new KMarkdownElementBuilder(Url)))
             .WithSize(CardSize.Large)
             .Build();
     }

@@ -5,22 +5,15 @@ namespace Jellyfish.Module.Push.Weibo.Core;
 /// </summary>
 public static class Constants
 {
-    public const string WeiboRootUrl = "https://weibo.com/u/";
+    public const string WeiboRootUrl = "https://m.weibo.cn/u/";
     public const string WeiboPicProxy = "https://i0.wp.com/";
 
     public static class Selectors
     {
-        public const string Item = ".vue-recycle-scroller__item-view";
-        public const string PinTopBadge = "span[class*='title_title']";
-        public const string ExpandBtn = "span.expand";
-        public const string CollapseBtn = "span.collapse";
-        public const string Image = "img[class*='woo-picture-img']";
-    }
-
-    public static class ClassNames
-    {
-        public const string Username = "head_name";
-        public const string Title = "head-info_time";
-        public const string Content = "detail_text";
+        public const string Item = "div.weibo-member div.card-main";
+        public const string PinTopBadge = "div.card-title h4";
+        public const string Image = "div.weibo-media-wraps img";
+        public const string Username = "h3.m-text-cut";
+        public const string Content = "article.weibo-main div.weibo-text";
     }
 }

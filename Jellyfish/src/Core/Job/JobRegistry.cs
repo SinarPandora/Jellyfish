@@ -37,7 +37,7 @@ public class JobRegistry : Registry
         Schedule(clockInMessageSyncJob).NonReentrant().ToRunEvery(1).Minutes();
         Schedule(clockInStageScanJob).NonReentrant().ToRunEvery(1).Minutes();
         Schedule(clockInStageQualifiedRoleSyncJob).NonReentrant().ToRunEvery(5).Minutes();
-        Schedule(weiboScanAndPushJob).NonReentrant().ToRunEvery(2).Minutes();
+        Schedule(weiboScanAndPushJob).NonReentrant().ToRunEvery(1).Minutes();
         Schedule(weiboPushFallbackJob).NonReentrant().ToRunEvery(10).Minutes();
         Schedule(weiboPushCleanupJob).NonReentrant().ToRunEvery(1).Days().At(2, 0);
     }

@@ -1,7 +1,6 @@
 using FluentScheduler;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.Push.Weibo.Data;
-using Jellyfish.Util;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
@@ -59,7 +58,7 @@ public class WeiboPushFallbackJob(
             {
                 try
                 {
-                    await channel.SendCardSafeAsync(weibo.ToCard());
+                    await channel.SendCardAsync(weibo.ToCard());
                     dbCtx.WeiboPushHistories.Add(new WeiboPushHistory(instance.Id, weibo.Hash));
                 }
                 catch (Exception e)

@@ -1,3 +1,4 @@
+using Jellyfish.Util;
 using Kook;
 
 namespace Jellyfish.Module.Push.Weibo.Core;
@@ -5,7 +6,7 @@ namespace Jellyfish.Module.Push.Weibo.Core;
 /// <summary>
 ///     Weibo Item
 /// </summary>
-public record WeiboItem(string Username, string Time, string Content, string[] Images, string Md5)
+public record WeiboItem(string Username, string Content, string[] Images, string Url, string Md5)
 {
     public virtual bool Equals(WeiboItem? other)
     {
@@ -17,7 +18,7 @@ public record WeiboItem(string Username, string Time, string Content, string[] I
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Content, string.Empty.Join(Images));
+        return HashCode.Combine(Md5);
     }
 
     /// <summary>
@@ -26,7 +27,7 @@ public record WeiboItem(string Username, string Time, string Content, string[] I
     /// <returns>Is empty or not</returns>
     public bool IsEmpty()
     {
-        return Username.IsEmpty() && Time.IsEmpty() && Content.IsEmpty() && Images.IsEmpty();
+        return Username.IsEmpty() && Content.IsEmpty() && Images.IsEmpty();
     }
 
     /// <summary>
@@ -52,7 +53,13 @@ public record WeiboItem(string Username, string Time, string Content, string[] I
         }
 
         return cardBuilder
+            .AddModule<ContextModuleBuilder>(c => c.AddElement(new KMarkdownElementBuilder(Url)))
             .WithSize(CardSize.Large)
             .Build();
+    }
+
+    public WeiboItem WithUrl(string url)
+    {
+        return this with { Url = url, Md5 = (Content + string.Empty.Join(Images) + url).ToMd5Hash() };
     }
 }

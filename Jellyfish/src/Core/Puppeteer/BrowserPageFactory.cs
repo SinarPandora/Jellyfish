@@ -19,7 +19,7 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
     /// </summary>
     /// <param name="url">Page url</param>
     /// <returns>New browser page</returns>
-    public async Task<IPage> OpenPage(string url)
+    public async Task<IPage> OpenPage(string? url = null)
     {
         _browser ??= await GetBrowserProcess();
 
@@ -62,12 +62,17 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
             .ExecuteAsync(async _ =>
             {
                 page = await _browser.NewPageAsync();
-                await page.GoToAsync(url);
                 await page.SetViewportAsync(new ViewPortOptions
                 {
                     Width = 1920,
                     Height = 1080
                 });
+
+                if (url is not null)
+                {
+                    await page.GoToAsync(url);
+                }
+
                 return page;
             });
     }
