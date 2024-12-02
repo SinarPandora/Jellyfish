@@ -6,7 +6,7 @@ namespace Jellyfish.Module.Push.Weibo.Core;
 /// <summary>
 ///     Weibo Item
 /// </summary>
-public record WeiboItem(string Username, string Content, string[] Images, string Url, string Md5)
+public record WeiboItem(string Username, string Content, string[] Images, string Mid, string Md5)
 {
     public virtual bool Equals(WeiboItem? other)
     {
@@ -53,13 +53,26 @@ public record WeiboItem(string Username, string Content, string[] Images, string
         }
 
         return cardBuilder
-            .AddModule<ContextModuleBuilder>(c => c.AddElement(new KMarkdownElementBuilder($"[原帖地址]({Url})")))
+            .AddModule<ContextModuleBuilder>(c =>
+                c.AddElement(new KMarkdownElementBuilder($"[原帖地址]({Constants.WeiboPostUrl + Mid})")))
             .WithSize(CardSize.Large)
             .Build();
     }
 
-    public WeiboItem WithUrl(string url)
+    /// <summary>
+    ///     Combine metadata and content to WeiboItem
+    /// </summary>
+    /// <param name="metadata">Weibo metadata</param>
+    /// <param name="content">Weibo content</param>
+    /// <returns>Immutable WeiboItem</returns>
+    public static WeiboItem Combine(WeiboMetadata metadata, WeiboContent content)
     {
-        return this with { Url = url, Md5 = (Content + string.Empty.Join(Images) + url).ToMd5Hash() };
+        return new WeiboItem(
+            Username: content.Username,
+            Content: content.Content,
+            Images: content.Images,
+            Mid: metadata.Mid,
+            Md5: (content.Content + string.Empty.Join(content.Images) + metadata.Mid).ToMd5Hash()
+        );
     }
 }

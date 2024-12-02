@@ -35,38 +35,75 @@ public class WeiboScanAndPushJob(
         log.LogInformation("微博推送任务完成");
     }
 
-    private async Task<int> ScanAndPushAsync(DatabaseContext dbCtx, string uid)
+    private async Task<Dictionary<bool, List<WeiboItem>>> GetChangedWeiboAsync(DatabaseContext dbCtx, string uid)
     {
         var weiboList = await crawlerService.CrawlAsync(uid);
-        if (weiboList.IsEmpty()) return 0;
+        if (weiboList.IsEmpty()) return [];
 
-        // Check if all new weibo crawled
-        var md5 = weiboList.Select(w => w.Md5).ToArray();
-        var existed = dbCtx.WeiboCrawlHistories.AsNoTracking()
-            .Where(it => md5.Contains(it.Hash))
+        Dictionary<bool, List<WeiboItem>> result = [];
+
+        // Get new weibo
+        var ids = weiboList.Select(w => w.Mid).ToArray();
+        var existed = dbCtx.WeiboCrawlHistories
+            .Where(it => ids.Contains(it.Mid))
             .ToList();
 
-        var newWeiboList = weiboList.Where(it => existed.All(e => e.Hash != it.Md5)).ToList();
-        // No new weibo found
-        if (newWeiboList.IsEmpty()) return 0;
+        var newWeiboList = weiboList.Where(it => existed.All(e => e.Mid != it.Mid)).ToList();
+        if (newWeiboList.IsNotEmpty())
+        {
+            // Save to crawl history
+            var histories = newWeiboList
+                .Select(w => new WeiboCrawlHistory(uid, w.Md5, w.Username, w.Content, w.Images.StringJoin(","), w.Mid))
+                .ToList();
+            dbCtx.WeiboCrawlHistories.AddRange(histories);
+            dbCtx.SaveChanges();
+            result[true] = newWeiboList;
+        }
 
-        // Save to crawl history
-        var histories = newWeiboList
-            .Select(w => new WeiboCrawlHistory(uid, w.Md5, w.Username, w.Content, w.Images.StringJoin(","), w.Url))
-            .ToList();
-        dbCtx.WeiboCrawlHistories.AddRange(histories);
+        // Get changed weibo
+        var changeWeiboList = weiboList.Where(it => existed.Exists(e => e.Mid == it.Mid && e.Hash != it.Md5)).ToList();
+        if (!changeWeiboList.IsNotEmpty()) return result;
+
+        foreach (var history in existed)
+        {
+            var weibo = changeWeiboList.FirstOrDefault(w => w.Mid == history.Mid);
+            if (weibo is null) continue;
+            history.Hash = weibo.Md5;
+        }
+
         dbCtx.SaveChanges();
+        result[true] = changeWeiboList;
 
-        var instances = (
-            from i in dbCtx.WeiboPushInstances
-                .Include(i => i.Config)
-                .AsNoTracking()
-            where i.Config.Uid == uid
-            select i
-        ).ToList();
+        return result;
+    }
 
-        await PushToEachChannelAsync(dbCtx, instances, newWeiboList);
-        return newWeiboList.Count;
+    private async Task<int> ScanAndPushAsync(DatabaseContext dbCtx, string uid)
+    {
+        var changedWeibo = await GetChangedWeiboAsync(dbCtx, uid);
+
+        var changeCount = 0;
+
+        if (changedWeibo.TryGetValue(true, out var newWeiboList) && newWeiboList.IsNotNullOrEmpty())
+        {
+            var instances = (
+                from i in dbCtx.WeiboPushInstances
+                    .Include(i => i.Config)
+                    .AsNoTracking()
+                where i.Config.Uid == uid
+                select i
+            ).ToList();
+
+            await PushToEachChannelAsync(dbCtx, instances, newWeiboList);
+            changeCount += newWeiboList.Count;
+        }
+
+        if (!changedWeibo.TryGetValue(false, out var changedWeiboList) || !changedWeiboList.IsNotNullOrEmpty())
+            return changeCount;
+
+        await UpdatePrevWeiboAsync(dbCtx, changedWeiboList);
+        changeCount += changedWeiboList.Count;
+
+        return changeCount;
     }
 
     private async Task PushToEachChannelAsync(DatabaseContext dbCtx, List<WeiboPushInstance> instances,
@@ -81,8 +118,51 @@ public class WeiboScanAndPushJob(
             {
                 try
                 {
-                    await channel.SendCardAsync(weibo.ToCard());
-                    dbCtx.WeiboPushHistories.Add(new WeiboPushHistory(instance.Id, weibo.Md5));
+                    var message = await channel.SendCardAsync(weibo.ToCard());
+                    dbCtx.WeiboPushHistories.Add(new WeiboPushHistory(instance.Id, weibo.Md5, weibo.Mid, message.Id));
+                }
+                catch (Exception e)
+                {
+                    log.LogError(e, "推送微博的过程中发生未知错误，用户：{Username}，内容：{Content}，MD5：{MD5}",
+                        weibo.Username, weibo.Content[..(weibo.Content.Length > 20 ? 20 : weibo.Content.Length)],
+                        weibo.Md5);
+                }
+            }
+
+            dbCtx.SaveChanges();
+        }
+    }
+
+    private async Task UpdatePrevWeiboAsync(DatabaseContext dbCtx, List<WeiboItem> weiboList)
+    {
+        foreach (var weibo in weiboList)
+        {
+            var histories = dbCtx.WeiboPushHistories
+                .Include(h => h.Instance)
+                .Include(h => h.Instance.Config)
+                .Where(h => h.Mid == weibo.Mid && h.Hash != weibo.Md5)
+                .ToList();
+
+            foreach (var history in histories)
+            {
+                var channel = kook.GetGuild(history.Instance.Config.GuildId)
+                    ?.GetTextChannel(history.Instance.ChannelId);
+                if (channel == null) continue;
+                try
+                {
+                    var message = await channel.GetMessageAsync(history.MessageId);
+                    // API will return null when the message does not exist, actually.
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+                    if (message is null)
+                    {
+                        // Resend
+                        log.LogInformation("微博已被手动删除，不会重新发送，MID：{MID}", weibo.Mid);
+                        continue;
+                    }
+
+                    // Update
+                    await channel.ModifyMessageAsync(history.MessageId, x => x.Cards = [weibo.ToCard()]);
+                    history.Hash = weibo.Md5;
                 }
                 catch (Exception e)
                 {

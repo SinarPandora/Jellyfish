@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using Jellyfish.Core.Puppeteer;
-using Jellyfish.Util;
 using Newtonsoft.Json.Linq;
 using PuppeteerSharp;
 
@@ -11,8 +10,7 @@ namespace Jellyfish.Module.Push.Weibo.Core;
 /// </summary>
 public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerService> log)
 {
-    private const int MaxScanTimes = 3;
-    private const int ScanItemLimit = 5;
+    private static readonly JArray EmptyJsonArray = [];
 
 
     /// <summary>
@@ -23,45 +21,50 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
     public async Task<ImmutableArray<WeiboItem>> CrawlAsync(string uid)
     {
         await using var page = pbf.OpenPage().Result;
-        List<string> urls = [];
-        CatchWeiboUrls(page, urls);
+        List<WeiboMetadata> metadataList = [];
+        CatchWeiboMetadata(page, uid, metadataList);
 
         await page.GoToAsync(Constants.WeiboRootUrl + uid);
         await page.WaitForNetworkIdleAsync();
         await page.WaitForSelectorAsync(Constants.Selectors.Item);
-
-        List<WeiboItem> results = [];
-
-        for (var tryTime = 0; tryTime < MaxScanTimes; tryTime++)
-        {
-            var items = await CrawlAsync(page, uid);
-            if (items.IsEmpty()) continue;
-            results.AddRange(items.Where(item => !results.Contains(item)));
-            if (items.Count >= ScanItemLimit) break;
-        }
-
-        await page.WaitForNetworkIdleAsync();
+        var results = await CrawlAsync(page, uid);
         await page.CloseAsync();
 
-        // Fill URL
-        return [..results.Select((t, i) => t.WithUrl(urls[i]))];
+        if (metadataList.Count < results.Count)
+        {
+            log.LogWarning("微博元数据数量小于微博数量，跳过此次捕获，若此问题频繁发生，请上报该 bug");
+            return [];
+        }
+
+        var items = new List<WeiboItem>();
+        for (var i = 0; i < results.Count; i++)
+        {
+            var content = results[i];
+            var metadata = metadataList[i];
+            if (metadata.IsTop) continue;
+            items.AddRange(WeiboItem.Combine(metadata, content));
+        }
+
+        return [..items];
     }
 
-    private static void CatchWeiboUrls(IPage page, List<string> urls)
+    private static void CatchWeiboMetadata(IPage page, string uid, List<WeiboMetadata> metadataList)
     {
         var count = 1;
         page.Response += async (_, evt) =>
         {
-            if (!evt.Response.Request.Url.Contains("api/container/getIndex")) return;
+            if (!evt.Response.Request.Url.Contains("api/container/getIndex") || count > 2) return;
 
-            if (count is > 1 and < MaxScanTimes)
+            if (count == 2)
             {
                 var json = JObject.Parse(await evt.Response.TextAsync());
-                urls.AddRange(
-                    Enumerable
-                        .Select<JToken, string>(json.SelectToken("$.data.cards")?
-                                .Where(it => it["profile_type_id"]?.ToString().StartsWith("proweibo_") ?? false),
-                            it => it["scheme"]?.ToString() ?? "")
+                metadataList.AddRange(
+                    from weibo in json.SelectToken("$.data.cards") ?? EmptyJsonArray
+                    where (weibo["card_type"]?.Value<int>() ?? 0) == 9
+                    select new WeiboMetadata(
+                        Mid: weibo["mblog"]["mid"]!.ToString(),
+                        IsTop: (weibo["profile_type_id"]?.Value<string>() ?? string.Empty) == "proweibotop_"
+                    )
                 );
             }
 
@@ -69,7 +72,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
         };
     }
 
-    private async Task<List<WeiboItem>> CrawlAsync(IPage page, string uid)
+    private async Task<List<WeiboContent>> CrawlAsync(IPage page, string uid)
     {
         try
         {
@@ -83,12 +86,12 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
     }
 
 
-    private static async Task<List<WeiboItem>> CrawlAsyncAux(IPage page)
+    private static async Task<List<WeiboContent>> CrawlAsyncAux(IPage page)
     {
         var list = page.QuerySelectorAllAsync(Constants.Selectors.Item).Result;
         if (list.IsEmpty()) return [];
 
-        List<WeiboItem> results = [];
+        List<WeiboContent> results = [];
         foreach (var elm in list)
         {
             var item = await CrawlOnceAsync(elm);
@@ -96,16 +99,11 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
             results.Add(item);
         }
 
-        await list.Last().ScrollIntoViewAsync();
-        await page.WaitForNetworkIdleAsync();
         return results;
     }
 
-    private static async Task<WeiboItem?> CrawlOnceAsync(IElementHandle elm)
+    private static async Task<WeiboContent?> CrawlOnceAsync(IElementHandle elm)
     {
-        var isPin = await elm.QuerySelectorAsync(Constants.Selectors.PinTopBadge) is not null;
-        if (isPin) return null;
-
         var contents = await Task.WhenAll(
             ExtractText(elm, Constants.Selectors.Username),
             ExtractTextAll(elm, Constants.Selectors.Content)
@@ -124,15 +122,11 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
             // Remove [ZWSP]
             .Replace("\u200b", string.Empty);
 
-        var item = new WeiboItem(
+        return new WeiboContent(
             Username: contents[0],
             Content: content,
-            Images: images,
-            Url: string.Empty,
-            Md5: (contents + string.Empty.Join(images)).ToMd5Hash()
+            Images: images
         );
-
-        return item.IsEmpty() ? null : item;
     }
 
     private static async Task<string> ExtractText(IElementHandle elm, string selector)

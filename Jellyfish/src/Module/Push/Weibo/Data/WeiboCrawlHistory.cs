@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using Jellyfish.Module.Push.Weibo.Core;
 using Kook;
 
 namespace Jellyfish.Module.Push.Weibo.Data;
@@ -6,7 +7,7 @@ namespace Jellyfish.Module.Push.Weibo.Data;
 /// <summary>
 ///     Crawl history for Weibo
 /// </summary>
-public class WeiboCrawlHistory(string uid, string hash, string username, string content, string images, string url)
+public class WeiboCrawlHistory(string uid, string hash, string username, string content, string images, string mid)
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Uid { get; set; } = uid;
@@ -14,7 +15,7 @@ public class WeiboCrawlHistory(string uid, string hash, string username, string 
     public string Username { get; set; } = username;
     public string Content { get; set; } = content;
     public string Images { get; set; } = images;
-    public string Url { get; set; } = url;
+    public string Mid { get; set; } = mid;
     [Column(TypeName = "timestamp")] public DateTime CreateTime { get; init; } = DateTime.Now;
 
     /// <summary>
@@ -40,7 +41,8 @@ public class WeiboCrawlHistory(string uid, string hash, string username, string 
         }
 
         return cardBuilder
-            .AddModule<ContextModuleBuilder>(c => c.AddElement(new KMarkdownElementBuilder($"[原帖地址]({Url})")))
+            .AddModule<ContextModuleBuilder>(c =>
+                c.AddElement(new KMarkdownElementBuilder($"[原帖地址]({Constants.WeiboPostUrl + Mid})")))
             .WithSize(CardSize.Large)
             .Build();
     }

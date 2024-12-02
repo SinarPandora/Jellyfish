@@ -36,16 +36,16 @@ public class WeiboPushFallbackJob(
             .Where(h => h.CreateTime > period && h.Uid == uid)
             .ToList();
 
-        var md5 = histories.Select(h => h.Hash).ToArray();
+        var ids = histories.Select(h => h.Mid).ToArray();
         var existedGroups = dbCtx.WeiboPushInstances
             .Include(h => h.PushHistories)
             .Include(h => h.Config)
             .AsNoTracking()
             .Where(it =>
-                // Not all md5,
-                !md5.All(m =>
+                // Not all mid,
+                !ids.All(m =>
                     // exist in push history
-                    it.PushHistories.Any(h => h.Hash == m)))
+                    it.PushHistories.Any(h => h.Mid == m)))
             .GroupBy(it => it.Id)
             .ToList();
 
@@ -62,8 +62,8 @@ public class WeiboPushFallbackJob(
             {
                 try
                 {
-                    await channel.SendCardAsync(weibo.ToCard());
-                    dbCtx.WeiboPushHistories.Add(new WeiboPushHistory(instance.Id, weibo.Hash));
+                    var message = await channel.SendCardAsync(weibo.ToCard());
+                    dbCtx.WeiboPushHistories.Add(new WeiboPushHistory(instance.Id, weibo.Hash, weibo.Mid, message.Id));
                 }
                 catch (Exception e)
                 {
