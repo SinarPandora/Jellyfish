@@ -58,6 +58,7 @@ public class WeiboScanAndPushJob(
             dbCtx.WeiboCrawlHistories.AddRange(histories);
             dbCtx.SaveChanges();
             result[true] = newWeiboList;
+            log.LogInformation("发现{Count}条新微博", newWeiboList.Count);
         }
 
         // Get changed weibo
@@ -72,7 +73,8 @@ public class WeiboScanAndPushJob(
         }
 
         dbCtx.SaveChanges();
-        result[true] = changeWeiboList;
+        result[false] = changeWeiboList;
+        log.LogInformation("发现{Count}条修改过的微博", changeWeiboList.Count);
 
         return result;
     }

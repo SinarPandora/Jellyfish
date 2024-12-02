@@ -24,7 +24,9 @@ public class WeiboPushFallbackJob(
                      .Select(p => p.Key)
                      .ToArray())
         {
+            log.LogInformation("开始重试推送{UID}的微博", uid);
             await ScanAndRePushAsync(dbCtx, uid, DateTime.Now.AddMinutes(-12), DateTime.Now.AddMinutes(-2));
+            log.LogInformation("{UID}的微博已重试推送完毕", uid);
         }
 
         log.LogInformation("重试推送完成，若在此期间依然出现报错，请检查数据库并上报 bug");
@@ -32,28 +34,24 @@ public class WeiboPushFallbackJob(
 
     private async Task ScanAndRePushAsync(DatabaseContext dbCtx, string uid, DateTime after, DateTime before)
     {
-        var histories = dbCtx.WeiboCrawlHistories.AsNoTracking()
+        var crawlHistories = dbCtx.WeiboCrawlHistories.AsNoTracking()
             .Where(h => h.CreateTime > after && h.CreateTime < before && h.Uid == uid)
             .ToList();
 
-        var ids = histories.Select(h => h.Mid).ToArray();
-        var existedGroups = dbCtx.WeiboPushInstances
+        var ids = crawlHistories.Select(h => h.Mid).ToArray();
+        var incompletePushes = dbCtx.WeiboPushInstances
             .Include(h => h.PushHistories)
             .Include(h => h.Config)
             .AsNoTracking()
             .Where(it =>
                 it.Config.Uid == uid &&
-                // Not all mid,
-                !ids.All(m =>
-                    // exist in push history
-                    it.PushHistories.Any(h => h.Mid == m)))
-            .GroupBy(it => it.Id)
+                // Not all Mid, exist in push history
+                !ids.All(m => it.PushHistories.Any(h => h.Mid == m)))
             .ToList();
 
-        foreach (var existed in existedGroups)
+        foreach (var instance in incompletePushes)
         {
-            var instance = existed.First();
-            var newWeiboList = histories.Where(it => instance.PushHistories.All(h => h.Hash != it.Hash)).ToList();
+            var newWeiboList = crawlHistories.Where(it => instance.PushHistories.All(h => h.Mid != it.Mid)).ToList();
             if (newWeiboList.IsEmpty()) continue;
 
             var channel = kook.GetGuild(instance.Config.GuildId)?.GetTextChannel(instance.ChannelId);
