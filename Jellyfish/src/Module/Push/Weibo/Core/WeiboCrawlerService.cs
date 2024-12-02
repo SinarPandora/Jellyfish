@@ -42,7 +42,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
             var content = results[i];
             var metadata = metadataList[i];
             if (metadata.IsTop) continue;
-            items.AddRange(WeiboItem.Combine(metadata, content));
+            items.Add(WeiboItem.Combine(metadata, content));
         }
 
         // Keep latest at the bottom
