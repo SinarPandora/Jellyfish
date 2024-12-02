@@ -37,7 +37,7 @@ public class GlobalHelpCommand : GuildMessageCommand
     {
         var availableCommands =
             _commands.Value.Where(user.CanExecute)
-                .Select(command => $"{command.Name()}：{command.Keywords().First()}")
+                .Select(command => $"{command.Name()}：{command.Keywords().FirstOrDefault() ?? "被动触发"}")
                 .StringJoin("\n");
 
         await channel.SendCardSafeAsync(new CardBuilder()
