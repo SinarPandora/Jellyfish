@@ -45,7 +45,7 @@ public class WeiboScanAndPushJob(
         // Get new weibo
         var ids = weiboList.Select(w => w.Mid).ToArray();
         var existed = dbCtx.WeiboCrawlHistories
-            .Where(it => ids.Contains(it.Mid))
+            .Where(it => it.Uid == uid && ids.Contains(it.Mid))
             .ToList();
 
         var newWeiboList = weiboList.Where(it => existed.All(e => e.Mid != it.Mid)).ToList();
@@ -83,6 +83,7 @@ public class WeiboScanAndPushJob(
 
         var changeCount = 0;
 
+        // New weibo
         if (changedWeibo.TryGetValue(true, out var newWeiboList) && newWeiboList.IsNotNullOrEmpty())
         {
             var instances = (
@@ -97,6 +98,7 @@ public class WeiboScanAndPushJob(
             changeCount += newWeiboList.Count;
         }
 
+        // Edit weibo
         if (!changedWeibo.TryGetValue(false, out var changedWeiboList) || !changedWeiboList.IsNotNullOrEmpty())
             return changeCount;
 

@@ -24,16 +24,16 @@ public class WeiboPushFallbackJob(
                      .Select(p => p.Key)
                      .ToArray())
         {
-            await ScanAndRePushAsync(dbCtx, uid, DateTime.Now.AddMinutes(-10));
+            await ScanAndRePushAsync(dbCtx, uid, DateTime.Now.AddMinutes(-10), DateTime.Now.AddMinutes(-4));
         }
 
         log.LogInformation("重试推送完成，若在此期间依然出现报错，请检查数据库并上报 bug");
     }
 
-    private async Task ScanAndRePushAsync(DatabaseContext dbCtx, string uid, DateTime period)
+    private async Task ScanAndRePushAsync(DatabaseContext dbCtx, string uid, DateTime after, DateTime before)
     {
         var histories = dbCtx.WeiboCrawlHistories.AsNoTracking()
-            .Where(h => h.CreateTime > period && h.Uid == uid)
+            .Where(h => h.CreateTime > after && h.CreateTime < before && h.Uid == uid)
             .ToList();
 
         var ids = histories.Select(h => h.Mid).ToArray();
@@ -42,6 +42,7 @@ public class WeiboPushFallbackJob(
             .Include(h => h.Config)
             .AsNoTracking()
             .Where(it =>
+                it.Config.Uid == uid &&
                 // Not all mid,
                 !ids.All(m =>
                     // exist in push history
