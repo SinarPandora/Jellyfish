@@ -24,7 +24,7 @@ public class WeiboPushFallbackJob(
                      .Select(p => p.Key)
                      .ToArray())
         {
-            await ScanAndRePushAsync(dbCtx, uid, DateTime.Now.AddMinutes(-10), DateTime.Now.AddMinutes(-4));
+            await ScanAndRePushAsync(dbCtx, uid, DateTime.Now.AddMinutes(-12), DateTime.Now.AddMinutes(-2));
         }
 
         log.LogInformation("重试推送完成，若在此期间依然出现报错，请检查数据库并上报 bug");
