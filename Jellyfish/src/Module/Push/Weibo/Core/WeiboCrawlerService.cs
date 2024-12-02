@@ -45,6 +45,8 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
             items.AddRange(WeiboItem.Combine(metadata, content));
         }
 
+        // Keep latest at the bottom
+        items.Reverse();
         return [..items];
     }
 
