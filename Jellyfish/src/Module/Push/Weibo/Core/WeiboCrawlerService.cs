@@ -22,7 +22,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
     {
         await using var page = pbf.OpenPage().Result;
         List<WeiboMetadata> metadataList = [];
-        CatchWeiboMetadata(page, uid, metadataList);
+        CatchWeiboMetadata(page, metadataList);
 
         await page.GoToAsync(Constants.WeiboRootUrl + uid);
         await page.WaitForNetworkIdleAsync();
@@ -48,7 +48,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
         return [..items];
     }
 
-    private static void CatchWeiboMetadata(IPage page, string uid, List<WeiboMetadata> metadataList)
+    private static void CatchWeiboMetadata(IPage page, List<WeiboMetadata> metadataList)
     {
         var count = 1;
         page.Response += async (_, evt) =>
