@@ -154,7 +154,7 @@ public class TeamPlayRoomService(
 
             if (user.VoiceChannel is not null)
             {
-                // Ignore error for moving user to voice channel
+                // Ignore error for moving user to the voice channel
                 _ = guild.MoveToRoomAsync(user.Id, voiceChannel);
             }
 
@@ -167,19 +167,23 @@ public class TeamPlayRoomService(
                 commandText: args.RawCommand
             );
             dbCtx.TpRoomInstances.Add(instance);
-            dbCtx.SaveChanges(); // Save for voice channel
+            dbCtx.SaveChanges(); // Save for the voice channel
 
             log.LogInformation("语音房间记录已保存：{RoomName}", roomName);
 
             // Error already handled inside the method with callback
-            var tmpTextChannel = await CreateTemporaryTextChannel(
-                new TmpChannel.Core.Args.CreateTextChannelArgs(
-                    (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
-                    textCategoryId ?? voiceCategoryId
-                ),
-                user, instance, voiceChannel, isVoiceChannelHasPassword, noticeChannel
-            );
-            dbCtx.SaveChanges(); // Save for text channel
+            RestTextChannel? tmpTextChannel = null;
+            if (tpConfig.EnableTmpTextChannel)
+            {
+                tmpTextChannel = await CreateTemporaryTextChannel(
+                    new TmpChannel.Core.Args.CreateTextChannelArgs(
+                        (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
+                        textCategoryId ?? voiceCategoryId
+                    ),
+                    user, instance, voiceChannel, isVoiceChannelHasPassword, noticeChannel
+                );
+                dbCtx.SaveChanges(); // Save for the text channel
+            }
 
             await onSuccess(instance, voiceChannel, tmpTextChannel);
             return true;

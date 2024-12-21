@@ -32,7 +32,9 @@ public class TeamPlayManageCommand : GuildMessageCommand
              5. 文字频道分组 [配置名称] [#引用现有文字频道]：设置临时文字房间在指定分组下创建
              4. 房间名格式 [配置名称] [名称格式]：修改语音房间名称格式，使用 {TeamPlayManageService.UserInjectKeyword} 代表用户输入的内容
              5. 默认人数 [配置名称] [数字]：设定创建语音房间的默认人数，输入 0 代表人数无限
-             6. 删除 [配置名称]：删除指定配置
+             6. 关闭临时文字房间 [配置名称]：关闭后创建语音房间时将不会同时创建临时文字房间
+             7. 开启临时文字房间 [配置名称]：开启临时文字房间功能
+             8. 删除 [配置名称]：删除指定配置
              ---
              [#引用现有文字频道]：指的是一个文字频道的 Kook 引用，用于获取其所属的分类频道（因为 Kook 无法直接引用分类频道）
              """);
@@ -71,6 +73,10 @@ public class TeamPlayManageCommand : GuildMessageCommand
         else if (args.StartsWith("文字频道分组"))
             isSuccess = await _service.SetCategoryChannel(channel, args[6..].TrimStart(),
                 AdditionChannelType.TmpTextCategoryInto);
+        else if (args.StartsWith("关闭临时文字房间"))
+            isSuccess = await _service.SetTmpTextChannelEnabled(channel, args[8..].TrimStart(), false);
+        else if (args.StartsWith("开启临时文字房间"))
+            isSuccess = await _service.SetTmpTextChannelEnabled(channel, args[8..].TrimStart(), true);
         else if (args.StartsWith("列表"))
             await _service.ListConfigs(channel);
         else

@@ -507,4 +507,32 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
         await channel.SendSuccessCardAsync($"{channelTypeName}配置成功！", false);
         return true;
     }
+
+    /// <summary>
+    ///     Switch temporary text channel feature on/off
+    /// </summary>
+    /// <param name="channel">Current channel</param>
+    /// <param name="configName">Config name</param>
+    /// <param name="enabled">Is feature enabled</param>
+    /// <returns>Should keep the user message or not</returns>
+    public async Task<bool> SetTmpTextChannelEnabled(SocketTextChannel channel, string configName, bool enabled)
+    {
+        await using var dbCtx = dbProvider.Provide();
+        var tpConfig =
+            (from c in dbCtx.TpConfigs.EnabledInGuild(channel.Guild)
+                where c.Name == configName
+                select c).FirstOrDefault();
+
+        if (tpConfig is null)
+        {
+            await channel.SendErrorCardAsync("配置不存在，您可以发送：`!组队 列表` 查看现有配置", true);
+            return false;
+        }
+
+        tpConfig.EnableTmpTextChannel = enabled;
+        dbCtx.SaveChanges();
+
+        await channel.SendSuccessCardAsync($"已{(enabled ? "开启" : "关闭")}临时文字频道功能", false);
+        return true;
+    }
 }
