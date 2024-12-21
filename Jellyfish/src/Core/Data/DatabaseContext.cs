@@ -95,6 +95,10 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
             entity
                 .Property(e => e.Enabled)
                 .HasDefaultValue(true);
+
+            entity
+                .Property(e => e.EnableTmpTextChannel)
+                .HasDefaultValue(true);
         });
 
         modelBuilder.Entity<TpRoomInstance>(entity =>

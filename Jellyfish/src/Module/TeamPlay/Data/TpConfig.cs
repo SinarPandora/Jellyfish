@@ -17,6 +17,7 @@ public class TpConfig(string name, ulong guildId) : TrackableEntity
     public ulong GuildId { get; init; } = guildId;
     public string? RoomNamePattern { get; set; }
     public int DefaultMemberLimit { get; set; }
+    public bool EnableTmpTextChannel { get; set; } = true;
     public bool Enabled { get; set; } = true;
 
     // References
