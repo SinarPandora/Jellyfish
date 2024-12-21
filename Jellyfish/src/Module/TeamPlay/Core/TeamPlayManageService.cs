@@ -316,6 +316,11 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
                      **设置房间所在分组**
                      > `!组队 语音频道分组 {config.Name} [#引用现有文字频道]`
                      > `!组队 文字频道分组 {config.Name} [#引用现有文字频道]`
+                     ---
+                     **开关临时文字房间功能**
+                     > `!组队 关闭临时文字房间 {config.Name}`
+                     > `!组队 开启临时文字房间 {config.Name}`
+                     **默认开启**
 
                      [#引用现有文字频道]：指的是一个文字频道的 Kook 引用，用于获取其所属的分类频道（因为 Kook 无法直接引用分类频道）
                      默认语音房间将创建在上一步中绑定的语音所在分组，文字房间将创建在上一步中绑定的文字房间所在分组。
