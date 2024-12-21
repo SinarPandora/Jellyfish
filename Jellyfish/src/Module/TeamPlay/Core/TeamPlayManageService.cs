@@ -116,7 +116,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
                     var textChannel = e.TextChannelId.HasValue
                         ? MentionUtils.KMarkdownMentionChannel(e.TextChannelId.Value)
                         : "未绑定";
-                    return $"ID：{e.Id}，名称：{e.Name}，语音入口：{voiceChannel}，" +
+                    return $"{(e.EnableTmpTextChannel ? "🔊💬" : "🔊")}ID：{e.Id}，名称：{e.Name}，语音入口：{voiceChannel}，" +
                            $"文字入口：{textChannel}，当前语音房间数：{e.RoomInstances.Count}";
                 })
                 .ToArray();
