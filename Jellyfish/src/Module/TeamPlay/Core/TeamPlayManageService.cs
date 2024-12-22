@@ -536,6 +536,7 @@ public class TeamPlayManageService(ILogger<TeamPlayManageService> log, DbContext
 
         tpConfig.EnableTmpTextChannel = enabled;
         dbCtx.SaveChanges();
+        AppCaches.TeamPlayConfigs[$"{channel.Guild.Id}_{configName}"].EnableTmpTextChannel = enabled;
 
         await channel.SendSuccessCardAsync($"已{(enabled ? "开启" : "关闭")}临时文字频道功能", false);
         return true;
