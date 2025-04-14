@@ -4,6 +4,7 @@ using Jellyfish.Core.Data;
 using Jellyfish.Module.GuildSetting.Enum;
 using Jellyfish.Util;
 using Kook.WebSocket;
+using Microsoft.EntityFrameworkCore;
 
 namespace Jellyfish.Module.GuildSetting.Core;
 
@@ -101,7 +102,7 @@ public class GuildCustomFeatureCommand : GuildMessageCommand
 
         await using var dbCtx = _dbProvider.Provide();
 
-        var setting = dbCtx.GuildSettings
+        var setting = dbCtx.GuildSettings.Include(guildSetting => guildSetting.Setting)
             .First(s => s.GuildId == channel.Guild.Id);
 
         if (enable)

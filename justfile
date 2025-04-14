@@ -3,6 +3,7 @@ set dotenv-load
 version := "1.6"
 postgres_container_name := "jellyfish_postgres_container"
 addition_args := ""
+project_name := "jellyfish"
 
 backup:
     export BACKUP_FILE_NAME="Jellyfish-$(date '+%Y-%m-%d-%H-%M-%S')-dump.tar" && \
@@ -17,10 +18,10 @@ migrate:
 docker-deploy:
     # Replace mirror for the aliyun ECS
     sed -i 's|mirrors.aliyun.com|mirrors.cloud.aliyuncs.com|g' ./Jellyfish/Dockerfile
-    docker build {{ addition_args }} -f ./Jellyfish/Dockerfile -t $PROJECT_NAME:{{ version }} .
-    docker stop $PROJECT_NAME || true
-    docker rm $PROJECT_NAME || true
-    docker run -d --network=host --name $PROJECT_NAME $PROJECT_NAME:{{ version }}
+    docker build {{ addition_args }} -f ./Jellyfish/Dockerfile -t {{ project_name }}:{{ version }} .
+    docker stop {{ project_name }} || true
+    docker rm {{ project_name }} || true
+    docker run -d --network=host --name {{ project_name }} {{ project_name }}:{{ version }}
 
 deploy:
     just docker-deploy
