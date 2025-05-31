@@ -2,6 +2,7 @@ using FluentScheduler;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.ClockIn.Core;
 using Jellyfish.Module.ClockIn.Data;
+using Jellyfish.Module.RecallMessageMonitor.Core;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +14,8 @@ namespace Jellyfish.Module.ClockIn.Job;
 public class ClockInMessageSyncJob(
     DbContextProvider dbProvider,
     KookSocketClient kook,
-    ILogger<ClockInMessageSyncJob> log) : IAsyncJob
+    ILogger<ClockInMessageSyncJob> log,
+    RecallMessageService recallMessageService) : IAsyncJob
 {
     public async Task ExecuteAsync()
     {
@@ -99,6 +101,7 @@ public class ClockInMessageSyncJob(
                         log.LogInformation("{Reason}，重新发送消息，频道：{ChannelName}#{ChannelId}，服务器：{GuildName}",
                             resendReason, channel.Name, channel.Id, guild.Name);
                         await channel.DeleteMessageAsync(instance.MessageId);
+                        await recallMessageService.WatchMessage(instance.MessageId, channel);
                         instance.MessageId =
                             await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config, appendData);
                         continue;
@@ -120,6 +123,7 @@ public class ClockInMessageSyncJob(
                         log.LogInformation("打卡消息不在频道最底部，重新发送消息，频道：{ChannelName}#{ChannelId}，服务器：{GuildName}",
                             channel.Name, channel.Id, guild.Name);
                         await channel.DeleteMessageAsync(instance.MessageId);
+                        await recallMessageService.WatchMessage(instance.MessageId, channel);
                         instance.MessageId =
                             await ClockInManageService.SendCardToCurrentChannel(channel, instance.Config, appendData);
                     }
