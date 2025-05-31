@@ -3,6 +3,7 @@ using Jellyfish.Module.ClockIn.Job;
 using Jellyfish.Module.CountDownName.Job;
 using Jellyfish.Module.ExpireExtendSession.Job;
 using Jellyfish.Module.Push.Weibo.Job;
+using Jellyfish.Module.RecallMessageMonitor.Job;
 using Jellyfish.Module.TeamPlay.Job;
 using Jellyfish.Module.TmpChannel.Job;
 
@@ -26,7 +27,8 @@ public class JobRegistry : Registry
         ClockInStageQualifiedRoleSyncJob clockInStageQualifiedRoleSyncJob,
         WeiboScanAndPushJob weiboScanAndPushJob,
         WeiboPushCleanupJob weiboPushCleanupJob,
-        WeiboPushFallbackJob weiboPushFallbackJob)
+        WeiboPushFallbackJob weiboPushFallbackJob,
+        EnsureMessageRecalledJob ensureMessageRecalledJob)
     {
         Schedule(teamPlayRoomScanJob).NonReentrant().ToRunEvery(1).Minutes();
         Schedule(cacheSyncJob).NonReentrant().ToRunEvery(10).Minutes();
@@ -40,5 +42,6 @@ public class JobRegistry : Registry
         Schedule(weiboScanAndPushJob).NonReentrant().ToRunEvery(2).Minutes();
         Schedule(weiboPushFallbackJob).NonReentrant().ToRunEvery(10).Minutes();
         Schedule(weiboPushCleanupJob).NonReentrant().ToRunEvery(1).Days().At(2, 0);
+        Schedule(ensureMessageRecalledJob).NonReentrant().ToRunEvery(3).Minutes();
     }
 }

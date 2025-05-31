@@ -311,6 +311,42 @@ public static class KookCoreApiHelper
     }
 
     /// <summary>
+    ///     Delete message, check if it exists before action.
+    /// </summary>
+    /// <param name="channel">Current text channel</param>
+    /// <param name="messageId">Message id</param>
+    public static async Task DeleteMessageSafeAsync(this RestTextChannel channel, Guid messageId)
+    {
+        await new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                MaxRetryAttempts = 2,
+                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
+                OnRetry = args =>
+                {
+                    Log.Warn(args.Outcome.Exception,
+                        $"删除消息 API 调用失败一次，频道：{channel.Guild.Name}，房间名：{channel.Name}，消息 ID：{messageId}，重试次数：{args.AttemptNumber}");
+                    return ValueTask.CompletedTask;
+                }
+            })
+            .Build()
+            .ExecuteAsync(async _ =>
+            {
+                var message = (RestMessage?)await channel.GetMessageAsync(messageId);
+                if (message is null) return;
+
+                await message.DeleteAsync();
+
+                message = await channel.GetMessageAsync(messageId);
+                if (message is not null)
+                {
+                    throw new Exception($"本应删除的消息依然存在，频道：{channel.Guild.Name}，房间名：{channel.Name}，消息 ID：{messageId}");
+                }
+            });
+    }
+
+    /// <summary>
     ///     Get user display name(auto detect by type)
     /// </summary>
     /// <param name="user">User object</param>

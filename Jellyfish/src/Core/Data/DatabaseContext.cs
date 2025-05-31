@@ -7,6 +7,7 @@ using Jellyfish.Module.GroupControl.Data;
 using Jellyfish.Module.GuildSetting.Data;
 using Jellyfish.Module.GuildSetting.Enum;
 using Jellyfish.Module.Push.Weibo.Data;
+using Jellyfish.Module.RecallMessageMonitor.Data;
 using Jellyfish.Module.Role.Data;
 using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Module.TmpChannel.Data;
@@ -67,6 +68,9 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     public DbSet<WeiboPushConfig> WeiboPushConfigs { get; set; } = null!;
     public DbSet<WeiboPushHistory> WeiboPushHistories { get; set; } = null!;
     public DbSet<WeiboPushInstance> WeiboPushInstances { get; set; } = null!;
+
+    // ------------------------------------ Recall Messages ------------------------------------
+    public DbSet<RecallMessage> RecallMessages { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

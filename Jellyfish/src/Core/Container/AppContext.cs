@@ -22,6 +22,8 @@ using Jellyfish.Module.Help;
 using Jellyfish.Module.Push.Weibo;
 using Jellyfish.Module.Push.Weibo.Core;
 using Jellyfish.Module.Push.Weibo.Job;
+using Jellyfish.Module.RecallMessageMonitor.Core;
+using Jellyfish.Module.RecallMessageMonitor.Job;
 using Jellyfish.Module.Role;
 using Jellyfish.Module.TeamPlay;
 using Jellyfish.Module.TeamPlay.Core;
@@ -130,6 +132,10 @@ public static class AppContext
         container.RegisterType<WeiboPushCleanupJob>().SingleInstance();
         container.RegisterType<WeiboPushFallbackJob>().SingleInstance();
         container.RegisterType<WeiboPushManageCommand>().As<GuildMessageCommand>().SingleInstance();
+
+        // Recall Message Monitor
+        container.RegisterType<EnsureMessageRecalledJob>().SingleInstance();
+        container.RegisterType<RecallMessageService>().SingleInstance();
 
 #if DEBUG
         // Board Command
