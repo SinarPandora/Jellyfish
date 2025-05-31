@@ -1,6 +1,7 @@
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.ClockIn.Data;
+using Jellyfish.Module.RecallMessageMonitor.Core;
 using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
@@ -10,7 +11,12 @@ namespace Jellyfish.Module.ClockIn.Core;
 /// <summary>
 ///     Logic for user clock-in
 /// </summary>
-public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvider, ILogger<UserClockInService> log)
+public class UserClockInService(
+    KookSocketClient kook,
+    DbContextProvider dbProvider,
+    ILogger<UserClockInService> log,
+    RecallMessageService
+        recallMessageService)
 {
     /// <summary>
     ///     User clock-in
@@ -85,8 +91,13 @@ public class UserClockInService(KookSocketClient kook, DbContextProvider dbProvi
             ? $"您已累积打卡 {userStatus.AllClockInCount} 天"
             : $"您已连续打卡 {ongoingDays} 天，累积打卡 {userStatus.AllClockInCount} 天";
 
-        await channel.SendSuccessCardAsync($"{MentionUtils.KMarkdownMentionUser(userId)} 打卡成功！{dayText}",
+        var message = await channel.SendSuccessCardAsync($"{MentionUtils.KMarkdownMentionUser(userId)} 打卡成功！{dayText}",
             fromButton);
+        if (fromButton && message is { HasValue: true } && message.Value is { HasValue: true })
+        {
+            await recallMessageService.WatchMessage(message.Value.Value.Id, channel);
+        }
+
         log.LogInformation("用户打卡成功，用户名：{UserName}#{UserId}，服务器：{GuildName}",
             userStatus.Username, userStatus.IdNumber, guild!.Name);
     }

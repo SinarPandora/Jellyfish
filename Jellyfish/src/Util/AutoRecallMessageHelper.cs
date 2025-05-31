@@ -15,13 +15,17 @@ public static class AutoRecallMessageHelper
     /// <param name="channel">Text channel</param>
     /// <param name="card">Card message</param>
     /// <param name="timeout">Recall timeout</param>
-    public static async Task SendAutoRecallCardAsync(this IMessageChannel channel, Card card, TimeSpan? timeout = null)
+    /// <returns>The card message</returns>
+    public static async Task<Cacheable<IUserMessage, Guid>?> SendAutoRecallCardAsync(this IMessageChannel channel,
+        Card card, TimeSpan? timeout = null)
     {
         var result = await channel.SendCardSafeAsync(card);
         if (result.HasValue)
         {
             _ = channel.DeleteMessageWithTimeoutAsync(result.Value.Id, timeout);
         }
+
+        return result;
     }
 
     /// <summary>

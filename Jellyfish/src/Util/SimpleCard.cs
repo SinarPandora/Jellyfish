@@ -14,7 +14,8 @@ public static class SimpleCard
     /// <param name="message">Card text</param>
     /// <param name="recall">Is recall after timeout?</param>
     /// <param name="timeout">Recall timeout</param>
-    public static Task SendWarningCardAsync(this IMessageChannel channel,
+    /// <returns>The card message</returns>
+    public static Task<Cacheable<IUserMessage, Guid>?> SendWarningCardAsync(this IMessageChannel channel,
         string message, bool recall, TimeSpan? timeout = null) =>
         SendNotifyCardAsync(channel, message, "⚠️", Color.Orange, recall, timeout);
 
@@ -25,7 +26,8 @@ public static class SimpleCard
     /// <param name="message">Card text</param>
     /// <param name="recall">Is recall after timeout?</param>
     /// <param name="timeout">Recall timeout</param>
-    public static Task SendInfoCardAsync(this IMessageChannel channel, string message,
+    /// <returns>The card message</returns>
+    public static Task<Cacheable<IUserMessage, Guid>?> SendInfoCardAsync(this IMessageChannel channel, string message,
         bool recall, TimeSpan? timeout = null) =>
         SendNotifyCardAsync(channel, message, "💬", Color.Blue, recall, timeout);
 
@@ -36,7 +38,9 @@ public static class SimpleCard
     /// <param name="message">Card text</param>
     /// <param name="recall">Is recall after timeout?</param>
     /// <param name="timeout">Recall timeout</param>
-    public static Task SendSuccessCardAsync(this IMessageChannel channel, string message,
+    /// <returns>The card message</returns>
+    public static Task<Cacheable<IUserMessage, Guid>?> SendSuccessCardAsync(this IMessageChannel channel,
+        string message,
         bool recall, TimeSpan? timeout = null) =>
         SendNotifyCardAsync(channel, message, "✅", Color.Green, recall, timeout);
 
@@ -47,7 +51,8 @@ public static class SimpleCard
     /// <param name="message">Card text</param>
     /// <param name="recall">Is recall after timeout?</param>
     /// <param name="timeout">Recall timeout</param>
-    public static Task SendErrorCardAsync(this IMessageChannel channel, string message,
+    /// <returns>The card message</returns>
+    public static Task<Cacheable<IUserMessage, Guid>?> SendErrorCardAsync(this IMessageChannel channel, string message,
         bool recall, TimeSpan? timeout = null) =>
         SendNotifyCardAsync(channel, message, "❌", Color.Red, recall, timeout);
 
@@ -58,11 +63,13 @@ public static class SimpleCard
     /// <param name="message">Card text</param>
     /// <param name="recall">Is recall after timeout?</param>
     /// <param name="timeout">Recall timeout</param>
-    public static Task SendFatalCardAsync(this IMessageChannel channel, string message,
+    /// <returns>The card message</returns>
+    public static Task<Cacheable<IUserMessage, Guid>?> SendFatalCardAsync(this IMessageChannel channel, string message,
         bool recall, TimeSpan? timeout = null) =>
         SendNotifyCardAsync(channel, message, "😱", Color.Red, recall, timeout);
 
-    private static Task SendNotifyCardAsync(IMessageChannel channel, string message, string icon, Color color,
+    private static Task<Cacheable<IUserMessage, Guid>?> SendNotifyCardAsync(IMessageChannel channel, string message,
+        string icon, Color color,
         bool recall, TimeSpan? timeout = null) =>
         recall
             ? channel.SendAutoRecallCardAsync(
