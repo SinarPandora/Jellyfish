@@ -46,8 +46,9 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
                         .Include(u => u.ClockInHistories)
                         .Include(u => u.QualifiedHistories)
                         .Where(u =>
+                            u.ConfigId == stage.ConfigId
                             // User has not been qualified
-                            u.QualifiedHistories.FirstOrDefault(h => h.StageId == stage.Id) == null
+                            && u.QualifiedHistories.FirstOrDefault(h => h.StageId == stage.Id) == null
                             // User has clocked after stage scanned
                             && u.ClockInHistories.FirstOrDefault(h => h.CreateTime > stage.LastScanTime) != null
                         )
@@ -77,10 +78,8 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
     {
         await using var dbCtx = dbProvider.Provide();
         var histories = dbCtx.ClockInHistories
-            .Include(h => h.UserStatus)
             .Where(h =>
                 h.UserStatusId == user.Id
-                && h.UserStatus.ConfigId == stage.ConfigId
                 && h.CreateTime >= stage.StartDate.ToDateTime(TimeOnly.MinValue)
                 && (stage.EndDate == null || h.CreateTime <= ((DateOnly)stage.EndDate).ToDateTime(TimeOnly.MaxValue))
             )

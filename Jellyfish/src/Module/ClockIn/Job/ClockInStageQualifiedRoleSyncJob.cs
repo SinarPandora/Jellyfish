@@ -61,10 +61,8 @@ public class ClockInStageQualifiedRoleSyncJob : IAsyncJob
                 foreach (var stage in group)
                 {
                     var histories = dbCtx.ClockInStageQualifiedHistories
-                        .Include(h => h.UserStatus)
                         .AsNoTracking()
                         .Where(h => h.StageId == stage.Id
-                                    && h.UserStatus.ConfigId == stage.ConfigId
                                     && h.CreateTime < stage.UpdateTime
                                     && h.GivenRoleId != stage.QualifiedRoleId)
                         .ToArray();
