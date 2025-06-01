@@ -77,8 +77,10 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
     {
         await using var dbCtx = dbProvider.Provide();
         var histories = dbCtx.ClockInHistories
+            .Include(h => h.UserStatus)
             .Where(h =>
                 h.UserStatusId == user.Id
+                && h.UserStatus.ConfigId == stage.ConfigId
                 && h.CreateTime >= stage.StartDate.ToDateTime(TimeOnly.MinValue)
                 && (stage.EndDate == null || h.CreateTime <= ((DateOnly)stage.EndDate).ToDateTime(TimeOnly.MaxValue))
             )

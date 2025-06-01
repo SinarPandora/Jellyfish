@@ -421,6 +421,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         var qualifiedUsers = dbCtx.ClockInStageQualifiedHistories
             .Include(h => h.UserStatus)
             .Where(h => h.StageId == stage.Id)
+            .Where(h => h.UserStatus.ConfigId == stage.ConfigId)
             .OrderByDescending(h => h.UserStatus.AllClockInCount)
             .Take(MaxQualifiedUsersInMessage + 1)
             .ToArray();
@@ -432,7 +433,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         }
 
         var text = qualifiedUsers
-            .Select(h => $"{h.UserStatus.Username}#{h.UserStatus.IdNumber}（累计打卡{h.UserStatus.AllClockInCount}）")
+            .Select(h => $"{h.UserStatus.Username}#{h.UserStatus.IdNumber}（历史累计打卡{h.UserStatus.AllClockInCount}）")
             .StringJoin("\n");
 
         var cb = new CardBuilder()
