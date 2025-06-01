@@ -421,7 +421,6 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
         var qualifiedUsers = dbCtx.ClockInStageQualifiedHistories
             .Include(h => h.UserStatus)
             .Where(h => h.StageId == stage.Id)
-            .Where(h => h.UserStatus.ConfigId == stage.ConfigId)
             .OrderByDescending(h => h.UserStatus.AllClockInCount)
             .Take(MaxQualifiedUsersInMessage + 1)
             .ToArray();
