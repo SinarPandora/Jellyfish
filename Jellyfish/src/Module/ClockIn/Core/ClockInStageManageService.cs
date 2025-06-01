@@ -141,7 +141,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
                     b.WithText($"""
                                 当前配置信息如下：
                                 编号：{stage.Id}
-                                状态：禁用中
+                                状态：{(stage.Enabled ? "启用中" : "禁用中")}
                                 开始日期：{stage.StartDate:yyyy-MM-dd}
                                 结束日期：{stage.EndDate?.ToString("yyyy-MM-dd") ?? "一直有效"}
                                 达标天数：{stage.Days}
