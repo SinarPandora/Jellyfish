@@ -320,7 +320,9 @@ public static class KookCoreApiHelper
         await new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions
             {
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                ShouldHandle =
+                    new PredicateBuilder().Handle<Exception>(ex =>
+                        ex is not HttpException || !ex.Message.Contains("40012")),
                 MaxRetryAttempts = 2,
                 DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
                 OnRetry = args =>
@@ -333,15 +335,29 @@ public static class KookCoreApiHelper
             .Build()
             .ExecuteAsync(async _ =>
             {
-                var message = (RestMessage?)await channel.GetMessageAsync(messageId);
-                if (message is null) return;
-
-                await message.DeleteAsync();
-
-                message = await channel.GetMessageAsync(messageId);
-                if (message is not null)
+                try
                 {
-                    throw new Exception($"本应删除的消息依然存在，频道：{channel.Guild.Name}，房间名：{channel.Name}，消息 ID：{messageId}");
+                    var message = (RestMessage?)await channel.GetMessageAsync(messageId);
+                    if (message is null) return;
+
+                    await message.DeleteAsync();
+
+                    message = await channel.GetMessageAsync(messageId);
+                    if (message is not null)
+                    {
+                        throw new Exception(
+                            $"本应删除的消息依然存在，频道：{channel.Guild.Name}，房间名：{channel.Name}，消息 ID：{messageId}");
+                    }
+                }
+                catch (HttpException e)
+                {
+                    if (e.Message.Contains("40012"))
+                    {
+                        // Ignore errors which get message throws
+                        return;
+                    }
+
+                    throw;
                 }
             });
     }
