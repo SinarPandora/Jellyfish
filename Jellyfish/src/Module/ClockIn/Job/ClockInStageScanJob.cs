@@ -31,7 +31,7 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
             var scope = dbCtx.ClockInStages
                 .Include(s => s.Config)
                 .Where(s => s.Config.Enabled && s.Enabled && s.StartDate <= todayDate &&
-                            (s.EndDate == null || s.EndDate >= todayDate))
+                            (!s.EndDate.HasValue || s.EndDate.Value.AddDays(1) >= todayDate))
                 .GroupBy(s => s.Config.GuildId)
                 .ToArray();
 
