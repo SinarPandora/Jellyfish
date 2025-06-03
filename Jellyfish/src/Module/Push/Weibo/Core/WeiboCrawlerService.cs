@@ -20,7 +20,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
     /// <returns>Recent five more Weibo items</returns>
     public async Task<ImmutableArray<WeiboItem>> CrawlAsync(string uid)
     {
-        await using var page = pbf.OpenPage().Result;
+        await using var page = pbf.OpenPage(ua: "Baiduspider+(+http://www.baidu.com/search/spider.htm)").Result;
         List<WeiboMetadata> metadataList = [];
         CatchWeiboMetadata(page, metadataList);
 
@@ -28,6 +28,8 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
         await page.WaitForNetworkIdleAsync();
         await page.WaitForSelectorAsync(Constants.Selectors.Item);
         var results = await CrawlAsync(page, uid);
+        log.LogInformation("捕获到元数据{Length}条，UID：{UID}", metadataList.Count, uid);
+        log.LogInformation("爬取到微博{Length}条，UID：{UID}", results.Count, uid);
         await page.CloseAsync();
 
         if (metadataList.Count < results.Count)

@@ -18,8 +18,9 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
     ///     Retry when browser crashes
     /// </summary>
     /// <param name="url">Page url</param>
+    /// <param name="ua">User Agent</param>
     /// <returns>New browser page</returns>
-    public async Task<IPage> OpenPage(string? url = null)
+    public async Task<IPage> OpenPage(string? url = null, string? ua = null)
     {
         _browser ??= await GetBrowserProcess();
 
@@ -67,6 +68,10 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
                     Width = 1920,
                     Height = 1080
                 });
+                if (ua is not null)
+                {
+                    await page.SetUserAgentAsync(ua);
+                }
 
                 if (url is not null)
                 {
