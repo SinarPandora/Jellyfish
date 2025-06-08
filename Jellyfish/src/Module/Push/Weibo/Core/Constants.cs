@@ -15,5 +15,7 @@ public static class Constants
         public const string Image = "div.weibo-media-wraps img";
         public const string Username = "h3.m-text-cut";
         public const string Content = "div.weibo-text";
+        public const string FullWeibo = "div.f-weibo";
+        public const string Link = "a";
     }
 }

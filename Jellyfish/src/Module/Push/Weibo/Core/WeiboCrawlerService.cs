@@ -90,7 +90,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
     }
 
 
-    private static async Task<List<WeiboContent>> CrawlAsyncAux(IPage page)
+    private async Task<List<WeiboContent>> CrawlAsyncAux(IPage page)
     {
         var list = page.QuerySelectorAllAsync(Constants.Selectors.Item).Result;
         if (list.IsEmpty()) return [];
@@ -98,7 +98,14 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
         List<WeiboContent> results = [];
         foreach (var elm in list)
         {
-            var item = await CrawlOnceAsync(elm);
+            var secondLink = (await elm.EvaluateFunctionAsync<string[]>(
+                    "e => [...e.querySelectorAll('a')].filter(e => e.innerText === '全文').map(e => e.href)"
+                ))
+                .FirstOrDefault();
+            var item = secondLink is not null
+                // The content is incomplete and should be deeply crawled.
+                ? await SecondCrawlAsync(secondLink)
+                : await CrawlOnceAsync(elm);
             if (item is null) continue;
             results.Add(item);
         }
@@ -131,6 +138,19 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
             Content: content,
             Images: images
         );
+    }
+
+    private async Task<WeiboContent?> SecondCrawlAsync(string url)
+    {
+        await using var page = pbf.OpenPage(ua: "Baiduspider+(+http://www.baidu.com/search/spider.htm)").Result;
+        await page.GoToAsync(url);
+        await page.WaitForNetworkIdleAsync();
+        await page.WaitForSelectorAsync(Constants.Selectors.Content);
+        var container = await page.QuerySelectorAsync(Constants.Selectors.FullWeibo);
+        if (container is null) return null;
+        var content = await CrawlOnceAsync(container);
+        await page.CloseAsync();
+        return content;
     }
 
     private static async Task<string> ExtractText(IElementHandle elm, string selector)
