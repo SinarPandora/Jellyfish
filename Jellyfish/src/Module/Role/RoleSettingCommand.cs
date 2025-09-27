@@ -6,6 +6,7 @@ using Jellyfish.Core.Data;
 using Jellyfish.Module.Role.Data;
 using Jellyfish.Module.Role.Helper;
 using Jellyfish.Util;
+using Kook;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
@@ -121,7 +122,7 @@ public class RoleSettingCommand : GuildMessageCommand
     ///     List all roles in the current guild
     /// </summary>
     /// <param name="channel">Current channel</param>
-    private static Task ListGuildRoles(SocketTextChannel channel)
+    private static Task<Cacheable<IUserMessage, Guid>?> ListGuildRoles(SocketTextChannel channel)
     {
         var rolenames = string.Join("\n",
             from role in channel.Guild.Roles
@@ -321,7 +322,9 @@ public class RoleSettingCommand : GuildMessageCommand
 
         await using var dbCtx = _dbProvider.Provide();
 
-        var setting = dbCtx.GuildSettings.First(s => s.GuildId == channel.Guild.Id);
+        var setting = dbCtx.GuildSettings
+            .Include(guildSetting => guildSetting.Setting)
+            .First(s => s.GuildId == channel.Guild.Id);
         setting.Setting.DefaultManagerAccounts = users;
         setting.Setting.DefaultManagerRoles = roles;
 

@@ -64,7 +64,7 @@ public class TcGroupControlCommand : GuildMessageCommand
 
     public override string Name() => "文字频道组指令";
 
-    public override IEnumerable<string> Keywords() => new[] { "!频道组", "！频道组" };
+    public override IEnumerable<string> Keywords() => ["!频道组", "！频道组"];
 
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)
@@ -103,7 +103,7 @@ public class TcGroupControlCommand : GuildMessageCommand
             where g.GuildId == channel.Guild.Id
             orderby g.Id
             select $"名称：{g.Name}，频道数量：{g.GroupInstances.Count}";
-        if (groups.IsEmpty())
+        if (!groups.Any())
         {
             await channel.SendInfoCardAsync("当前服务器尚未创建过频道组", false);
             return;

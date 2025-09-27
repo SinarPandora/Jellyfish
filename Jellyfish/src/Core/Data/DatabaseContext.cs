@@ -146,8 +146,8 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         modelBuilder.Entity<GuildSetting>(entity =>
         {
             // Store GuildSettingDetails as JSON
-            RelationalPropertyBuilderExtensions.HasColumnType(entity
-                    .Property(e => e.Setting), "jsonb")
+            entity
+                .Property(e => e.Setting).HasColumnType("jsonb")
                 // Use Newtonsoft json to custom json serialize because it supports Hashset
                 .HasConversion(r => JsonConvert.SerializeObject(r),
                     json => JsonConvert.DeserializeObject<GuildSettingDetails>(json)!);

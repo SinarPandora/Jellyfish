@@ -19,11 +19,11 @@ public static class GuildHelper
     {
         return guild.BoostLevel switch
         {
-            BoostLevel.None => VoiceQuality._48kbps,
-            BoostLevel.Level1 => VoiceQuality._128kbps,
-            BoostLevel.Level2 => VoiceQuality._192kbps,
-            BoostLevel.Level3 or BoostLevel.Level4 => VoiceQuality._256kbps,
-            BoostLevel.Level5 or BoostLevel.Level6 => VoiceQuality._320kbps,
+            BoostLevel.None => VoiceQuality.Normal,
+            BoostLevel.Level1 => VoiceQuality.High,
+            BoostLevel.Level2 => VoiceQuality.Higher,
+            BoostLevel.Level3 or BoostLevel.Level4 => VoiceQuality.Excellent,
+            BoostLevel.Level5 or BoostLevel.Level6 => VoiceQuality.Ultimate,
             _ => throw new InvalidEnumArgumentException($"不支持的助力等级{guild.BoostLevel}")
         };
     }

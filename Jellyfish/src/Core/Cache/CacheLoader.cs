@@ -65,6 +65,7 @@ public class CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
     private static void LoadGuildSettings(DatabaseContext dbCtx)
     {
         dbCtx.GuildSettings
+            .Include(guildSetting => guildSetting.Setting)
             .AsNoTracking()
             .AsEnumerable()
             .ForEach(s => AppCaches.GuildSettings.AddOrUpdate(s.GuildId, s.Setting));

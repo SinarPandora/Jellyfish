@@ -5,6 +5,7 @@ using Jellyfish.Core.Data;
 using Jellyfish.Util;
 using Kook;
 using Kook.WebSocket;
+using Microsoft.EntityFrameworkCore;
 
 namespace Jellyfish.Module.GuildSetting.Core;
 
@@ -84,7 +85,7 @@ public class SynergyBotAccountCommand : GuildMessageCommand
     ///     List all added synergy bot accounts
     /// </summary>
     /// <param name="channel">Current channel</param>
-    private static Task ListAccounts(SocketTextChannel channel)
+    private static Task<Cacheable<IUserMessage, Guid>?> ListAccounts(SocketTextChannel channel)
     {
         var accounts = AppCaches.GuildSettings[channel.Guild.Id].SynergyBotAccounts
             .Select((userId, index) => $"{index + 1}：{MentionUtils.KMarkdownMentionUser(userId)}")
@@ -137,7 +138,9 @@ public class SynergyBotAccountCommand : GuildMessageCommand
 
         await using var dbCtx = _dbProvider.Provide();
 
-        var setting = dbCtx.GuildSettings.First(s => s.GuildId == channel.Guild.Id);
+        var setting = dbCtx.GuildSettings
+            .Include(guildSetting => guildSetting.Setting)
+            .First(s => s.GuildId == channel.Guild.Id);
 
         if (isAdd)
         {
@@ -160,7 +163,7 @@ public class SynergyBotAccountCommand : GuildMessageCommand
     ///     List all added conflict message templates
     /// </summary>
     /// <param name="channel">Current channel</param>
-    private static Task ListConflictMessageTemplates(SocketTextChannel channel)
+    private static Task<Cacheable<IUserMessage, Guid>?> ListConflictMessageTemplates(SocketTextChannel channel)
     {
         var templates = AppCaches.GuildSettings[channel.Guild.Id].SynergyBotConflictMessage
             .Select((message, index) => $"{index + 1}：{message}")
@@ -189,7 +192,9 @@ public class SynergyBotAccountCommand : GuildMessageCommand
 
         await using var dbCtx = _dbProvider.Provide();
 
-        var setting = dbCtx.GuildSettings.First(s => s.GuildId == channel.Guild.Id);
+        var setting = dbCtx.GuildSettings
+            .Include(guildSetting => guildSetting.Setting)
+            .First(s => s.GuildId == channel.Guild.Id);
 
         if (isAdd)
         {

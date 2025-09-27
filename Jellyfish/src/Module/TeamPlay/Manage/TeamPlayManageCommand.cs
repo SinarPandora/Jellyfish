@@ -42,7 +42,7 @@ public class TeamPlayManageCommand : GuildMessageCommand
 
     public override string Name() => "管理组队配置指令";
 
-    public override IEnumerable<string> Keywords() => new[] { "!组队", "！组队" };
+    public override IEnumerable<string> Keywords() => ["!组队", "！组队"];
 
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)

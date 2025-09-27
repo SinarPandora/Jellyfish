@@ -3,6 +3,7 @@ using Jellyfish.Core.Command;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.GuildSetting.Enum;
 using Jellyfish.Util;
+using Kook;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,7 +71,7 @@ public class GuildCustomFeatureCommand : GuildMessageCommand
     ///     List enabled features
     /// </summary>
     /// <param name="channel">Current guild channel</param>
-    private static Task ListEnabledFeatures(SocketTextChannel channel)
+    private static Task<Cacheable<IUserMessage, Guid>?> ListEnabledFeatures(SocketTextChannel channel)
     {
         var setting = AppCaches.GuildSettings[channel.Guild.Id];
         if (setting.EnabledFeatures.IsEmpty())

@@ -79,7 +79,7 @@ public class SuiteSearchService(BrowserPageFactory bpf, KookSocketClient kook)
         await page.WaitForSelectorAsync(SendouPageContainer);
         var element = await page.QuerySelectorAsync(SendouPageContainer);
         var box = await element.BoundingBoxAsync();
-        var stream = await page.ScreenshotStreamAsync(new ScreenshotOptions()
+        var stream = await page.ScreenshotStreamAsync(new ScreenshotOptions
         {
             Type = ScreenshotType.Png,
             Clip = new Clip

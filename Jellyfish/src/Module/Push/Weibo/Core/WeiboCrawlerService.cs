@@ -66,7 +66,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
                     from weibo in json.SelectToken("$.data.cards") ?? EmptyJsonArray
                     where (weibo["card_type"]?.Value<int>() ?? 0) == 9
                     select new WeiboMetadata(
-                        Mid: weibo["mblog"]["mid"]!.ToString(),
+                        Mid: weibo["mblog"]!["mid"]!.ToString(),
                         IsTop: (weibo["profile_type_id"]?.Value<string>() ?? string.Empty) == "proweibotop_"
                     )
                 );

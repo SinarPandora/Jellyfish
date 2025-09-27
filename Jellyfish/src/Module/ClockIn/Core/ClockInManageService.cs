@@ -276,6 +276,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
             }{
                 (g.Users.Count > MaxTopUserCountEachRank ? "（按时间列出前 20 名）" : "")
             }")
+            .AsEnumerable()
             .StringJoin("\n---\n");
 
         if (topUsers.IsEmpty())

@@ -54,7 +54,7 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
 
     public override string Name() => "组队房间指令";
 
-    public override IEnumerable<string> Keywords() => new[] { "/组队" };
+    public override IEnumerable<string> Keywords() => ["/组队"];
 
     protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
         SocketTextChannel channel)

@@ -32,9 +32,10 @@ public class TeamPlayTeammateJoinCommand(
         var tmpInstance = room.TmpTextChannel;
         var restGuild = await kook.Rest.GetGuildAsync(channel.Guild.Id);
         var restTextChannel = await restGuild.GetTextChannelAsync(tmpInstance.ChannelId);
-        if (restTextChannel is null) return CommandResult.Done;
-
-        if (restTextChannel.GetPermissionOverwrite(user.Value!) is not null) return CommandResult.Done;
+        if (
+            restTextChannel is null
+            || restTextChannel.GetPermissionOverwrite(user.Value!) is not null
+        ) return CommandResult.Done;
 
         if (channel.HasPassword)
         {

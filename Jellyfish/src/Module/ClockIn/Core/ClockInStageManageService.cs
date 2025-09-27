@@ -49,6 +49,7 @@ public class ClockInStageManageService(DbContextProvider dbProvider)
                     : "未设置"
                 )
             }")
+            .AsEnumerable()
             .StringJoin("\n---\n");
 
         if (stages.IsEmpty())
