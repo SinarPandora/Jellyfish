@@ -375,14 +375,14 @@ public class ClockInManageService(DbContextProvider dbProvider)
         //       group by usr.username, usr.id_number) tmp
         // where days >= 30
 
-        var quilfiedUsers = (
+        var qualifiedUsers = await (
             from his in dbCtx.ClockInHistories.AsNoTracking()
             join usr in dbCtx.UserClockInStatuses.AsNoTracking()
                 on his.UserStatusId equals usr.Id
             where his.CreateTime >= new DateTime(startYear, startMonth, 1)
                   && his.CreateTime < new DateTime(endYear, endMonth, 1)
                   && usr.ConfigId == clockInConfig.Id
-            group usr by new { usr.Username, usr.IdNumber }
+            group his by new { usr.Username, usr.IdNumber }
             into g
             let dayCounts = g.Count()
             where dayCounts >= days
@@ -392,9 +392,9 @@ public class ClockInManageService(DbContextProvider dbProvider)
                 Name = $"{g.Key.Username}#{g.Key.IdNumber}",
                 Days = dayCounts
             }
-        ).ToList();
+        ).ToListAsync();
 
-        if (quilfiedUsers.Count == 0)
+        if (qualifiedUsers.Count == 0)
         {
             await channel.SendInfoCardAsync("当前没有用户符合指定月份的打卡达标要求", false);
             return true;
@@ -402,7 +402,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
 
         await channel.SendSuccessCardAsync(
             $"符合 {startMonth} 月至 {endMonth - 1} 月打卡达标（≥ {days} 天）要求的用户列表：\n---\n" +
-            quilfiedUsers.Select(u => $"{u.Name}：{u.Days} 天").StringJoin("\n"), false);
+            qualifiedUsers.Select(u => $"{u.Name}：{u.Days} 天").StringJoin("\n"), false);
         return true;
     }
 }
