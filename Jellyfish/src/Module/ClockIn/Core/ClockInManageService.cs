@@ -365,16 +365,6 @@ public class ClockInManageService(DbContextProvider dbProvider)
             return false;
         }
 
-        // select tmp.username || '#' || tmp.id_number as name, tmp.days
-        // from (select usr.username, usr.id_number, count(his.create_time) as days
-        //       from clock_in_histories his
-        //                inner join user_clock_in_statuses usr on his.user_status_id = usr.id
-        //       where his.create_time < '2025-10-01'
-        //         and his.create_time >= '2025-08-01'
-        //         and his.config_id = 2
-        //       group by usr.username, usr.id_number) tmp
-        // where days >= 30
-
         var qualifiedUsers = await (
             from his in dbCtx.ClockInHistories.AsNoTracking()
             join usr in dbCtx.UserClockInStatuses.AsNoTracking()
@@ -384,13 +374,12 @@ public class ClockInManageService(DbContextProvider dbProvider)
                   && usr.ConfigId == clockInConfig.Id
             group his by new { usr.Username, usr.IdNumber }
             into g
-            let dayCounts = g.Count()
-            where dayCounts >= days
-            orderby dayCounts descending
+            where g.Count() >= days
+            orderby g.Count() descending
             select new
             {
                 Name = $"{g.Key.Username}#{g.Key.IdNumber}",
-                Days = dayCounts
+                Days = g.Count()
             }
         ).ToListAsync();
 
