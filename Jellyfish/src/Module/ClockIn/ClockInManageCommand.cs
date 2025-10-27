@@ -41,6 +41,7 @@ public class ClockInManageCommand : GuildMessageCommand
             1. 启用：为该服务器开启打卡功能（未开启前，用户发送 `/打卡` 指令不会有任何效果）
             2. 禁用：为该服务器关闭打卡功能
             3. 排行 [大于0整数，默认 10]：列出当前服务器累积打卡最多的前 N 名用户（并列用户将同时列出）
+            4. 查询 [月份：支持数字和数字范围（如：9-10）] [达标天数：大于0整数，默认 30]：快速查询在指定月份内打卡达标的用户列表，按照打卡天数从高到低排序
             ---
             打卡消息配置：
             1. 标题：打卡卡片消息标题（默认为：每日打卡）
@@ -81,6 +82,8 @@ public class ClockInManageCommand : GuildMessageCommand
             isSuccess = await _service.SetCardButtonName(channel, args[4..].TrimStart());
         else if (args.StartsWith("排行"))
             isSuccess = await _service.ListTopUsers(channel, args[2..].TrimStart());
+        else if (args.StartsWith("查询"))
+            isSuccess = await _service.QuickSearch(channel, args[2..].TrimStart());
         else
             await channel.SendCardSafeAsync(HelpMessage);
 

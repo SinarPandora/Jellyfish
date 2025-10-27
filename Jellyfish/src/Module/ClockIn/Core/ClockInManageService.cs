@@ -300,4 +300,109 @@ public class ClockInManageService(DbContextProvider dbProvider)
         var config = await dbCtx.ClockInConfigs.FirstOrDefaultAsync(c => c.GuildId == guildId);
         return config is null || !config.Enabled ? null : config;
     }
+
+    /// <summary>
+    ///     Quick search for users who met the clock-in criteria in the specified month
+    /// </summary>
+    /// <param name="channel">Current channel</param>
+    /// <param name="rawArgs">Arguments</param>
+    /// <returns>Is task success</returns>
+    public async Task<bool> QuickSearch(SocketTextChannel channel, string rawArgs)
+    {
+        var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
+        if (args.Length < 1)
+        {
+            await channel.SendWarningCardAsync("参数错误，请指定月份（支持数字和数字范围，如：9-10）", true);
+            return false;
+        }
+
+        uint days = 30;
+        if (args.Length == 2 && !uint.TryParse(args[1], out days))
+        {
+            await channel.SendWarningCardAsync("达标天数必须是大于 0 的整数", true);
+            return false;
+        }
+
+        int startMonth, endMonth;
+        var monthParts = args[0].Split('-');
+        switch (monthParts.Length)
+        {
+            case 1 when int.TryParse(monthParts[0], out startMonth) && startMonth is >= 1 and <= 12:
+                endMonth = startMonth;
+                break;
+            case 2
+                when int.TryParse(monthParts[0], out startMonth)
+                     && startMonth is >= 1 and <= 12
+                     && int.TryParse(monthParts[1], out endMonth) && endMonth is >= 1 and <= 12
+                     && startMonth <= endMonth:
+                // Valid range
+                break;
+            default:
+                await channel.SendWarningCardAsync("月份参数错误，支持数字和数字范围（如：9-10）", true);
+                return false;
+        }
+
+        var startYear = DateTime.Now.Year;
+        var endYear = startYear;
+
+        if (endMonth == 12)
+        {
+            // Next year
+            endMonth = 1;
+            endYear += 1;
+        }
+        else
+        {
+            endMonth += 1;
+        }
+
+        await using var dbCtx = dbProvider.Provide();
+        var clockInConfig = await GetIfEnable(channel.Guild.Id, dbCtx);
+
+        if (clockInConfig is null)
+        {
+            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
+            return false;
+        }
+
+        // select tmp.username || '#' || tmp.id_number as name, tmp.days
+        // from (select usr.username, usr.id_number, count(his.create_time) as days
+        //       from clock_in_histories his
+        //                inner join user_clock_in_statuses usr on his.user_status_id = usr.id
+        //       where his.create_time < '2025-10-01'
+        //         and his.create_time >= '2025-08-01'
+        //         and his.config_id = 2
+        //       group by usr.username, usr.id_number) tmp
+        // where days >= 30
+
+        var quilfiedUsers = (
+            from his in dbCtx.ClockInHistories.AsNoTracking()
+            join usr in dbCtx.UserClockInStatuses.AsNoTracking()
+                on his.UserStatusId equals usr.Id
+            where his.CreateTime >= new DateTime(startYear, startMonth, 1)
+                  && his.CreateTime < new DateTime(endYear, endMonth, 1)
+                  && usr.ConfigId == clockInConfig.Id
+            group usr by new { usr.Username, usr.IdNumber }
+            into g
+            let dayCounts = g.Count()
+            where dayCounts >= days
+            orderby dayCounts descending
+            select new
+            {
+                Name = $"{g.Key.Username}#{g.Key.IdNumber}",
+                Days = dayCounts
+            }
+        ).ToList();
+
+        if (quilfiedUsers.Count == 0)
+        {
+            await channel.SendInfoCardAsync("当前没有用户符合指定月份的打卡达标要求", false);
+            return true;
+        }
+
+        await channel.SendSuccessCardAsync(
+            $"符合 {startMonth} 月至 {endMonth - 1} 月打卡达标（≥ {days} 天）要求的用户列表：\n---\n" +
+            quilfiedUsers.Select(u => $"{u.Name}：{u.Days} 天").StringJoin("\n"), false);
+        return true;
+    }
 }
