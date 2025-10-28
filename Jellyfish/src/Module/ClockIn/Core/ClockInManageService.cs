@@ -390,7 +390,7 @@ public class ClockInManageService(DbContextProvider dbProvider)
         }
 
         await channel.SendSuccessCardAsync(
-            $"符合 {startMonth} 月至 {endMonth - 1} 月打卡达标（≥ {days} 天）要求的用户列表：\n---\n" +
+            $"符合 {startMonth} 月初至 {(endMonth == 1 ? "去年12" : endMonth - 1)} 月末打卡达标（≥ {days} 天）要求的用户列表：\n---\n" +
             qualifiedUsers.Select(u => $"{u.Name}：{u.Days} 天").StringJoin("\n"), false);
         return true;
     }
