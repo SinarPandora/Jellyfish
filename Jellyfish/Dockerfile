@@ -1,8 +1,8 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 ENV TZ=Asia/Shanghai
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &&\
-    sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources && \
-    apt-get update && apt-get install -y chromium fonts-noto-cjk wget &&\
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    add-apt-repository ppa:xtradeb/apps -y && \
+    apt-get update && apt-get install -y chromium fonts-noto-cjk wget && \
     useradd -ms /bin/bash jellyfish
 USER jellyfish
 WORKDIR /app
