@@ -10,3 +10,12 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
+[*.{cs,vb}]
+# 禁用「命名空间与文件夹结构匹配」检查
+dotnet_diagnostic.IDE0130.severity = none
+# 禁用「如果禁止日志则格式化多余」的检测
+dotnet_diagnostic.CA1873.severity = none
+
+[Jellyfish/Migrations/*.cs]
+generated_code = true
+dotnet_analyzer_diagnostic.severity = none
