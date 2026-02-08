@@ -6,6 +6,7 @@ namespace Jellyfish.Module.Board.Data;
 /// <summary>
 ///     Board item
 /// </summary>
+[Obsolete("This feature has been removed, keep this class for data migration only")]
 public class BoardItem(long configId, string name, string color, string buttonId)
     : TrackableEntity
 {

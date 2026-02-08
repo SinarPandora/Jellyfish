@@ -3,7 +3,6 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Jellyfish.Core.Data;
 using Jellyfish.Core.Enum;
-using Jellyfish.Module.Board.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.GuildSetting.Enum;
 using Kook;
@@ -52,8 +51,7 @@ public static class JellyFish
                             .MapEnum<ChannelType>()
                             .MapEnum<TimeUnit>()
                             .MapEnum<ExtendTargetType>()
-                            .MapEnum<GuildCustomFeature>()
-                            .MapEnum<BoardType>())
+                            .MapEnum<GuildCustomFeature>())
                         .UseSnakeCaseNamingConvention()
                         .Options);
                 }).SingleInstance();

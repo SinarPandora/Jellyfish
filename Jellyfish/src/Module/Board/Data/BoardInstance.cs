@@ -5,6 +5,7 @@ namespace Jellyfish.Module.Board.Data;
 /// <summary>
 ///     Board instance
 /// </summary>
+[Obsolete("This feature has been removed, keep this class for data migration only")]
 public class BoardInstance(long configId, ulong guildId, ulong channelId, Guid messageId)
     : TrackableEntity
 {

@@ -3,6 +3,7 @@ namespace Jellyfish.Module.Board.Data;
 /// <summary>
 ///     Board permission
 /// </summary>
+[Obsolete("This feature has been removed, keep this class for data migration only")]
 public class BoardPermission(long configId, string name, ulong kookId, bool isRole)
 {
     public long Id { get; set; }

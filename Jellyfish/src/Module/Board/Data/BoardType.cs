@@ -3,6 +3,7 @@ namespace Jellyfish.Module.Board.Data;
 /// <summary>
 ///     Board type
 /// </summary>
+[Obsolete("This feature has been removed, keep this class for data migration only")]
 public enum BoardType
 {
     /// <summary>

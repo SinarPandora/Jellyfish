@@ -136,13 +136,5 @@ public static class AppContext
         // Recall Message Monitor
         container.RegisterType<EnsureMessageRecalledJob>().SingleInstance();
         container.RegisterType<RecallMessageService>().SingleInstance();
-
-#if DEBUG
-        // Board Command
-        // container.RegisterType<BoardService>().SingleInstance();
-        // container.RegisterType<BoardScanJob>().SingleInstance();
-        // container.RegisterType<BoardManageCommand>().As<GuildMessageCommand>().SingleInstance();
-        // container.RegisterType<CreateSimpleScoreBoardCommand>().As<GuildMessageCommand>().SingleInstance();
-#endif
     }
 }

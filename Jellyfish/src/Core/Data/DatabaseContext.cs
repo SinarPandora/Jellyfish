@@ -1,5 +1,4 @@
 using Jellyfish.Core.Enum;
-using Jellyfish.Module.Board.Data;
 using Jellyfish.Module.ClockIn.Data;
 using Jellyfish.Module.CountDownName.Data;
 using Jellyfish.Module.ExpireExtendSession.Data;
@@ -47,13 +46,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
     // -------------------------------- Countdown Channel -------------------------------
     public DbSet<CountDownChannel> CountDownChannels { get; set; } = null!;
 
-    // ----------------------------------- Kook Board -----------------------------------
-    public DbSet<BoardConfig> BoardConfigs { get; set; } = null!;
-    public DbSet<BoardItem> BoardItems { get; set; } = null!;
-    public DbSet<BoardInstance> BoardInstances { get; set; } = null!;
-    public DbSet<BoardPermission> BoardPermissions { get; set; } = null!;
-    public DbSet<BoardItemHistory> BoardItemHistories { get; set; } = null!;
-
     // ------------------------------------ Clock In ------------------------------------
     public DbSet<ClockInConfig> ClockInConfigs { get; set; } = null!;
     public DbSet<ClockInCardInstance> ClockInCardInstances { get; set; } = null!;
@@ -80,7 +72,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         modelBuilder.HasPostgresEnum<TimeUnit>();
         modelBuilder.HasPostgresEnum<ExtendTargetType>();
         modelBuilder.HasPostgresEnum<GuildCustomFeature>();
-        modelBuilder.HasPostgresEnum<BoardType>();
 
         modelBuilder.Entity<TpConfig>(entity =>
         {
@@ -162,53 +153,6 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .IsUnique();
 
             HasTrackableColumns(entity);
-        });
-
-        modelBuilder.Entity<BoardConfig>(entity =>
-        {
-            entity
-                .HasMany(e => e.Items)
-                .WithOne(e => e.Config)
-                .HasForeignKey(e => e.ConfigId)
-                .IsRequired();
-
-            entity
-                .HasMany(e => e.Instances)
-                .WithOne(e => e.Config)
-                .HasForeignKey(e => e.ConfigId)
-                .IsRequired();
-
-            entity
-                .HasMany(e => e.Permissions)
-                .WithOne(e => e.Config)
-                .HasForeignKey(e => e.ConfigId)
-                .IsRequired();
-
-            entity
-                .Property(e => e.Finished)
-                .HasDefaultValue(false);
-
-            HasTrackableColumns(entity);
-        });
-
-        modelBuilder.Entity<BoardInstance>(HasTrackableColumns);
-
-        modelBuilder.Entity<BoardItem>(entity =>
-        {
-            entity
-                .HasMany(e => e.Histories)
-                .WithOne(e => e.Item)
-                .HasForeignKey(e => e.ItemId)
-                .IsRequired();
-
-            HasTrackableColumns(entity);
-        });
-
-        modelBuilder.Entity<BoardItemHistory>(entity =>
-        {
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
         });
 
         modelBuilder.Entity<ClockInConfig>(entity =>
