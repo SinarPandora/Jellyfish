@@ -3,10 +3,14 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
-.idea
 appsettings.Development.json
 appsettings.Production.json
 .DS_Store
 App.config
 Jellyfish.sln.DotSettings.user
 .env
+
+# IDE specific files
+.idea/
+.vscode/
+.history/
