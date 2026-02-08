@@ -53,7 +53,9 @@ namespace Jellyfish.Migrations
                     title = table.Column<string>(type: "text", nullable: false),
                     details = table.Column<string>(type: "text", nullable: false),
                     due = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+#pragma warning disable CS0618
                     board_type = table.Column<BoardType>(type: "board_type", nullable: false),
+#pragma warning restore CS0618
                     finished = table.Column<bool>(type: "boolean", nullable: false),
                     create_time = table.Column<DateTime>(type: "timestamp", nullable: false, defaultValueSql: "current_timestamp"),
                     update_time = table.Column<DateTime>(type: "timestamp", nullable: false, defaultValueSql: "current_timestamp")
