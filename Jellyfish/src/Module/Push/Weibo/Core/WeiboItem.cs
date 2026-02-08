@@ -71,7 +71,7 @@ public record WeiboItem(string Username, string Content, string[] Images, string
             Username: content.Username,
             Content: content.Content,
             Images: content.Images,
-            Mid: metadata.Mid,
+            Mid: metadata.Mid ?? string.Empty,
             Md5: (content.Content + string.Empty.Join(content.Images) + metadata.Mid).ToMd5Hash()
         );
     }
