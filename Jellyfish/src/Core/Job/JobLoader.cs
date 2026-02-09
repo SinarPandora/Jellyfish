@@ -29,8 +29,11 @@ public class JobLoader(
     EnsureMessageRecalledJob ensureMessageRecalledJob
 )
 {
-    private readonly List<Schedule> _schedules = new();
+    private readonly List<Schedule> _schedules = [];
 
+    /// <summary>
+    ///     Load all schedules
+    /// </summary>
     public void Load()
     {
         log.LogInformation("开始配置定时任务");
@@ -52,11 +55,11 @@ public class JobLoader(
         );
         var teamPlayConfigCleanUp = new Schedule(
             async () => await teamPlayConfigCleanUpJob.ExecuteAsync(),
-            run => run.Every(1).Days().At(1, 0)
+            run => run.Everyday().At(1, 0)
         );
         var countDownScan = new Schedule(
             async () => await countDownScanJob.ExecuteAsync(),
-            run => run.Every(1).Days().At(0, 0)
+            run => run.Everyday().At(0, 0)
         );
         var clockInMessageSync = new Schedule(
             async () => await clockInMessageSyncJob.ExecuteAsync(),
@@ -80,7 +83,7 @@ public class JobLoader(
         );
         var weiboPushCleanup = new Schedule(
             async () => await weiboPushCleanupJob.ExecuteAsync(),
-            run => run.Every(1).Days().At(2, 0)
+            run => run.Everyday().At(2, 0)
         );
         var ensureMessageRecalled = new Schedule(
             async () => await ensureMessageRecalledJob.ExecuteAsync(),
@@ -104,11 +107,17 @@ public class JobLoader(
         log.LogInformation("定时任务配置完成");
     }
 
+    /// <summary>
+    ///     Start all schedules
+    /// </summary>
     public void Start()
     {
         this._schedules.Start();
     }
 
+    /// <summary>
+    ///     Stop all schedules
+    /// </summary>
     public void Stop()
     {
         this._schedules.StopAndBlock();
