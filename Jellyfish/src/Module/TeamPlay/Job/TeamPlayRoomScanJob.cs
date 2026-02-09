@@ -1,4 +1,4 @@
-using FluentScheduler;
+using Jellyfish.Core.Job;
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.TeamPlay.Core;

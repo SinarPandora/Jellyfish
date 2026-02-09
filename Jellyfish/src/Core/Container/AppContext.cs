@@ -60,7 +60,6 @@ public static class AppContext
         container.RegisterType<KookEventMatcher>().SingleInstance();
         container.RegisterType<CacheSyncJob>().SingleInstance();
         container.RegisterType<BrowserPageFactory>().SingleInstance();
-        container.RegisterType<JobRegistry>().As<Registry>().SingleInstance();
         container.RegisterType<JobLoader>().SingleInstance();
         container.RegisterType<AppInitializer>().As<IStartupFilter>().SingleInstance();
 

@@ -1,4 +1,4 @@
-using FluentScheduler;
+using Jellyfish.Core.Job;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.Push.Weibo.Core;
 using Jellyfish.Module.Push.Weibo.Data;

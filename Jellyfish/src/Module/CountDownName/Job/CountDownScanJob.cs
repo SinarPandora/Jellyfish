@@ -1,4 +1,4 @@
-using FluentScheduler;
+using Jellyfish.Core.Job;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.CountDownName.Core;
 using Kook.WebSocket;

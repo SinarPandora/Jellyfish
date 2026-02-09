@@ -1,5 +1,5 @@
-using FluentScheduler;
 using Jellyfish.Core.Data;
+using Jellyfish.Core.Job;
 using Jellyfish.Module.RecallMessageMonitor.Data;
 using Jellyfish.Util;
 using Kook.Rest;

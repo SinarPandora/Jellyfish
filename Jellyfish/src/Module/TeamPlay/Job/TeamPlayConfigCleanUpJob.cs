@@ -1,4 +1,4 @@
-using FluentScheduler;
+using Jellyfish.Core.Job;
 using Jellyfish.Core.Data;
 using Microsoft.EntityFrameworkCore;
 

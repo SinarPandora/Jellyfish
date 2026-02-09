@@ -1,7 +1,7 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using FluentScheduler;
+using Jellyfish.Core.Job;
 using Jellyfish.Core.Data;
 using Jellyfish.Module.ClockIn.Data;
 using Kook.WebSocket;
