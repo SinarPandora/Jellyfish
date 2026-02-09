@@ -29,6 +29,8 @@ public class JobLoader(
     EnsureMessageRecalledJob ensureMessageRecalledJob
 )
 {
+    private readonly List<Schedule> _schedules = new();
+
     public void Load()
     {
         log.LogInformation("开始配置定时任务");
@@ -84,8 +86,7 @@ public class JobLoader(
             async () => await ensureMessageRecalledJob.ExecuteAsync(),
             run => run.Every(3).Minutes()
         );
-        var group = new[]
-        {
+        this._schedules.AddRange([
             teamPlayRoomScan,
             cacheSync,
             expireExtendScan,
@@ -99,8 +100,17 @@ public class JobLoader(
             weiboPushFallback,
             weiboPushCleanup,
             ensureMessageRecalled,
-        };
-        group.Start();
+        ]);
         log.LogInformation("定时任务配置完成");
+    }
+
+    public void Start()
+    {
+        this._schedules.Start();
+    }
+
+    public void Stop()
+    {
+        this._schedules.StopAndBlock();
     }
 }

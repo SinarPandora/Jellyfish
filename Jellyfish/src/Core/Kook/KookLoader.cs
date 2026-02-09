@@ -1,5 +1,5 @@
-using FluentScheduler;
 using Jellyfish.Core.Config;
+using Jellyfish.Core.Job;
 using Kook;
 using Kook.WebSocket;
 
@@ -9,7 +9,9 @@ public class KookLoader(
     KookEventMatcher matcher,
     AppConfig appConfig,
     KookSocketClient client,
-    ILogger<KookLoader> log)
+    JobLoader jobLoader,
+    ILogger<KookLoader> log
+)
 {
     /// <summary>
     ///     Login Kook client
@@ -55,7 +57,7 @@ public class KookLoader(
     private Task OnKookReady()
     {
         log.LogInformation("{ClientCurrentUser} 登录成功！", client.CurrentUser);
-        JobManager.Start();
+        jobLoader.Start();
         log.LogInformation("定时任务已启用");
         return Task.CompletedTask;
     }
@@ -67,7 +69,7 @@ public class KookLoader(
     private Task OnKookDisconnected(Exception error)
     {
         log.LogWarning(error, "Kook 连接断开！正在尝试重新连接");
-        JobManager.StopAndBlock();
+        jobLoader.Stop();
         log.LogWarning("定时任务已暂停");
         return Task.CompletedTask;
     }
@@ -79,16 +81,18 @@ public class KookLoader(
     /// <returns>Configured socket client</returns>
     public static KookSocketClient CreateSocketClient(AppConfig config)
     {
-        return new KookSocketClient(new KookSocketConfig
-        {
-            AlwaysDownloadUsers = true,
-            AlwaysDownloadVoiceStates = true,
-            AlwaysDownloadBoostSubscriptions = true,
-            MessageCacheSize = 100,
-            LogLevel = config.KookEnableDebug ? LogSeverity.Debug : LogSeverity.Info,
-            ConnectionTimeout = config.KookConnectTimeout,
-            StartupCacheFetchMode = StartupCacheFetchMode.Synchronous,
-            HandlerTimeout = 5_000
-        });
+        return new KookSocketClient(
+            new KookSocketConfig
+            {
+                AlwaysDownloadUsers = true,
+                AlwaysDownloadVoiceStates = true,
+                AlwaysDownloadBoostSubscriptions = true,
+                MessageCacheSize = 100,
+                LogLevel = config.KookEnableDebug ? LogSeverity.Debug : LogSeverity.Info,
+                ConnectionTimeout = config.KookConnectTimeout,
+                StartupCacheFetchMode = StartupCacheFetchMode.Synchronous,
+                HandlerTimeout = 5_000,
+            }
+        );
     }
 }
