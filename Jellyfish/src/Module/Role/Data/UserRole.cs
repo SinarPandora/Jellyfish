@@ -10,5 +10,6 @@ public class UserRole(uint kookId, ulong guildId)
     public ulong GuildId { get; init; } = guildId;
     public bool Enabled { get; set; } = true;
 
-    public ICollection<UserCommandPermission> CommandPermissions = new List<UserCommandPermission>();
+    public ICollection<UserCommandPermission> CommandPermissions =
+        new List<UserCommandPermission>();
 }

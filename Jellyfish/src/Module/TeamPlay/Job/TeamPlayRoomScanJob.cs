@@ -1,6 +1,6 @@
-using Jellyfish.Core.Job;
 using Jellyfish.Core.Cache;
 using Jellyfish.Core.Data;
+using Jellyfish.Core.Job;
 using Jellyfish.Module.TeamPlay.Core;
 using Jellyfish.Module.TeamPlay.Data;
 using Jellyfish.Util;
@@ -13,8 +13,11 @@ namespace Jellyfish.Module.TeamPlay.Job;
 /// <summary>
 ///     Room scan job, scan all registered room's remove all empty
 /// </summary>
-public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScanJob> log, DbContextProvider dbProvider)
-    : IAsyncJob
+public class TeamPlayRoomScanJob(
+    BaseSocketClient kook,
+    ILogger<TeamPlayRoomScanJob> log,
+    DbContextProvider dbProvider
+) : IAsyncJob
 {
     private const int TextChannelExpireDuration = 20;
 
@@ -27,14 +30,11 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
         var now = DateTime.Now;
 
         await using var dbCtx = dbProvider.Provide();
-        var configs = dbCtx.TpConfigs
-            .Include(e => e.RoomInstances)
-            .ThenInclude(e => e.TmpTextChannel)
+        var configs = dbCtx
+            .TpConfigs.Include(e => e.RoomInstances)
+                .ThenInclude(e => e.TmpTextChannel)
             .GroupBy(e => e.GuildId)
-            .ToDictionary(
-                e => e.Key,
-                e => e.SelectMany(c => c.RoomInstances)
-            );
+            .ToDictionary(e => e.Key, e => e.SelectMany(c => c.RoomInstances));
 
         foreach (var (guildId, rooms) in configs)
         {
@@ -59,10 +59,17 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
     /// <param name="room">Room instance</param>
     /// <param name="now">Now datetime</param>
     /// <param name="dbCtx">Database context</param>
-    private async Task CheckAndDeleteRoom(SocketGuild? guild, TpRoomInstance room, DateTime now, DatabaseContext dbCtx)
+    private async Task CheckAndDeleteRoom(
+        SocketGuild? guild,
+        TpRoomInstance room,
+        DateTime now,
+        DatabaseContext dbCtx
+    )
     {
         var voiceChannel = guild?.GetVoiceChannel(room.VoiceChannelId);
-        var textChannel = room.TmpTextChannel is not null ? guild?.GetTextChannel(room.TmpTextChannel.ChannelId) : null;
+        var textChannel = room.TmpTextChannel is not null
+            ? guild?.GetTextChannel(room.TmpTextChannel.ChannelId)
+            : null;
         try
         {
             // 1. Sync text channel status to team play room instance
@@ -99,10 +106,12 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
             else
             {
                 // 6. If no user in the room
-                var needCleanup = room.UpdateTime.AddMinutes(TextChannelExpireDuration) < now
-                                  && (textChannel is null || await IsLatestMessageBefore(
-                                      textChannel, now, TextChannelExpireDuration)
-                                  );
+                var needCleanup =
+                    room.UpdateTime.AddMinutes(TextChannelExpireDuration) < now
+                    && (
+                        textChannel is null
+                        || await IsLatestMessageBefore(textChannel, now, TextChannelExpireDuration)
+                    );
 
                 if (needCleanup)
                 {
@@ -120,7 +129,8 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
                 await SyncPrivateTextChannelMemberPermission(
                     voiceChannel,
                     textChannel,
-                    users.Where(u => !u.IsBot ?? false).ToArray());
+                    users.Where(u => !u.IsBot ?? false).ToArray()
+                );
             }
         }
         catch (Exception e)
@@ -135,8 +145,11 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
     /// <param name="voiceChannel">Voice channel</param>
     /// <param name="textChannel">Target text channel</param>
     /// <param name="users">Users in voice room</param>
-    private static async Task SyncPrivateTextChannelMemberPermission(SocketVoiceChannel voiceChannel,
-        SocketTextChannel textChannel, IEnumerable<SocketGuildUser> users)
+    private static async Task SyncPrivateTextChannelMemberPermission(
+        SocketVoiceChannel voiceChannel,
+        SocketTextChannel textChannel,
+        IEnumerable<SocketGuildUser> users
+    )
     {
         var cachedGuild = voiceChannel.Guild;
         var everyOneRole = cachedGuild.EveryoneRole;
@@ -148,30 +161,45 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
                 // Sync voice members and synergy bot accounts permission to the text channel,
                 // then hide the text channel
                 await Task.WhenAll(
-                    Task.WhenAll(users.Select(user =>
-                        textChannel.OverrideUserPermissionAsync(user, r => r.Modify(
-                            viewChannel: PermValue.Allow,
-                            mentionEveryone: PermValue.Allow
-                        )))
+                    Task.WhenAll(
+                        users.Select(user =>
+                            textChannel.OverrideUserPermissionAsync(
+                                user,
+                                r =>
+                                    r.Modify(
+                                        viewChannel: PermValue.Allow,
+                                        mentionEveryone: PermValue.Allow
+                                    )
+                            )
+                        )
                     ),
-                    Task.WhenAll(AppCaches.GuildSettings[cachedGuild.Id].SynergyBotAccounts.Select(botId =>
-                    {
-                        var botUser = cachedGuild.GetUser(botId);
-                        if (botUser is not null)
-                        {
-                            return textChannel.OverrideUserPermissionAsync(botUser, p =>
-                                p.Modify(
-                                    viewChannel: PermValue.Allow,
-                                    mentionEveryone: PermValue.Allow
-                                ));
-                        }
+                    Task.WhenAll(
+                        AppCaches
+                            .GuildSettings[cachedGuild.Id]
+                            .SynergyBotAccounts.Select(botId =>
+                            {
+                                var botUser = cachedGuild.GetUser(botId);
+                                if (botUser is not null)
+                                {
+                                    return textChannel.OverrideUserPermissionAsync(
+                                        botUser,
+                                        p =>
+                                            p.Modify(
+                                                viewChannel: PermValue.Allow,
+                                                mentionEveryone: PermValue.Allow
+                                            )
+                                    );
+                                }
 
-                        return Task.CompletedTask;
-                    }))
+                                return Task.CompletedTask;
+                            })
+                    )
                 );
 
-
-                await textChannel.OverrideRolePermissionAsync(everyOneRole, r => r.Modify(viewChannel: PermValue.Deny));
+                await textChannel.OverrideRolePermissionAsync(
+                    everyOneRole,
+                    r => r.Modify(viewChannel: PermValue.Deny)
+                );
                 break;
             }
             case false when everyoneOverride is { ViewChannel: PermValue.Deny }:
@@ -191,8 +219,13 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
     /// <param name="textChannel">Bound text channel</param>
     /// <param name="voiceChannel">Bound voice channel</param>
     /// <param name="dbCtx">Database context</param>
-    private async Task CleanUpTeamPlayRoom(IGuild guild, TpRoomInstance room, IChannel? textChannel,
-        IChannel voiceChannel, DatabaseContext dbCtx)
+    private async Task CleanUpTeamPlayRoom(
+        IGuild guild,
+        TpRoomInstance room,
+        IChannel? textChannel,
+        IChannel voiceChannel,
+        DatabaseContext dbCtx
+    )
     {
         log.LogInformation("检测到房间 {RoomName} 已无人使用，开始清理房间", room.RoomName);
         if (textChannel is not null)
@@ -214,8 +247,11 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
     /// <param name="now"></param>
     /// <param name="durationInMinute"></param>
     /// <returns></returns>
-    private static async Task<bool> IsLatestMessageBefore(IMessageChannel textChannel, DateTime now,
-        int durationInMinute)
+    private static async Task<bool> IsLatestMessageBefore(
+        IMessageChannel textChannel,
+        DateTime now,
+        int durationInMinute
+    )
     {
         var messages = await textChannel.GetMessagesAsync(1).FirstAsync();
         var lastMessage = messages.IsNotEmpty() ? messages.First() : null;
@@ -230,8 +266,11 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
     /// <param name="room">Room instance</param>
     /// <param name="voiceChannel">Current voice channel</param>
     /// <param name="textChannel">Bound text channel</param>
-    private async Task RefreshChannelNames(TpRoomInstance room, SocketVoiceChannel voiceChannel,
-        SocketTextChannel? textChannel)
+    private async Task RefreshChannelNames(
+        TpRoomInstance room,
+        SocketVoiceChannel voiceChannel,
+        SocketTextChannel? textChannel
+    )
     {
         var cleanName = voiceChannel.Name;
         if (cleanName.StartsWith("🔐"))
@@ -247,7 +286,11 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
 
         if (newName != voiceChannel.Name)
         {
-            log.LogInformation("监测到房间 {RoomName}#{Id} 名称发生变化，尝试更新房间名", room.RoomName, room.Id);
+            log.LogInformation(
+                "监测到房间 {RoomName}#{Id} 名称发生变化，尝试更新房间名",
+                room.RoomName,
+                room.Id
+            );
             await voiceChannel.ModifyAsync(v => v.Name = newName);
             if (textChannel is not null)
             {
@@ -258,7 +301,12 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
                 }
             }
 
-            log.LogInformation("房间 {RoomName}#{Id} 名称已更新为 {NewName}", room.RoomName, room.Id, newName);
+            log.LogInformation(
+                "房间 {RoomName}#{Id} 名称已更新为 {NewName}",
+                room.RoomName,
+                room.Id,
+                newName
+            );
         }
 
         room.RoomName = newName;
@@ -271,32 +319,49 @@ public class TeamPlayRoomScanJob(BaseSocketClient kook, ILogger<TeamPlayRoomScan
     /// <param name="users">All users in the room</param>
     /// <param name="voiceChannel">The voice channel</param>
     /// <param name="textChannel">The text channel</param>
-    private async Task ElectNewRoomOwner(TpRoomInstance instance, IEnumerable<IGuildUser> users,
-        IVoiceChannel voiceChannel, IMessageChannel? textChannel)
+    private async Task ElectNewRoomOwner(
+        TpRoomInstance instance,
+        IEnumerable<IGuildUser> users,
+        IVoiceChannel voiceChannel,
+        IMessageChannel? textChannel
+    )
     {
         // If room owner not in the room, switch owner
-        var newOwner =
-            (from user in users
-                where !(user.IsBot ?? false)
-                select user).FirstOrDefault();
+        var newOwner = (
+            from user in users
+            where !(user.IsBot ?? false)
+            select user
+        ).FirstOrDefault();
         if (newOwner is not null)
         {
-            log.LogInformation("检测到房主离开房间 {RoomName}，将随机产生新房主", instance.RoomName);
+            log.LogInformation(
+                "检测到房主离开房间 {RoomName}，将随机产生新房主",
+                instance.RoomName
+            );
             await TeamPlayRoomService.GiveOwnerPermissionAsync(voiceChannel, newOwner);
             instance.OwnerId = newOwner.Id;
 
             if (textChannel is not null)
             {
-                await textChannel.SendInfoCardAsync($"由于上一任房主已经离开语音房间，{newOwner.DisplayName()} 已成为新语音房间房主", false);
+                await textChannel.SendInfoCardAsync(
+                    $"由于上一任房主已经离开语音房间，{newOwner.DisplayName()} 已成为新语音房间房主",
+                    false
+                );
             }
             else
             {
                 var dmc = await newOwner.CreateDMChannelAsync();
                 await dmc.SendInfoCardAsync(
-                    $"由于上一任房主已经离开语音房间，{newOwner.DisplayName()} 已成为组队房间 {instance.RoomName} 新语音房间房主", false);
+                    $"由于上一任房主已经离开语音房间，{newOwner.DisplayName()} 已成为组队房间 {instance.RoomName} 新语音房间房主",
+                    false
+                );
             }
 
-            log.LogInformation("新房主已产生，房间：{RoomName}，房主：{DisplayName}", instance.RoomName, newOwner.DisplayName());
+            log.LogInformation(
+                "新房主已产生，房间：{RoomName}，房主：{DisplayName}",
+                instance.RoomName,
+                newOwner.DisplayName()
+            );
         }
     }
 }

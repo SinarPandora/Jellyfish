@@ -17,14 +17,18 @@ namespace Jellyfish.Module.GroupControl;
 public class TcGroupControlCommand : GuildMessageCommand
 {
     private readonly ILogger<TcGroupControlCommand> _log;
-    private static readonly Lazy<IDeserializer> YamlDeserializer = new(() => new DeserializerBuilder().Build());
+    private static readonly Lazy<IDeserializer> YamlDeserializer = new(() =>
+        new DeserializerBuilder().Build()
+    );
     private readonly DbContextProvider _dbProvider;
 
-    public TcGroupControlCommand(ILogger<TcGroupControlCommand> log, DbContextProvider dbProvider) : base(true)
+    public TcGroupControlCommand(ILogger<TcGroupControlCommand> log, DbContextProvider dbProvider)
+        : base(true)
     {
         _log = log;
         _dbProvider = dbProvider;
-        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(
+            this,
             """
             创建和管理文字频道组
             ---
@@ -59,15 +63,21 @@ public class TcGroupControlCommand : GuildMessageCommand
             ```
             为避免打扰到成员，配置文本中提到的权限和用户均不为 Kook 引用（在消息中为灰色文本）
             其中，`-`, `:` 和 `|` 均为英文标点
-            """);
+            """
+        );
     }
 
     public override string Name() => "文字频道组指令";
 
     public override IEnumerable<string> Keywords() => ["!频道组", "！频道组"];
 
-    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    protected override async Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         var isSuccess = true;
         if (args.StartsWith("列表"))
@@ -122,9 +132,11 @@ public class TcGroupControlCommand : GuildMessageCommand
     private async Task<bool> SyncGroup(string groupName, SocketTextChannel channel)
     {
         await using var dbCtx = _dbProvider.Provide();
-        var tcGroup = (from g in dbCtx.TcGroups.Include(e => e.GroupInstances)
+        var tcGroup = (
+            from g in dbCtx.TcGroups.Include(e => e.GroupInstances)
             where g.Name == groupName && g.GuildId == channel.Guild.Id
-            select g).FirstOrDefault();
+            select g
+        ).FirstOrDefault();
 
         if (tcGroup is null)
         {
@@ -148,7 +160,10 @@ public class TcGroupControlCommand : GuildMessageCommand
 
             if (textChannel.CategoryId is null)
             {
-                await channel.SendInfoCardAsync($"频道 {instance.Name} 不属于任何分组，已跳过权限同步", false);
+                await channel.SendInfoCardAsync(
+                    $"频道 {instance.Name} 不属于任何分组，已跳过权限同步",
+                    false
+                );
                 continue;
             }
 
@@ -180,13 +195,19 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         if (!rawMention.StartsWith(KookConstants.ChannelMention))
         {
-            await channel.SendErrorCardAsync("请在指令中指定引导文字频道，具体内容请参考：`!频道组 帮助`", true);
+            await channel.SendErrorCardAsync(
+                "请在指令中指定引导文字频道，具体内容请参考：`!频道组 帮助`",
+                true
+            );
             return false;
         }
 
         if (!MentionUtils.TryParseChannel(rawMention, out var textChannelId, TagMode.KMarkdown))
         {
-            await channel.SendErrorCardAsync("引导文字频道应是一个频道引用（蓝色文本），请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
+            await channel.SendErrorCardAsync(
+                "引导文字频道应是一个频道引用（蓝色文本），请在消息框中输入#（井号）并在弹出的菜单中选择指定频道",
+                true
+            );
             return false;
         }
 
@@ -204,7 +225,8 @@ public class TcGroupControlCommand : GuildMessageCommand
             _log.LogError(e, "解析批量频道定义失败");
             await channel.SendErrorCardAsync(
                 "批量频道定义数据格式不正确，请使用正确的 Yaml 格式，具体内容请参考：`!频道组 帮助`",
-                true);
+                true
+            );
         }
 
         await channel.SendSuccessCardAsync("开始执行批量创建操作", false);
@@ -220,16 +242,19 @@ public class TcGroupControlCommand : GuildMessageCommand
     /// <param name="defMapping">Bulk channel config mapping</param>
     /// <param name="originalChannel">Reference channel to locate</param>
     /// <param name="channel">Sender channel</param>
-    private async Task CreateOrUpdateTc(string groupName,
+    private async Task CreateOrUpdateTc(
+        string groupName,
         List<InstanceDef> defMapping,
-        SocketTextChannel originalChannel, SocketTextChannel channel)
+        SocketTextChannel originalChannel,
+        SocketTextChannel channel
+    )
     {
         await using var dbCtx = _dbProvider.Provide();
-        var tcGroup =
-            (from g in dbCtx.TcGroups.Include(e => e.GroupInstances)
-                where g.GuildId == channel.Guild.Id && g.Name == groupName
-                select g)
-            .FirstOrDefault();
+        var tcGroup = (
+            from g in dbCtx.TcGroups.Include(e => e.GroupInstances)
+            where g.GuildId == channel.Guild.Id && g.Name == groupName
+            select g
+        ).FirstOrDefault();
 
         if (tcGroup is null)
         {
@@ -245,7 +270,9 @@ public class TcGroupControlCommand : GuildMessageCommand
         foreach (var def in defMapping)
         {
             _log.LogInformation("频道 {DefName} 创建开始", def.Name);
-            var description = string.IsNullOrWhiteSpace(def.Description) ? null : def.Description.Trim();
+            var description = string.IsNullOrWhiteSpace(def.Description)
+                ? null
+                : def.Description.Trim();
             var instance = instanceMap.GetValueOrDefault(def.Name);
             try
             {
@@ -253,8 +280,14 @@ public class TcGroupControlCommand : GuildMessageCommand
                 // Update description
                 if (instance is null)
                 {
-                    await RecordAndDescribeNewChannel(childChannel, def.Name, description, tcGroup, instanceMap,
-                        dbCtx);
+                    await RecordAndDescribeNewChannel(
+                        childChannel,
+                        def.Name,
+                        description,
+                        tcGroup,
+                        instanceMap,
+                        dbCtx
+                    );
                 }
                 else
                 {
@@ -282,8 +315,12 @@ public class TcGroupControlCommand : GuildMessageCommand
     /// <param name="name">New channel name</param>
     /// <param name="description">Channel description</param>
     /// <param name="channel">The text channel</param>
-    private async Task DescribeExistChannel(TcGroupInstance instance, string name, string? description,
-        IMessageChannel channel)
+    private async Task DescribeExistChannel(
+        TcGroupInstance instance,
+        string name,
+        string? description,
+        IMessageChannel channel
+    )
     {
         if (instance.Description != description)
         {
@@ -299,7 +336,10 @@ public class TcGroupControlCommand : GuildMessageCommand
                 if (!resp.HasValue)
                 {
                     _log.LogError("Bot 无法发送描述消息，因为 Bot 已被屏蔽");
-                    await channel.SendErrorCardAsync("Bot 无法发送描述消息，因为 Bot 已被屏蔽", false);
+                    await channel.SendErrorCardAsync(
+                        "Bot 无法发送描述消息，因为 Bot 已被屏蔽",
+                        false
+                    );
                     return;
                 }
 
@@ -327,7 +367,8 @@ public class TcGroupControlCommand : GuildMessageCommand
         string? description,
         TcGroup tcGroup,
         Dictionary<string, TcGroupInstance> instanceMap,
-        DatabaseContext dbCtx)
+        DatabaseContext dbCtx
+    )
     {
         _log.LogInformation("检测到频道 {Name} 尚未被记录，正在记录", name);
         Guid? messageId = null;
@@ -337,7 +378,10 @@ public class TcGroupControlCommand : GuildMessageCommand
             if (!resp.HasValue)
             {
                 _log.LogError("Bot 无法发送描述消息，因为 Bot 已被屏蔽");
-                await childChannel.SendErrorCardAsync("Bot 无法发送描述消息，因为 Bot 已被屏蔽", false);
+                await childChannel.SendErrorCardAsync(
+                    "Bot 无法发送描述消息，因为 Bot 已被屏蔽",
+                    false
+                );
                 return;
             }
 
@@ -360,8 +404,12 @@ public class TcGroupControlCommand : GuildMessageCommand
     /// <param name="originalChannel">Original channel for clone</param>
     /// <param name="definition">New channel definition</param>
     /// <param name="senderChannel">Sender channel</param>
-    private static async Task<ITextChannel> CloneRoom(IReadOnlyDictionary<string, TcGroupInstance> instances,
-        SocketTextChannel originalChannel, InstanceDef definition, IMessageChannel senderChannel)
+    private static async Task<ITextChannel> CloneRoom(
+        IReadOnlyDictionary<string, TcGroupInstance> instances,
+        SocketTextChannel originalChannel,
+        InstanceDef definition,
+        IMessageChannel senderChannel
+    )
     {
         var guild = originalChannel.Guild;
         var instance = instances.GetValueOrDefault(definition.Name);
@@ -369,8 +417,10 @@ public class TcGroupControlCommand : GuildMessageCommand
         if (instance is null || guild.GetTextChannel(instance.TextChannelId) is null)
         {
             // Create room
-            newChannel = await guild.CreateTextChannelAsync(definition.Name,
-                p => p.CategoryId = originalChannel.CategoryId);
+            newChannel = await guild.CreateTextChannelAsync(
+                definition.Name,
+                p => p.CategoryId = originalChannel.CategoryId
+            );
         }
         else
         {
@@ -385,7 +435,8 @@ public class TcGroupControlCommand : GuildMessageCommand
         }
 
         // Handle additional permission
-        if (!definition.Allows.IsNotNullOrWhiteSpace()) return newChannel;
+        if (!definition.Allows.IsNotNullOrWhiteSpace())
+            return newChannel;
 
         foreach (var allowName in Regexs.MatchSpaceComma().Split(definition.Allows))
         {
@@ -405,7 +456,10 @@ public class TcGroupControlCommand : GuildMessageCommand
                     continue;
                 }
 
-                await newChannel.OverrideUserPermissionAsync(found, p => p.Modify(viewChannel: PermValue.Allow));
+                await newChannel.OverrideUserPermissionAsync(
+                    found,
+                    p => p.Modify(viewChannel: PermValue.Allow)
+                );
             }
             else
             {
@@ -424,7 +478,10 @@ public class TcGroupControlCommand : GuildMessageCommand
                     continue;
                 }
 
-                await newChannel.OverrideRolePermissionAsync(found, p => p.Modify(viewChannel: PermValue.Allow));
+                await newChannel.OverrideRolePermissionAsync(
+                    found,
+                    p => p.Modify(viewChannel: PermValue.Allow)
+                );
             }
         }
 
@@ -451,10 +508,11 @@ public class TcGroupControlCommand : GuildMessageCommand
         var newName = args[1];
 
         await using var dbCtx = _dbProvider.Provide();
-        var tcGroup =
-            (from g in dbCtx.TcGroups.Include(g => g.GroupInstances)
-                where g.GuildId == channel.Guild.Id && g.Name == configName
-                select g).FirstOrDefault();
+        var tcGroup = (
+            from g in dbCtx.TcGroups.Include(g => g.GroupInstances)
+            where g.GuildId == channel.Guild.Id && g.Name == configName
+            select g
+        ).FirstOrDefault();
 
         if (tcGroup is null)
         {
@@ -462,9 +520,11 @@ public class TcGroupControlCommand : GuildMessageCommand
             return false;
         }
 
-        var instance = (from ins in tcGroup.GroupInstances
+        var instance = (
+            from ins in tcGroup.GroupInstances
             where ins.Name == oldName
-            select ins).FirstOrDefault();
+            select ins
+        ).FirstOrDefault();
 
         if (instance is null)
         {
@@ -501,7 +561,11 @@ public class TcGroupControlCommand : GuildMessageCommand
     /// <param name="hardDel">Is delete or deregister</param>
     /// <param name="channel">Sender text channel</param>
     /// <returns>Is command success of not</returns>
-    private async Task<bool> DeleteGroupOrInstance(string rawArgs, bool hardDel, SocketTextChannel channel)
+    private async Task<bool> DeleteGroupOrInstance(
+        string rawArgs,
+        bool hardDel,
+        SocketTextChannel channel
+    )
     {
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
         if (args.Length < 1)
@@ -512,10 +576,11 @@ public class TcGroupControlCommand : GuildMessageCommand
 
         var configName = args[0];
         await using var dbCtx = _dbProvider.Provide();
-        var tcGroup =
-            (from g in dbCtx.TcGroups.Include(g => g.GroupInstances)
-                where g.GuildId == channel.Guild.Id && g.Name == configName
-                select g).FirstOrDefault();
+        var tcGroup = (
+            from g in dbCtx.TcGroups.Include(g => g.GroupInstances)
+            where g.GuildId == channel.Guild.Id && g.Name == configName
+            select g
+        ).FirstOrDefault();
 
         if (tcGroup is null)
         {
@@ -527,9 +592,11 @@ public class TcGroupControlCommand : GuildMessageCommand
         {
             // Delete specify channel
             var channelName = args[1];
-            var instance = (from ins in tcGroup.GroupInstances
+            var instance = (
+                from ins in tcGroup.GroupInstances
                 where ins.Name == channelName
-                select ins).FirstOrDefault();
+                select ins
+            ).FirstOrDefault();
 
             if (instance is null)
             {
@@ -561,7 +628,8 @@ public class TcGroupControlCommand : GuildMessageCommand
         bool hardDel,
         TcGroup tcGroup,
         SocketTextChannel channel,
-        DatabaseContext dbCtx)
+        DatabaseContext dbCtx
+    )
     {
         foreach (var instance in tcGroup.GroupInstances)
         {
@@ -605,13 +673,19 @@ public class TcGroupControlCommand : GuildMessageCommand
     /// <param name="instance">Target channel instance</param>
     /// <param name="channel">Sender channel to send message</param>
     /// <param name="dbCtx">Database context</param>
-    private static Task DeleteChildChannel(bool hardDel, TcGroupInstance instance,
-        SocketTextChannel channel, DatabaseContext dbCtx)
+    private static Task DeleteChildChannel(
+        bool hardDel,
+        TcGroupInstance instance,
+        SocketTextChannel channel,
+        DatabaseContext dbCtx
+    )
     {
         if (hardDel)
         {
             var textChannel = channel.Guild.GetTextChannel(instance.TextChannelId);
-            return textChannel is null ? channel.SendWarningCardAsync("指定文字频道早已被删除", true) : textChannel.DeleteAsync();
+            return textChannel is null
+                ? channel.SendWarningCardAsync("指定文字频道早已被删除", true)
+                : textChannel.DeleteAsync();
         }
 
         dbCtx.TcGroupInstances.Remove(instance);

@@ -5,5 +5,5 @@ namespace Jellyfish.Module.ExpireExtendSession.Data;
 /// </summary>
 public enum ExtendTargetType
 {
-    TmpTextChannel
+    TmpTextChannel,
 }

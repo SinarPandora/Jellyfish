@@ -1,5 +1,5 @@
-using Jellyfish.Core.Job;
 using Jellyfish.Core.Data;
+using Jellyfish.Core.Job;
 using Jellyfish.Module.ExpireExtendSession.Data;
 using Jellyfish.Module.TmpChannel.Data;
 using Kook.WebSocket;
@@ -12,20 +12,25 @@ namespace Jellyfish.Module.TmpChannel.Job;
 public class CleanNonExistTmpTextChannelJob(
     ILogger<CleanNonExistTmpTextChannelJob> log,
     BaseSocketClient kook,
-    DbContextProvider dbProvider)
-    : IAsyncJob
+    DbContextProvider dbProvider
+) : IAsyncJob
 {
     public async Task ExecuteAsync()
     {
         await using var dbCtx = dbProvider.Provide();
-        foreach (var (guildId, instances) in dbCtx.TmpTextChannels.GroupBy(i => i.GuildId).ToDictionary(i => i.Key))
+        foreach (
+            var (guildId, instances) in dbCtx
+                .TmpTextChannels.GroupBy(i => i.GuildId)
+                .ToDictionary(i => i.Key)
+        )
         {
             var guild = kook.GetGuild(guildId);
 
             foreach (var instance in instances)
             {
                 var textChannel = guild?.GetTextChannel(instance.ChannelId);
-                if (textChannel is null) CleanUpTmpTextChannel(instance, dbCtx);
+                if (textChannel is null)
+                    CleanUpTmpTextChannel(instance, dbCtx);
 
                 dbCtx.SaveChanges();
             }
@@ -41,15 +46,20 @@ public class CleanNonExistTmpTextChannelJob(
     {
         try
         {
-            log.LogInformation("检测到临时文字房间已不存在，开始清理数据库记录，房间名称：{Name}，实例 ID：{Id}", instance.Name, instance.Id);
-            var sessions = dbCtx.ExpireExtendSessions
-                .Where(session =>
+            log.LogInformation(
+                "检测到临时文字房间已不存在，开始清理数据库记录，房间名称：{Name}，实例 ID：{Id}",
+                instance.Name,
+                instance.Id
+            );
+            var sessions = dbCtx
+                .ExpireExtendSessions.Where(session =>
                     session.TargetId == instance.Id
                     && session.TargetType == ExtendTargetType.TmpTextChannel
                 )
                 .ToArray();
 
-            if (sessions.IsNotNullOrEmpty()) log.LogInformation("检测到存在配套的过期时间刷新任务，将在稍后由过期扫描任务清理");
+            if (sessions.IsNotNullOrEmpty())
+                log.LogInformation("检测到存在配套的过期时间刷新任务，将在稍后由过期扫描任务清理");
 
             dbCtx.TmpTextChannels.Remove(instance);
         }

@@ -24,7 +24,7 @@ public static class GuildHelper
             BoostLevel.Level2 => VoiceQuality.Higher,
             BoostLevel.Level3 or BoostLevel.Level4 => VoiceQuality.Excellent,
             BoostLevel.Level5 or BoostLevel.Level6 => VoiceQuality.Ultimate,
-            _ => throw new InvalidEnumArgumentException($"不支持的助力等级{guild.BoostLevel}")
+            _ => throw new InvalidEnumArgumentException($"不支持的助力等级{guild.BoostLevel}"),
         };
     }
 }

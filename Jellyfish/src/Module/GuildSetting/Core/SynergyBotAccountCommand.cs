@@ -17,11 +17,13 @@ public class SynergyBotAccountCommand : GuildMessageCommand
     private readonly DbContextProvider _dbProvider;
     private readonly KookSocketClient _kook;
 
-    public SynergyBotAccountCommand(DbContextProvider dbProvider, KookSocketClient kook) : base(true)
+    public SynergyBotAccountCommand(DbContextProvider dbProvider, KookSocketClient kook)
+        : base(true)
     {
         _dbProvider = dbProvider;
         _kook = kook;
-        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(
+            this,
             """
             配置协同机器人账号
             被添加的机器人账号将自动被添加到水母机器人创建的私有/临时频道中（除了频道组指令）
@@ -43,15 +45,21 @@ public class SynergyBotAccountCommand : GuildMessageCommand
             3. 删除冲突消息 [消息内容]：删除冲突消息模板
             ---
             #机器人用户引用：指的是在聊天框中输入 @ 并选择的机器人，在 Kook 中显示为蓝色文字。直接输入用户名是无效的。
-            """);
+            """
+        );
     }
 
     public override string Name() => "协同机器人账号配置指令";
 
     public override IEnumerable<string> Keywords() => ["!协同机器人", "！协同机器人"];
 
-    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    protected override async Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {
@@ -87,13 +95,19 @@ public class SynergyBotAccountCommand : GuildMessageCommand
     /// <param name="channel">Current channel</param>
     private static Task<Cacheable<IUserMessage, Guid>?> ListAccounts(SocketTextChannel channel)
     {
-        var accounts = AppCaches.GuildSettings[channel.Guild.Id].SynergyBotAccounts
-            .Select((userId, index) => $"{index + 1}：{MentionUtils.KMarkdownMentionUser(userId)}")
+        var accounts = AppCaches
+            .GuildSettings[channel.Guild.Id]
+            .SynergyBotAccounts.Select(
+                (userId, index) => $"{index + 1}：{MentionUtils.KMarkdownMentionUser(userId)}"
+            )
             .ToArray();
 
         return accounts.IsEmpty()
             ? channel.SendInfoCardAsync($"{channel.Guild.Name} 未添加任何协同机器人账号", false)
-            : channel.SendSuccessCardAsync($"已添加以下协同机器人：\n{accounts.StringJoin("\n")}", false);
+            : channel.SendSuccessCardAsync(
+                $"已添加以下协同机器人：\n{accounts.StringJoin("\n")}",
+                false
+            );
     }
 
     /// <summary>
@@ -103,7 +117,11 @@ public class SynergyBotAccountCommand : GuildMessageCommand
     /// <param name="channel">Current channel</param>
     /// <param name="isAdd">Is action adding or deleting?</param>
     /// <returns>Is command success or not?</returns>
-    private async Task<bool> AddOrRemoveAccounts(string rawArgs, SocketTextChannel channel, bool isAdd)
+    private async Task<bool> AddOrRemoveAccounts(
+        string rawArgs,
+        SocketTextChannel channel,
+        bool isAdd
+    )
     {
         var bots = new HashSet<ulong>();
 
@@ -111,7 +129,10 @@ public class SynergyBotAccountCommand : GuildMessageCommand
         {
             if (!ulong.TryParse(match.Groups["userId"].Value, out var botId))
             {
-                await channel.SendErrorCardAsync("您应该使用 @ 来指定机器人账号，被指定的账号在 Kook APP 中显示为蓝色文字", true);
+                await channel.SendErrorCardAsync(
+                    "您应该使用 @ 来指定机器人账号，被指定的账号在 Kook APP 中显示为蓝色文字",
+                    true
+                );
                 return false;
             }
 
@@ -132,14 +153,17 @@ public class SynergyBotAccountCommand : GuildMessageCommand
 
         if (bots.IsEmpty())
         {
-            await channel.SendErrorCardAsync("请在消息中指定（@）机器人账号，可以同时指定多个", true);
+            await channel.SendErrorCardAsync(
+                "请在消息中指定（@）机器人账号，可以同时指定多个",
+                true
+            );
             return false;
         }
 
         await using var dbCtx = _dbProvider.Provide();
 
-        var setting = dbCtx.GuildSettings
-            .Include(guildSetting => guildSetting.Setting)
+        var setting = dbCtx
+            .GuildSettings.Include(guildSetting => guildSetting.Setting)
             .First(s => s.GuildId == channel.Guild.Id);
 
         if (isAdd)
@@ -163,17 +187,22 @@ public class SynergyBotAccountCommand : GuildMessageCommand
     ///     List all added conflict message templates
     /// </summary>
     /// <param name="channel">Current channel</param>
-    private static Task<Cacheable<IUserMessage, Guid>?> ListConflictMessageTemplates(SocketTextChannel channel)
+    private static Task<Cacheable<IUserMessage, Guid>?> ListConflictMessageTemplates(
+        SocketTextChannel channel
+    )
     {
-        var templates = AppCaches.GuildSettings[channel.Guild.Id].SynergyBotConflictMessage
-            .Select((message, index) => $"{index + 1}：{message}")
+        var templates = AppCaches
+            .GuildSettings[channel.Guild.Id]
+            .SynergyBotConflictMessage.Select((message, index) => $"{index + 1}：{message}")
             .ToArray();
 
         return templates.IsEmpty()
             ? channel.SendInfoCardAsync($"{channel.Guild.Name} 未添加任何冲突消息（模板）", false)
-            : channel.SendSuccessCardAsync($"已添加以下冲突消息（模板）：\n{templates.StringJoin("\n")}", false);
+            : channel.SendSuccessCardAsync(
+                $"已添加以下冲突消息（模板）：\n{templates.StringJoin("\n")}",
+                false
+            );
     }
-
 
     /// <summary>
     ///     Add or remove conflict message template
@@ -182,7 +211,11 @@ public class SynergyBotAccountCommand : GuildMessageCommand
     /// <param name="channel">Current channel</param>
     /// <param name="isAdd">Is action adding or deleting?</param>
     /// <returns>Is command success or not?</returns>
-    private async Task<bool> AddOrRemoveConflictMessageTemplate(string template, SocketTextChannel channel, bool isAdd)
+    private async Task<bool> AddOrRemoveConflictMessageTemplate(
+        string template,
+        SocketTextChannel channel,
+        bool isAdd
+    )
     {
         if (template.IsEmpty())
         {
@@ -192,8 +225,8 @@ public class SynergyBotAccountCommand : GuildMessageCommand
 
         await using var dbCtx = _dbProvider.Provide();
 
-        var setting = dbCtx.GuildSettings
-            .Include(guildSetting => guildSetting.Setting)
+        var setting = dbCtx
+            .GuildSettings.Include(guildSetting => guildSetting.Setting)
             .First(s => s.GuildId == channel.Guild.Id);
 
         if (isAdd)

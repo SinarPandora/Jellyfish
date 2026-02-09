@@ -12,7 +12,9 @@ public class WeiboPushHistory(long instanceId, string hash, string mid, Guid mes
     public string Hash { get; set; } = hash;
     public string Mid { get; set; } = mid;
     public Guid MessageId { get; set; } = messageId;
-    [Column(TypeName = "timestamp")] public DateTime CreateTime { get; init; } = DateTime.Now;
+
+    [Column(TypeName = "timestamp")]
+    public DateTime CreateTime { get; init; } = DateTime.Now;
 
     // References
     public WeiboPushInstance Instance { get; set; } = null!;

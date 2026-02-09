@@ -29,11 +29,13 @@ public static class Locks
         var lockKey = $"{configId}_{userId}";
         if (RoomCreationLock.TryGetValue(lockKey, out var timestamp))
         {
-            if (timestamp.AddSeconds(RoomCreationLockTimeout) > DateTime.Now) return true;
+            if (timestamp.AddSeconds(RoomCreationLockTimeout) > DateTime.Now)
+                return true;
 
             RoomCreationLock.Remove(lockKey, out _);
         }
-        else RoomCreationLock[lockKey] = DateTime.Now;
+        else
+            RoomCreationLock[lockKey] = DateTime.Now;
 
         return false;
     }

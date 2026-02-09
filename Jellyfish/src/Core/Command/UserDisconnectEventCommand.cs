@@ -15,6 +15,9 @@ public abstract class UserDisconnectEventCommand : Command
     /// <param name="channel">Target channel</param>
     /// <param name="leaveAt">Leave at</param>
     /// <returns>Command result, Done will finished the execution chains</returns>
-    public abstract Task<CommandResult> Execute(Cacheable<SocketGuildUser, ulong> user, SocketVoiceChannel channel,
-        DateTimeOffset leaveAt);
+    public abstract Task<CommandResult> Execute(
+        Cacheable<SocketGuildUser, ulong> user,
+        SocketVoiceChannel channel,
+        DateTimeOffset leaveAt
+    );
 }

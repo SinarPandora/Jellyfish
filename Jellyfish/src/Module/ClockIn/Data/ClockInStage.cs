@@ -9,7 +9,8 @@ namespace Jellyfish.Module.ClockIn.Data;
 ///                 (Regardless of how many days you have clocked in before)
 ///     This actually validation rule, so a scanning task is needed to handle it.
 /// </summary>
-public class ClockInStage(long configId, string name, DateOnly startDate, uint days) : TrackableEntity
+public class ClockInStage(long configId, string name, DateOnly startDate, uint days)
+    : TrackableEntity
 {
     public long Id { get; set; }
     public long ConfigId { get; init; } = configId;
@@ -21,7 +22,9 @@ public class ClockInStage(long configId, string name, DateOnly startDate, uint d
     public string? QualifiedMessage { get; set; }
     public uint? QualifiedRoleId { get; set; }
     public bool Enabled { get; set; }
-    [Column(TypeName = "timestamp")] public DateTime LastScanTime { get; set; } = DateTime.MinValue;
+
+    [Column(TypeName = "timestamp")]
+    public DateTime LastScanTime { get; set; } = DateTime.MinValue;
 
     // References
     public ClockInConfig Config { get; set; } = null!;

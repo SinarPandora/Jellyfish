@@ -12,7 +12,6 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
 {
     private static readonly JArray EmptyJsonArray = [];
 
-
     /// <summary>
     ///     Crawl Weibo item for user with uid
     /// </summary>
@@ -20,7 +19,9 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
     /// <returns>Recent five more Weibo items</returns>
     public async Task<ImmutableArray<WeiboItem>> CrawlAsync(string uid)
     {
-        await using var page = pbf.OpenPage(ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1").Result;
+        await using var page = pbf.OpenPage(
+            ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1"
+        ).Result;
         List<WeiboMetadata> metadataList = [];
         CatchWeiboMetadata(page, metadataList);
 
@@ -34,7 +35,9 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
 
         if (metadataList.Count < results.Count)
         {
-            log.LogWarning("微博元数据数量小于微博数量，跳过此次捕获，若此问题频繁发生，请上报该 bug");
+            log.LogWarning(
+                "微博元数据数量小于微博数量，跳过此次捕获，若此问题频繁发生，请上报该 bug"
+            );
             return [];
         }
 
@@ -43,13 +46,14 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
         {
             var content = results[i];
             var metadata = metadataList[i];
-            if (metadata.IsTop) continue;
+            if (metadata.IsTop)
+                continue;
             items.Add(WeiboItem.Combine(metadata, content));
         }
 
         // Keep latest at the bottom
         items.Reverse();
-        return [..items];
+        return [.. items];
     }
 
     private static void CatchWeiboMetadata(IPage page, List<WeiboMetadata> metadataList)
@@ -57,7 +61,8 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
         var count = 1;
         page.Response += async (_, evt) =>
         {
-            if (!evt.Response.Request.Url.Contains("api/container/getIndex") || count > 2) return;
+            if (!evt.Response.Request.Url.Contains("api/container/getIndex") || count > 2)
+                return;
 
             if (count == 2)
             {
@@ -67,7 +72,8 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
                     where (weibo["card_type"]?.Value<int>() ?? 0) == 9
                     select new WeiboMetadata(
                         Mid: weibo["mblog"]!["mid"]!.ToString(),
-                        IsTop: (weibo["profile_type_id"]?.Value<string>() ?? string.Empty) == "proweibotop_"
+                        IsTop: (weibo["profile_type_id"]?.Value<string>() ?? string.Empty)
+                            == "proweibotop_"
                     )
                 );
             }
@@ -89,24 +95,26 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
         }
     }
 
-
     private async Task<List<WeiboContent>> CrawlAsyncAux(IPage page)
     {
         var list = page.QuerySelectorAllAsync(Constants.Selectors.Item).Result;
-        if (list.IsEmpty()) return [];
+        if (list.IsEmpty())
+            return [];
 
         List<WeiboContent> results = [];
         foreach (var elm in list)
         {
-            var secondLink = (await elm.EvaluateFunctionAsync<string[]>(
+            var secondLink = (
+                await elm.EvaluateFunctionAsync<string[]>(
                     "e => [...e.querySelectorAll('a')].filter(e => e.innerText === '全文').map(e => e.href)"
-                ))
-                .FirstOrDefault();
+                )
+            ).FirstOrDefault();
             var item = secondLink is not null
                 // The content is incomplete and should be deeply crawled.
                 ? await SecondCrawlAsync(secondLink)
                 : await CrawlOnceAsync(elm);
-            if (item is null) continue;
+            if (item is null)
+                continue;
             results.Add(item);
         }
 
@@ -120,34 +128,38 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
             ExtractTextAll(elm, Constants.Selectors.Content)
         );
 
-        var images = (await Task.WhenAll(
-            (await elm.QuerySelectorAllAsync(Constants.Selectors.Image))
-            .Select(img => img.EvaluateFunctionAsync<string>("e => e.src"))
-        )).Select(url => url
-            .Replace("http://", Constants.WeiboPicProxy)
-            .Replace("https://", Constants.WeiboPicProxy)
-        ).ToArray();
+        var images = (
+            await Task.WhenAll(
+                (await elm.QuerySelectorAllAsync(Constants.Selectors.Image)).Select(img =>
+                    img.EvaluateFunctionAsync<string>("e => e.src")
+                )
+            )
+        )
+            .Select(url =>
+                url.Replace("http://", Constants.WeiboPicProxy)
+                    .Replace("https://", Constants.WeiboPicProxy)
+            )
+            .ToArray();
 
         var content = contents[1]
             // Remove [ZWSP]
             .Replace("\u200b", string.Empty)
             .ReplaceLast("...全文", "...更多信息请查看原微博");
 
-        return new WeiboContent(
-            Username: contents[0],
-            Content: content,
-            Images: images
-        );
+        return new WeiboContent(Username: contents[0], Content: content, Images: images);
     }
 
     private async Task<WeiboContent?> SecondCrawlAsync(string url)
     {
-        await using var page = pbf.OpenPage(ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1").Result;
+        await using var page = pbf.OpenPage(
+            ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1"
+        ).Result;
         await page.GoToAsync(url);
         await page.WaitForNetworkIdleAsync();
         await page.WaitForSelectorAsync(Constants.Selectors.Content);
         var container = await page.QuerySelectorAsync(Constants.Selectors.FullWeibo);
-        if (container is null) return null;
+        if (container is null)
+            return null;
         var content = await CrawlOnceAsync(container);
         await page.CloseAsync();
         return content;
@@ -156,9 +168,7 @@ public class WeiboCrawlerService(BrowserPageFactory pbf, ILogger<WeiboCrawlerSer
     private static async Task<string> ExtractText(IElementHandle elm, string selector)
     {
         var child = await elm.QuerySelectorAsync(selector);
-        return child is null
-            ? string.Empty
-            : await child.InnerTextAsync();
+        return child is null ? string.Empty : await child.InnerTextAsync();
     }
 
     private static async Task<string> ExtractTextAll(IElementHandle elm, string selector)

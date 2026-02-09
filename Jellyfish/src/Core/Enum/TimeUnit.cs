@@ -10,5 +10,5 @@ public enum TimeUnit
     Hour,
     Day,
     Week,
-    Month
+    Month,
 }

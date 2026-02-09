@@ -11,7 +11,9 @@ public class ClockInHistory(long configId, long userStatusId, ulong channelId)
     public long ConfigId { get; init; } = configId;
     public long UserStatusId { get; init; } = userStatusId;
     public ulong ChannelId { get; init; } = channelId;
-    [Column(TypeName = "timestamp")] public DateTime CreateTime { get; init; } = DateTime.Now;
+
+    [Column(TypeName = "timestamp")]
+    public DateTime CreateTime { get; init; } = DateTime.Now;
 
     // References
     public ClockInConfig Config { get; set; } = null!;

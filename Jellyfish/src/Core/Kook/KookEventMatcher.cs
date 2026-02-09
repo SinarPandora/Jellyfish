@@ -28,7 +28,8 @@ public class KookEventMatcher
         IEnumerable<DmcCommand> dmcCommands,
         IEnumerable<BotJoinGuildCommand> botJoinGuildCommands,
         IEnumerable<GuildAvailableCommand> guildAvailableCommands,
-        IComponentContext provider, ILogger<KookEventMatcher> log
+        IComponentContext provider,
+        ILogger<KookEventMatcher> log
     )
     {
         _messageCommands = messageCommand.Where(c => c.Enabled).ToArray();
@@ -39,7 +40,9 @@ public class KookEventMatcher
         _botJoinGuildCommands = botJoinGuildCommands;
         _guildAvailableCommands = guildAvailableCommands;
         _log = log;
-        _currentUserId = new Lazy<ulong>(() => provider.Resolve<KookSocketClient>().CurrentUser!.Id);
+        _currentUserId = new Lazy<ulong>(() =>
+            provider.Resolve<KookSocketClient>().CurrentUser!.Id
+        );
     }
 
     /// <summary>
@@ -48,19 +51,26 @@ public class KookEventMatcher
     /// <param name="msg">User message</param>
     /// <param name="user">Current user</param>
     /// <param name="channel">Current channel</param>
-    public Task OnMessageReceived(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
+    public Task OnMessageReceived(
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
-        if (user.Id == _currentUserId.Value) return Task.CompletedTask;
+        if (user.Id == _currentUserId.Value)
+            return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
             foreach (var command in _messageCommands)
             {
-                if (!user.CanExecute(command)) continue;
+                if (!user.CanExecute(command))
+                    continue;
                 try
                 {
                     var result = await command.MatchAndExecute(msg, user, channel);
-                    if (result == CommandResult.Done) break;
+                    if (result == CommandResult.Done)
+                        break;
                 }
                 catch (Exception e)
                 {
@@ -78,10 +88,15 @@ public class KookEventMatcher
     /// <param name="user">Action user</param>
     /// <param name="msg">Cached message object</param>
     /// <param name="channel">Current channel</param>
-    public Task OnCardActionClicked(string value, Cacheable<SocketGuildUser, ulong> user,
-        Cacheable<IMessage, Guid> msg, SocketTextChannel channel)
+    public Task OnCardActionClicked(
+        string value,
+        Cacheable<SocketGuildUser, ulong> user,
+        Cacheable<IMessage, Guid> msg,
+        SocketTextChannel channel
+    )
     {
-        if (user.Id == _currentUserId.Value) return Task.CompletedTask;
+        if (user.Id == _currentUserId.Value)
+            return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
@@ -90,7 +105,8 @@ public class KookEventMatcher
                 try
                 {
                     var result = await command.Execute(value, user, msg, channel);
-                    if (result == CommandResult.Done) break;
+                    if (result == CommandResult.Done)
+                        break;
                 }
                 catch (Exception e)
                 {
@@ -107,10 +123,14 @@ public class KookEventMatcher
     /// <param name="user">Current user</param>
     /// <param name="channel">Target channel</param>
     /// <param name="joinAt">Join at</param>
-    public Task OnUserConnected(Cacheable<SocketGuildUser, ulong> user, SocketVoiceChannel channel,
-        DateTimeOffset joinAt)
+    public Task OnUserConnected(
+        Cacheable<SocketGuildUser, ulong> user,
+        SocketVoiceChannel channel,
+        DateTimeOffset joinAt
+    )
     {
-        if (channel.Users.All(u => u.Id == _currentUserId.Value)) return Task.CompletedTask;
+        if (channel.Users.All(u => u.Id == _currentUserId.Value))
+            return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
@@ -119,11 +139,16 @@ public class KookEventMatcher
                 try
                 {
                     var result = await command.Execute(user, channel, joinAt);
-                    if (result == CommandResult.Done) break;
+                    if (result == CommandResult.Done)
+                        break;
                 }
                 catch (Exception e)
                 {
-                    _log.LogInformation(e, "加入语音频道事件操作 {Name} 执行失败！", command.Name());
+                    _log.LogInformation(
+                        e,
+                        "加入语音频道事件操作 {Name} 执行失败！",
+                        command.Name()
+                    );
                 }
             }
         });
@@ -136,10 +161,14 @@ public class KookEventMatcher
     /// <param name="user">Current user</param>
     /// <param name="channel">Target channel</param>
     /// <param name="leaveAt">Leave at</param>
-    public Task OnUserDisconnected(Cacheable<SocketGuildUser, ulong> user, SocketVoiceChannel channel,
-        DateTimeOffset leaveAt)
+    public Task OnUserDisconnected(
+        Cacheable<SocketGuildUser, ulong> user,
+        SocketVoiceChannel channel,
+        DateTimeOffset leaveAt
+    )
     {
-        if (channel.Users.All(u => u.Id == _currentUserId.Value)) return Task.CompletedTask;
+        if (channel.Users.All(u => u.Id == _currentUserId.Value))
+            return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
@@ -148,11 +177,16 @@ public class KookEventMatcher
                 try
                 {
                     var result = await command.Execute(user, channel, leaveAt);
-                    if (result == CommandResult.Done) break;
+                    if (result == CommandResult.Done)
+                        break;
                 }
                 catch (Exception e)
                 {
-                    _log.LogInformation(e, "离开语音频道事件操作 {Name} 执行失败！", command.Name());
+                    _log.LogInformation(
+                        e,
+                        "离开语音频道事件操作 {Name} 执行失败！",
+                        command.Name()
+                    );
                 }
             }
         });
@@ -168,7 +202,8 @@ public class KookEventMatcher
     /// <returns></returns>
     public Task OnDirectMessageReceived(SocketMessage msg, SocketUser user, SocketDMChannel channel)
     {
-        if (user.Id == _currentUserId.Value) return Task.CompletedTask;
+        if (user.Id == _currentUserId.Value)
+            return Task.CompletedTask;
 
         _ = Task.Run(async () =>
         {
@@ -177,7 +212,8 @@ public class KookEventMatcher
                 try
                 {
                     var result = await command.MatchAndExecute(msg, user, channel);
-                    if (result == CommandResult.Done) break;
+                    if (result == CommandResult.Done)
+                        break;
                 }
                 catch (Exception e)
                 {
@@ -201,7 +237,8 @@ public class KookEventMatcher
                 try
                 {
                     var result = await command.Execute(guild);
-                    if (result == CommandResult.Done) break;
+                    if (result == CommandResult.Done)
+                        break;
                 }
                 catch (Exception e)
                 {
@@ -225,7 +262,8 @@ public class KookEventMatcher
                 try
                 {
                     var result = await command.Execute(guild);
-                    if (result == CommandResult.Done) break;
+                    if (result == CommandResult.Done)
+                        break;
                 }
                 catch (Exception e)
                 {

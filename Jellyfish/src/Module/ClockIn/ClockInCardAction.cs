@@ -14,10 +14,15 @@ public class ClockInCardAction(ClockInBuffer buffer) : ButtonActionCommand
 
     public override string Name() => "用户卡片打卡操作";
 
-    public override Task<CommandResult> Execute(string value, Cacheable<SocketGuildUser, ulong> user,
-        Cacheable<IMessage, Guid> message, SocketTextChannel channel)
+    public override Task<CommandResult> Execute(
+        string value,
+        Cacheable<SocketGuildUser, ulong> user,
+        Cacheable<IMessage, Guid> message,
+        SocketTextChannel channel
+    )
     {
-        if (!value.StartsWith(CardActionValue)) return Task.FromResult(CommandResult.Continue);
+        if (!value.StartsWith(CardActionValue))
+            return Task.FromResult(CommandResult.Continue);
         buffer.Instance.OnNext((channel.Guild.Id, channel.Id, user.Id, true));
         return Task.FromResult(CommandResult.Done);
     }

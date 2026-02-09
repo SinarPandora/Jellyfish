@@ -1,5 +1,5 @@
-using Jellyfish.Core.Job;
 using Jellyfish.Core.Data;
+using Jellyfish.Core.Job;
 using Jellyfish.Module.CountDownName.Core;
 using Kook.WebSocket;
 
@@ -9,8 +9,11 @@ namespace Jellyfish.Module.CountDownName.Job;
 ///     Channel countdown scan job
 ///     Update channel name based on the pattern when counting down
 /// </summary>
-public class CountDownScanJob(DbContextProvider dbProvider, KookSocketClient kook, ILogger<CountDownScanJob> log)
-    : IAsyncJob
+public class CountDownScanJob(
+    DbContextProvider dbProvider,
+    KookSocketClient kook,
+    ILogger<CountDownScanJob> log
+) : IAsyncJob
 {
     public async Task ExecuteAsync()
     {
@@ -21,7 +24,8 @@ public class CountDownScanJob(DbContextProvider dbProvider, KookSocketClient koo
             await using var dbCtx = dbProvider.Provide();
             await foreach (var cdChannel in dbCtx.CountDownChannels)
             {
-                var targetChannel = kook.GetGuild(cdChannel.GuildId)?.GetChannel(cdChannel.ChannelId);
+                var targetChannel = kook.GetGuild(cdChannel.GuildId)
+                    ?.GetChannel(cdChannel.ChannelId);
                 if (targetChannel is null)
                 {
                     dbCtx.CountDownChannels.Remove(cdChannel);

@@ -10,7 +10,10 @@ namespace Jellyfish.Module.Push.Weibo.Core;
 /// <summary>
 ///     Service for managing Weibo push binding
 /// </summary>
-public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboPushManageService> log)
+public class WeiboPushManageService(
+    DbContextProvider dbProvider,
+    ILogger<WeiboPushManageService> log
+)
 {
     /// <summary>
     ///     Create a push config and
@@ -29,7 +32,8 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
                 参数不足！举例：`!微博推送 添加 1234567890 #引用现有文字频道`
                  引用的频道必须是一个 Kook 引用，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道
                 """,
-                true);
+                true
+            );
             return false;
         }
 
@@ -45,13 +49,19 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
 
         if (!rawMention.StartsWith(KookConstants.ChannelMention))
         {
-            await channel.SendErrorCardAsync("请在指令中引用现有文字频道，具体内容请参考：`!微博推送 帮助`", true);
+            await channel.SendErrorCardAsync(
+                "请在指令中引用现有文字频道，具体内容请参考：`!微博推送 帮助`",
+                true
+            );
             return false;
         }
 
         if (!MentionUtils.TryParseChannel(rawMention, out var channelId, TagMode.KMarkdown))
         {
-            await channel.SendErrorCardAsync("现有文字频道引用应是一个频道引用（蓝色文本），请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
+            await channel.SendErrorCardAsync(
+                "现有文字频道引用应是一个频道引用（蓝色文本），请在消息框中输入#（井号）并在弹出的菜单中选择指定频道",
+                true
+            );
             return false;
         }
 
@@ -60,8 +70,8 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
 
         #region Transaction
 
-        var config = dbCtx.WeiboPushConfigs
-            .Include(c => c.Instances)
+        var config = dbCtx
+            .WeiboPushConfigs.Include(c => c.Instances)
             .FirstOrDefault(c => c.Uid == uidOrAlias || c.Alias == uidOrAlias);
 
         if (config is null)
@@ -92,7 +102,8 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
         log.LogInformation("创建微博用户{UID}到频道{ChannelId}的推送绑定", uidOrAlias, channelId);
         await channel.SendSuccessCardAsync(
             $"绑定成功！{config.Alias}的新微博将推送到{MentionUtils.KMarkdownMentionChannel(channelId)}",
-            false);
+            false
+        );
         return true;
     }
 
@@ -108,7 +119,10 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
 
         if (args.Length < 2)
         {
-            await channel.SendErrorCardAsync("参数不足！举例：`!微博推送 别名 1234567890 水母`", true);
+            await channel.SendErrorCardAsync(
+                "参数不足！举例：`!微博推送 别名 1234567890 水母`",
+                true
+            );
             return false;
         }
 
@@ -117,7 +131,10 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
 
         if (!long.TryParse(rawUid, out var uid))
         {
-            await channel.SendWarningCardAsync("第一个参数应为 UID（长数字），具体内容请参考：`!微博推送 帮助`", true);
+            await channel.SendWarningCardAsync(
+                "第一个参数应为 UID（长数字），具体内容请参考：`!微博推送 帮助`",
+                true
+            );
             return false;
         }
 
@@ -137,7 +154,10 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
         var duplicateConfig = dbCtx.WeiboPushConfigs.FirstOrDefault(c => c.Alias == alias);
         if (duplicateConfig is not null)
         {
-            await channel.SendWarningCardAsync($"指定别名已分配给用户：{duplicateConfig.Uid}！", true);
+            await channel.SendWarningCardAsync(
+                $"指定别名已分配给用户：{duplicateConfig.Uid}！",
+                true
+            );
             return false;
         }
 
@@ -166,7 +186,8 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
                 参数不足！举例：`!微博推送 删除 1234567890 [#引用现有文字频道]`
                  引用的频道必须是一个 Kook 引用，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道
                 """,
-                true);
+                true
+            );
             return false;
         }
 
@@ -175,13 +196,16 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
 
         if (!MentionUtils.TryParseChannel(rawMention, out var channelId, TagMode.KMarkdown))
         {
-            await channel.SendErrorCardAsync("现有文字频道引用应是一个频道引用（蓝色文本），请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
+            await channel.SendErrorCardAsync(
+                "现有文字频道引用应是一个频道引用（蓝色文本），请在消息框中输入#（井号）并在弹出的菜单中选择指定频道",
+                true
+            );
             return false;
         }
 
         await using var dbCtx = dbProvider.Provide();
-        var config = dbCtx.WeiboPushConfigs
-            .Include(c => c.Instances)
+        var config = dbCtx
+            .WeiboPushConfigs.Include(c => c.Instances)
             .FirstOrDefault(c => c.Alias == uidOrAlias || c.Uid == uidOrAlias);
 
         if (config is null)
@@ -203,7 +227,10 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
         if (dbCtx.WeiboPushInstances.All(c => c.ConfigId != instance.ConfigId))
         {
             dbCtx.WeiboPushConfigs.Remove(config);
-            await channel.SendSuccessCardAsync($"删除成功！当前用户{uidOrAlias}不再关联任何频道，配置已清除", false);
+            await channel.SendSuccessCardAsync(
+                $"删除成功！当前用户{uidOrAlias}不再关联任何频道，配置已清除",
+                false
+            );
         }
         else
         {
@@ -222,17 +249,22 @@ public class WeiboPushManageService(DbContextProvider dbProvider, ILogger<WeiboP
         await using var dbCtx = dbProvider.Provide();
 
         var configs = (
-            from config in dbCtx.WeiboPushConfigs.Include(c => c.Instances)
-                .AsNoTracking()
-            select $"{config.Alias}（{config.Uid}）推送到频道：" + (
-                from instance in config.Instances
-                select $"{MentionUtils.KMarkdownMentionChannel(instance.ChannelId)}"
-            ).ToArray().StringJoin(" | ")
+            from config in dbCtx.WeiboPushConfigs.Include(c => c.Instances).AsNoTracking()
+            select $"{config.Alias}（{config.Uid}）推送到频道："
+                + (
+                    from instance in config.Instances
+                    select $"{MentionUtils.KMarkdownMentionChannel(instance.ChannelId)}"
+                )
+                    .ToArray()
+                    .StringJoin(" | ")
         ).ToArray();
 
         if (configs.IsEmpty())
             await channel.SendInfoCardAsync("本服务器还没有设置任何微博推送", false);
         else
-            await channel.SendInfoCardAsync("已开启如下微博推送：\n" + configs.StringJoin("\n"), false);
+            await channel.SendInfoCardAsync(
+                "已开启如下微博推送：\n" + configs.StringJoin("\n"),
+                false
+            );
     }
 }

@@ -77,9 +77,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         {
             HasTrackableColumns(entity);
 
-            entity
-                .Property(e => e.DefaultMemberLimit)
-                .HasDefaultValue(0);
+            entity.Property(e => e.DefaultMemberLimit).HasDefaultValue(0);
 
             entity
                 .HasMany(e => e.RoomInstances)
@@ -87,23 +85,16 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.TpConfigId)
                 .IsRequired();
 
-            entity
-                .Property(e => e.Enabled)
-                .HasDefaultValue(true);
+            entity.Property(e => e.Enabled).HasDefaultValue(true);
 
-            entity
-                .Property(e => e.EnableTmpTextChannel)
-                .HasDefaultValue(true);
+            entity.Property(e => e.EnableTmpTextChannel).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<TpRoomInstance>(entity =>
         {
             HasTrackableColumns(entity);
 
-            entity
-                .HasOne(e => e.TmpTextChannel)
-                .WithMany()
-                .HasForeignKey(e => e.TmpTextChannelId);
+            entity.HasOne(e => e.TmpTextChannel).WithMany().HasForeignKey(e => e.TmpTextChannelId);
         });
 
         modelBuilder.Entity<UserRole>(entity =>
@@ -114,9 +105,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.UserRoleId)
                 .IsRequired();
 
-            entity
-                .Property(e => e.Enabled)
-                .HasDefaultValue(true);
+            entity.Property(e => e.Enabled).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<TcGroup>(entity =>
@@ -138,19 +127,20 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         {
             // Store GuildSettingDetails as JSON
             entity
-                .Property(e => e.Setting).HasColumnType("jsonb")
+                .Property(e => e.Setting)
+                .HasColumnType("jsonb")
                 // Use Newtonsoft json to custom json serialize because it supports Hashset
-                .HasConversion(r => JsonConvert.SerializeObject(r),
-                    json => JsonConvert.DeserializeObject<GuildSettingDetails>(json)!);
+                .HasConversion(
+                    r => JsonConvert.SerializeObject(r),
+                    json => JsonConvert.DeserializeObject<GuildSettingDetails>(json)!
+                );
 
             HasTrackableColumns(entity);
         });
 
         modelBuilder.Entity<CountDownChannel>(entity =>
         {
-            entity
-                .HasIndex(c => new { c.GuildId, c.ChannelId })
-                .IsUnique();
+            entity.HasIndex(c => new { c.GuildId, c.ChannelId }).IsUnique();
 
             HasTrackableColumns(entity);
         });
@@ -181,29 +171,17 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.ConfigId)
                 .IsRequired();
 
-            entity
-                .HasIndex(e => e.GuildId)
-                .IsUnique();
+            entity.HasIndex(e => e.GuildId).IsUnique();
 
-            entity
-                .Property(e => e.ButtonText)
-                .HasDefaultValue("打卡！");
+            entity.Property(e => e.ButtonText).HasDefaultValue("打卡！");
 
-            entity
-                .Property(e => e.Title)
-                .HasDefaultValue("每日打卡");
+            entity.Property(e => e.Title).HasDefaultValue("每日打卡");
 
-            entity
-                .Property(e => e.Enabled)
-                .HasDefaultValue(true);
+            entity.Property(e => e.Enabled).HasDefaultValue(true);
 
-            entity
-                .Property(e => e.TodayClockInCount)
-                .HasDefaultValue(0);
+            entity.Property(e => e.TodayClockInCount).HasDefaultValue(0);
 
-            entity
-                .Property(e => e.AllClockInCount)
-                .HasDefaultValue(0);
+            entity.Property(e => e.AllClockInCount).HasDefaultValue(0);
 
             HasTrackableColumns(entity);
         });
@@ -218,13 +196,9 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.StageId)
                 .IsRequired();
 
-            entity
-                .Property(e => e.AllowBreakDays)
-                .HasDefaultValue(0);
+            entity.Property(e => e.AllowBreakDays).HasDefaultValue(0);
 
-            entity
-                .Property(e => e.Enabled)
-                .HasDefaultValue(false);
+            entity.Property(e => e.Enabled).HasDefaultValue(false);
         });
 
         modelBuilder.Entity<UserClockInStatus>(entity =>
@@ -243,54 +217,36 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.UserStatusId)
                 .IsRequired();
 
-            entity
-                .HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.UserId);
 
-            entity
-                .HasIndex(e => new { e.ConfigId, e.UserId })
-                .IsUnique();
+            entity.HasIndex(e => new { e.ConfigId, e.UserId }).IsUnique();
 
-            entity
-                .Property(e => e.AllClockInCount)
-                .HasDefaultValue(0);
+            entity.Property(e => e.AllClockInCount).HasDefaultValue(0);
 
-            entity
-                .Property(e => e.IsClockInToday)
-                .HasDefaultValue(false);
+            entity.Property(e => e.IsClockInToday).HasDefaultValue(false);
 
-            entity
-                .Property(e => e.StartDate)
-                .HasDefaultValueSql("current_date");
+            entity.Property(e => e.StartDate).HasDefaultValueSql("current_date");
         });
 
         modelBuilder.Entity<ClockInStageQualifiedHistory>(entity =>
         {
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("current_timestamp");
         });
 
         modelBuilder.Entity<ClockInHistory>(entity =>
         {
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("current_timestamp");
 
-            entity
-                .HasIndex(e => e.CreateTime)
-                .IsDescending();
+            entity.HasIndex(e => e.CreateTime).IsDescending();
 
-            entity
-                .HasIndex(e => e.UserStatusId);
+            entity.HasIndex(e => e.UserStatusId);
         });
 
         modelBuilder.Entity<ClockInCardInstance>(entity =>
         {
             HasTrackableColumns(entity);
 
-            entity
-                .HasIndex(e => new { e.ConfigId, e.ChannelId })
-                .IsUnique();
+            entity.HasIndex(e => new { e.ConfigId, e.ChannelId }).IsUnique();
         });
 
         modelBuilder.Entity<WeiboPushConfig>(entity =>
@@ -301,13 +257,9 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.ConfigId)
                 .IsRequired();
 
-            entity
-                .HasIndex(e => new { e.Uid, e.GuildId })
-                .IsUnique();
+            entity.HasIndex(e => new { e.Uid, e.GuildId }).IsUnique();
 
-            entity
-                .HasIndex(e => new { e.Alias, e.GuildId })
-                .IsUnique();
+            entity.HasIndex(e => new { e.Alias, e.GuildId }).IsUnique();
         });
 
         modelBuilder.Entity<WeiboPushInstance>(entity =>
@@ -318,23 +270,17 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 .HasForeignKey(e => e.InstanceId)
                 .IsRequired();
 
-            entity
-                .HasIndex(e => new { e.ConfigId, e.ChannelId })
-                .IsUnique();
+            entity.HasIndex(e => new { e.ConfigId, e.ChannelId }).IsUnique();
         });
 
         modelBuilder.Entity<WeiboPushHistory>(entity =>
         {
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("current_timestamp");
         });
 
         modelBuilder.Entity<WeiboCrawlHistory>(entity =>
         {
-            entity
-                .Property(e => e.CreateTime)
-                .HasDefaultValueSql("current_timestamp");
+            entity.Property(e => e.CreateTime).HasDefaultValueSql("current_timestamp");
         });
     }
 
@@ -351,14 +297,18 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
                 Entry(entry.Entity).Property(GuildSettingDetailsProp).IsModified = true;
             }
 
-            if (entry.State != EntityState.Added && entry.State != EntityState.Modified) continue;
+            if (entry.State != EntityState.Added && entry.State != EntityState.Modified)
+                continue;
             var actionTimestamp = DateTime.Now;
             if (entry.Metadata.FindProperty(UpdateTimeProp) is not null)
             {
                 Entry(entry.Entity).Property(UpdateTimeProp).CurrentValue = actionTimestamp;
             }
 
-            if (entry.State == EntityState.Added && entry.Metadata.FindProperty(CreateTimeProp) is not null)
+            if (
+                entry.State == EntityState.Added
+                && entry.Metadata.FindProperty(CreateTimeProp) is not null
+            )
             {
                 Entry(entry.Entity).Property(CreateTimeProp).CurrentValue = actionTimestamp;
             }
@@ -367,14 +317,11 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> options) : DbCont
         return base.SaveChanges();
     }
 
-    private static void HasTrackableColumns<T>(EntityTypeBuilder<T> entity) where T : TrackableEntity
+    private static void HasTrackableColumns<T>(EntityTypeBuilder<T> entity)
+        where T : TrackableEntity
     {
-        entity
-            .Property(e => e.CreateTime)
-            .HasDefaultValueSql("current_timestamp");
+        entity.Property(e => e.CreateTime).HasDefaultValueSql("current_timestamp");
 
-        entity
-            .Property(e => e.UpdateTime)
-            .HasDefaultValueSql("current_timestamp");
+        entity.Property(e => e.UpdateTime).HasDefaultValueSql("current_timestamp");
     }
 }

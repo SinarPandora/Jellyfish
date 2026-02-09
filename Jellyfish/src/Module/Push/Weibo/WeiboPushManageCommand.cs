@@ -12,10 +12,12 @@ public class WeiboPushManageCommand : GuildMessageCommand
 {
     private readonly WeiboPushManageService _service;
 
-    public WeiboPushManageCommand(WeiboPushManageService service) : base(true)
+    public WeiboPushManageCommand(WeiboPushManageService service)
+        : base(true)
     {
         _service = service;
-        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(
+            this,
             """
             管理当前服务器内的微博推送
             ---
@@ -34,15 +36,21 @@ public class WeiboPushManageCommand : GuildMessageCommand
             5. `列表`：列出全部推送信息
             ---
             [#引用现有文字频道]：指的是一个文字频道的 Kook 引用（在软件中为蓝色文字），用于将消息推送到指定频道）
-            """);
+            """
+        );
     }
 
     public override string Name() => "微博推送管理指令";
 
     public override IEnumerable<string> Keywords() => ["！微博推送", "!微博推送"];
 
-    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    protected override async Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {

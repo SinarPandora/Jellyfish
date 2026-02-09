@@ -18,7 +18,9 @@ public static class PermissionHelper
     /// <returns>Is user can execute command or not</returns>
     public static bool CanExecute(this SocketGuildUser user, GuildMessageCommand command)
     {
-        var commandPerm = AppCaches.Permissions.GetValueOrDefault($"{user.Guild.Id}_{command.Name()}");
+        var commandPerm = AppCaches.Permissions.GetValueOrDefault(
+            $"{user.Guild.Id}_{command.Name()}"
+        );
 
         return commandPerm.IsNullOrEmpty() // Is permission unset?
             ? !command.IsManagerCommand || IsJellyfishManager(user)
@@ -33,10 +35,11 @@ public static class PermissionHelper
     private static bool IsJellyfishManager(SocketGuildUser user)
     {
         var setting = AppCaches.GuildSettings[user.Guild.Id];
-        var hasSetManager = setting.DefaultManagerAccounts.IsNotEmpty() || setting.DefaultManagerRoles.IsNotEmpty();
+        var hasSetManager =
+            setting.DefaultManagerAccounts.IsNotEmpty() || setting.DefaultManagerRoles.IsNotEmpty();
         return hasSetManager
-            ? setting.DefaultManagerAccounts.Contains(user.Id) ||
-              user.Roles.Any(role => setting.DefaultManagerRoles.Contains(role.Id))
+            ? setting.DefaultManagerAccounts.Contains(user.Id)
+                || user.Roles.Any(role => setting.DefaultManagerRoles.Contains(role.Id))
             : user.Roles.Any(role => role.Permissions.Has(GuildPermission.Administrator));
     }
 }

@@ -12,8 +12,8 @@ public class TpRoomInstance(
     ulong guildId,
     string roomName,
     ulong ownerId,
-    string commandText)
-    : TrackableEntity
+    string commandText
+) : TrackableEntity
 {
     public long Id { get; set; }
     public long TpConfigId { get; set; } = tpConfigId;

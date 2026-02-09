@@ -15,7 +15,8 @@ namespace Jellyfish.Module.TeamPlay.Core;
 public class TeamPlayRoomService(
     ILogger<TeamPlayRoomService> log,
     TmpTextChannelService tmpTextChannelService,
-    DbContextProvider dbProvider)
+    DbContextProvider dbProvider
+)
 {
     #region ErrorMessage
 
@@ -25,10 +26,10 @@ public class TeamPlayRoomService(
     private const string UnsupportedPassword = "密码应为 1~12 位数字";
 
     private const string FailToCreateTmpTextChannel = """
-                                                      创建配套的临时文字房间失败，若您非常需要使用该功能，请退出当前组队语音房间，
-                                                      等待您创建的房间被清理后重新创建一次。
-                                                      若此问题重复出现，请联系请与相关工作人员。
-                                                      """;
+        创建配套的临时文字房间失败，若您非常需要使用该功能，请退出当前组队语音房间，
+        等待您创建的房间被清理后重新创建一次。
+        若此问题重复出现，请联系请与相关工作人员。
+        """;
 
     #endregion
 
@@ -41,9 +42,11 @@ public class TeamPlayRoomService(
     /// <param name="onSuccess">Callback on success</param>
     /// <returns>Should keep the user message or not</returns>
     public async Task<bool> CreateAndMoveToRoomAsync(
-        Args.CreateRoomArgs args, SocketGuildUser user,
+        Args.CreateRoomArgs args,
+        SocketGuildUser user,
         IMessageChannel? noticeChannel,
-        Func<TpRoomInstance, RestVoiceChannel, RestTextChannel?, Task> onSuccess)
+        Func<TpRoomInstance, RestVoiceChannel, RestTextChannel?, Task> onSuccess
+    )
     {
         if (Locks.IsUserBeLockedByCreationLock(user.Id, args.Config.Id))
         {
@@ -60,7 +63,10 @@ public class TeamPlayRoomService(
 
                     1. 请尝试重启 Kook 客户端（网页版请尝试刷新页面）
                     2. 如果您加入过其他的 Kook 服务器，可尝试进入其他服务器后再回来
-                    """, true, TimeSpan.FromMinutes(2));
+                    """,
+                    true,
+                    TimeSpan.FromMinutes(2)
+                );
             });
             return true;
         }
@@ -71,8 +77,10 @@ public class TeamPlayRoomService(
         noticeChannel ??= await user.CreateDMChannelAsync();
 
         var roomName = tpConfig.RoomNamePattern is not null
-            ? tpConfig.RoomNamePattern.Replace(TeamPlayManageService.UserInjectKeyword,
-                args.RoomName ?? user.DisplayName)
+            ? tpConfig.RoomNamePattern.Replace(
+                TeamPlayManageService.UserInjectKeyword,
+                args.RoomName ?? user.DisplayName
+            )
             : args.RoomName ?? $"{user.DisplayName}的房间";
         var roomNameWithoutIcon = roomName;
 
@@ -95,8 +103,12 @@ public class TeamPlayRoomService(
         await using var dbCtx = dbProvider.Provide();
         if (dbCtx.TpRoomInstances.Any(e => e.OwnerId == user.Id))
         {
-            log.LogInformation("创建频道 {RoomName} 失败，用户 {DisplayName}#{UserId} 已加入其他语音频道", roomName, user.DisplayName,
-                user.Id);
+            log.LogInformation(
+                "创建频道 {RoomName} 失败，用户 {DisplayName}#{UserId} 已加入其他语音频道",
+                roomName,
+                user.DisplayName,
+                user.Id
+            );
             await noticeChannel.SendErrorCardAsync(UserDoesNotFree, true);
             return false;
         }
@@ -105,7 +117,11 @@ public class TeamPlayRoomService(
         var textCategoryId = GetTextCategoryId(tpConfig, user.Guild);
         if (!voiceCategoryId.HasValue)
         {
-            log.LogError("{TpConfigId}：{TpConfigName} 所对应的父频道未找到，请检查错误日志并更新频道配置", tpConfig.Id, tpConfig.Name);
+            log.LogError(
+                "{TpConfigId}：{TpConfigName} 所对应的父频道未找到，请检查错误日志并更新频道配置",
+                tpConfig.Id,
+                tpConfig.Name
+            );
             await noticeChannel.SendErrorCardAsync(ParentChannelNotFound, true);
             return false;
         }
@@ -131,12 +147,15 @@ public class TeamPlayRoomService(
         try
         {
             log.LogInformation("开始创建语音房间{RoomName}", roomName);
-            var voiceChannel = await guild.CreateVoiceChannelAsync(roomName, r =>
-            {
-                r.VoiceQuality = guild.GetHighestVoiceQuality();
-                r.UserLimit = memberLimit;
-                r.CategoryId = voiceCategoryId.Value;
-            });
+            var voiceChannel = await guild.CreateVoiceChannelAsync(
+                roomName,
+                r =>
+                {
+                    r.VoiceQuality = guild.GetHighestVoiceQuality();
+                    r.UserLimit = memberLimit;
+                    r.CategoryId = voiceCategoryId.Value;
+                }
+            );
 
             if (isVoiceChannelHasPassword)
             {
@@ -150,7 +169,11 @@ public class TeamPlayRoomService(
 
             log.LogInformation("创建语音房间 API 调用成功，房间名：{RoomName}", roomName);
 
-            log.LogInformation("尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}", user.DisplayName(), voiceChannel.Name);
+            log.LogInformation(
+                "尝试移动用户所在房间，用户：{DisplayName}，目标房间：{RoomName}",
+                user.DisplayName(),
+                voiceChannel.Name
+            );
 
             if (user.VoiceChannel is not null)
             {
@@ -180,7 +203,11 @@ public class TeamPlayRoomService(
                         (isVoiceChannelHasPassword ? "🔐" : "💬") + roomNameWithoutIcon,
                         textCategoryId ?? voiceCategoryId
                     ),
-                    user, instance, voiceChannel, isVoiceChannelHasPassword, noticeChannel
+                    user,
+                    instance,
+                    voiceChannel,
+                    isVoiceChannelHasPassword,
+                    noticeChannel
                 );
                 dbCtx.SaveChanges(); // Save for the text channel
             }
@@ -214,7 +241,8 @@ public class TeamPlayRoomService(
             }
         }
 
-        if (!config.VoiceChannelId.HasValue) return null;
+        if (!config.VoiceChannelId.HasValue)
+            return null;
         var parent = guild.GetVoiceChannel(config.VoiceChannelId.Value);
         return parent?.CategoryId;
     }
@@ -237,7 +265,8 @@ public class TeamPlayRoomService(
             }
         }
 
-        if (!config.TextChannelId.HasValue) return null;
+        if (!config.TextChannelId.HasValue)
+            return null;
         var parent = guild.GetTextChannel(config.TextChannelId.Value);
         return parent?.CategoryId;
     }
@@ -249,7 +278,10 @@ public class TeamPlayRoomService(
     /// <param name="user">Owner</param>
     public static Task GiveOwnerPermissionAsync(IVoiceChannel channel, IGuildUser user)
     {
-        return channel.OverrideUserPermissionAsync(user, _ => OverwritePermissions.AllowAll(channel));
+        return channel.OverrideUserPermissionAsync(
+            user,
+            _ => OverwritePermissions.AllowAll(channel)
+        );
     }
 
     /// <summary>
@@ -277,43 +309,58 @@ public class TeamPlayRoomService(
     /// <param name="isVoiceChannelHasPassword">Is voice channel has password</param>
     /// <param name="noticeChannel">Notice channel</param>
     /// <returns>New text channel or null if fail to create</returns>
-    private async Task<RestTextChannel?> CreateTemporaryTextChannel(TmpChannel.Core.Args.CreateTextChannelArgs args,
+    private async Task<RestTextChannel?> CreateTemporaryTextChannel(
+        TmpChannel.Core.Args.CreateTextChannelArgs args,
         SocketGuildUser creator,
         TpRoomInstance roomInstance,
         IVoiceChannel voiceChannel,
         bool isVoiceChannelHasPassword,
-        IMessageChannel noticeChannel)
+        IMessageChannel noticeChannel
+    )
     {
         var promise = new TaskCompletionSource<RestTextChannel?>();
-        await tmpTextChannelService.CreateAsync(args, creator,
+        await tmpTextChannelService.CreateAsync(
+            args,
+            creator,
             newChannel =>
             {
                 // If voice channel has password, make the bound text channel also be private
                 if (isVoiceChannelHasPassword)
                 {
                     return Task.WhenAll(
-                        newChannel.OverrideUserPermissionAsync(creator, p =>
-                            p.Modify(
-                                viewChannel: PermValue.Allow,
-                                mentionEveryone: PermValue.Allow
-                            )),
-                        newChannel.OverrideRolePermissionAsync(creator.Guild.EveryoneRole, p =>
-                            p.Modify(viewChannel: PermValue.Deny)
+                        newChannel.OverrideUserPermissionAsync(
+                            creator,
+                            p =>
+                                p.Modify(
+                                    viewChannel: PermValue.Allow,
+                                    mentionEveryone: PermValue.Allow
+                                )
                         ),
-                        Task.WhenAll(AppCaches.GuildSettings[roomInstance.GuildId].SynergyBotAccounts.Select(botId =>
-                        {
-                            var botUser = creator.Guild.GetUser(botId);
-                            if (botUser is not null)
-                            {
-                                return newChannel.OverrideUserPermissionAsync(botUser, p =>
-                                    p.Modify(
-                                        viewChannel: PermValue.Allow,
-                                        mentionEveryone: PermValue.Allow
-                                    ));
-                            }
+                        newChannel.OverrideRolePermissionAsync(
+                            creator.Guild.EveryoneRole,
+                            p => p.Modify(viewChannel: PermValue.Deny)
+                        ),
+                        Task.WhenAll(
+                            AppCaches
+                                .GuildSettings[roomInstance.GuildId]
+                                .SynergyBotAccounts.Select(botId =>
+                                {
+                                    var botUser = creator.Guild.GetUser(botId);
+                                    if (botUser is not null)
+                                    {
+                                        return newChannel.OverrideUserPermissionAsync(
+                                            botUser,
+                                            p =>
+                                                p.Modify(
+                                                    viewChannel: PermValue.Allow,
+                                                    mentionEveryone: PermValue.Allow
+                                                )
+                                        );
+                                    }
 
-                            return Task.CompletedTask;
-                        }))
+                                    return Task.CompletedTask;
+                                })
+                        )
                     );
                 }
 
@@ -326,20 +373,24 @@ public class TeamPlayRoomService(
 
                 await newChannel.SendSuccessCardAsync(
                     $"""
-                     {MentionUtils.KMarkdownMentionUser(creator.Id)}
-                     ---
-                     欢迎光临！这是属于组队房间「{roomInstance.RoomName}」的专属临时文字房间！
-                     （若语音房间设置了密码，该房间将改为仅语音内玩家可见）
-                     ---
-                     作为房主，您可以随意修改语音房间信息，设置密码，调整麦序，全体静音等
-                     当语音及文字房间二十分钟内均无人使用时，组队房间将被解散。
-                     ---
-                     - 修改语音房间名称后，文字房间将在稍后自动同步，无需修改两次
-                     - 手机 Kook APP 暂不支持设置语音房间密码
-                     """, false);
+                    {MentionUtils.KMarkdownMentionUser(creator.Id)}
+                    ---
+                    欢迎光临！这是属于组队房间「{roomInstance.RoomName}」的专属临时文字房间！
+                    （若语音房间设置了密码，该房间将改为仅语音内玩家可见）
+                    ---
+                    作为房主，您可以随意修改语音房间信息，设置密码，调整麦序，全体静音等
+                    当语音及文字房间二十分钟内均无人使用时，组队房间将被解散。
+                    ---
+                    - 修改语音房间名称后，文字房间将在稍后自动同步，无需修改两次
+                    - 手机 Kook APP 暂不支持设置语音房间密码
+                    """,
+                    false
+                );
 
                 await newChannel.SendCardSafeAsync(await CreateInviteCardAsync(voiceChannel));
-                await newChannel.SendTextSafeAsync("👍🏻还未加入组队语音？点击上方按钮进入对应语音房间");
+                await newChannel.SendTextSafeAsync(
+                    "👍🏻还未加入组队语音？点击上方按钮进入对应语音房间"
+                );
 
                 promise.SetResult(newChannel);
             },
@@ -347,7 +398,8 @@ public class TeamPlayRoomService(
             {
                 promise.SetResult(null);
                 return noticeChannel.SendErrorCardAsync(FailToCreateTmpTextChannel, false);
-            });
+            }
+        );
 
         return await promise.Task;
     }

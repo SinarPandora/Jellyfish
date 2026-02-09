@@ -47,13 +47,15 @@ public static class AppContext
         // ------------------------------------------------ System -----------------------------------------------------
         container.RegisterType<CacheLoader>().SingleInstance();
         container.RegisterType<AppConfig>().SingleInstance();
-        container.Register<KookSocketClient>(provider =>
+        container
+            .Register<KookSocketClient>(provider =>
             {
                 var kookSocketClient = KookLoader.CreateSocketClient(provider.Resolve<AppConfig>());
                 KookCoreApiHelper.Kook = kookSocketClient;
                 return kookSocketClient;
             })
-            .As<KookSocketClient>().As<BaseSocketClient>()
+            .As<KookSocketClient>()
+            .As<BaseSocketClient>()
             .SingleInstance();
         container.RegisterType<KookLoader>().SingleInstance();
         container.RegisterType<KookApiFactory>().SingleInstance();
@@ -79,11 +81,26 @@ public static class AppContext
         container.RegisterType<TeamPlayManageService>().SingleInstance();
         container.RegisterType<TeamPlayManageCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<TeamPlayUserCommand>().As<GuildMessageCommand>().SingleInstance();
-        container.RegisterType<TeamPlayButtonActionEntry>().As<ButtonActionCommand>().SingleInstance();
-        container.RegisterType<TeamPlayClickToJoinCommand>().As<UserConnectEventCommand>().SingleInstance();
-        container.RegisterType<TeamPlayTeammateJoinCommand>().As<UserConnectEventCommand>().SingleInstance();
-        container.RegisterType<TeamPlayTeammateLeaveCommand>().As<UserDisconnectEventCommand>().SingleInstance();
-        container.RegisterType<TeamPlayRoomOwnerLeaveCommand>().As<UserDisconnectEventCommand>().SingleInstance();
+        container
+            .RegisterType<TeamPlayButtonActionEntry>()
+            .As<ButtonActionCommand>()
+            .SingleInstance();
+        container
+            .RegisterType<TeamPlayClickToJoinCommand>()
+            .As<UserConnectEventCommand>()
+            .SingleInstance();
+        container
+            .RegisterType<TeamPlayTeammateJoinCommand>()
+            .As<UserConnectEventCommand>()
+            .SingleInstance();
+        container
+            .RegisterType<TeamPlayTeammateLeaveCommand>()
+            .As<UserDisconnectEventCommand>()
+            .SingleInstance();
+        container
+            .RegisterType<TeamPlayRoomOwnerLeaveCommand>()
+            .As<UserDisconnectEventCommand>()
+            .SingleInstance();
 
         // Role Command
         container.RegisterType<RoleSettingCommand>().As<GuildMessageCommand>().SingleInstance();
@@ -95,11 +112,25 @@ public static class AppContext
         container.RegisterType<TcGroupControlCommand>().As<GuildMessageCommand>().SingleInstance();
 
         // Guild Setting Command
-        container.RegisterType<GuildCustomFeatureCommand>().As<GuildMessageCommand>().SingleInstance();
-        container.RegisterType<SynergyBotAccountCommand>().As<GuildMessageCommand>().SingleInstance();
-        container.RegisterType<SynergyBotConflictResolveCommand>().As<GuildMessageCommand>().SingleInstance();
-        container.RegisterType<InitSettingsForNewGuildCommand>().As<BotJoinGuildCommand>().SingleInstance();
-        container.RegisterType<InitSettingOnConnectUnregisteredGuildCommand>().As<GuildAvailableCommand>()
+        container
+            .RegisterType<GuildCustomFeatureCommand>()
+            .As<GuildMessageCommand>()
+            .SingleInstance();
+        container
+            .RegisterType<SynergyBotAccountCommand>()
+            .As<GuildMessageCommand>()
+            .SingleInstance();
+        container
+            .RegisterType<SynergyBotConflictResolveCommand>()
+            .As<GuildMessageCommand>()
+            .SingleInstance();
+        container
+            .RegisterType<InitSettingsForNewGuildCommand>()
+            .As<BotJoinGuildCommand>()
+            .SingleInstance();
+        container
+            .RegisterType<InitSettingOnConnectUnregisteredGuildCommand>()
+            .As<GuildAvailableCommand>()
             .SingleInstance();
 
         // Splatoon: Suite Search Command
@@ -119,7 +150,10 @@ public static class AppContext
         container.RegisterType<ClockInStageQualifiedRoleSyncJob>().SingleInstance();
         container.RegisterType<ClockInStageScanJob>().SingleInstance();
         container.RegisterType<ClockInBuffer>().SingleInstance();
-        container.RegisterType<ClockInStageManageCommand>().As<GuildMessageCommand>().SingleInstance();
+        container
+            .RegisterType<ClockInStageManageCommand>()
+            .As<GuildMessageCommand>()
+            .SingleInstance();
         container.RegisterType<ClockInManageCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<UserClockInCommand>().As<GuildMessageCommand>().SingleInstance();
         container.RegisterType<ClockInCardAction>().As<ButtonActionCommand>().SingleInstance();

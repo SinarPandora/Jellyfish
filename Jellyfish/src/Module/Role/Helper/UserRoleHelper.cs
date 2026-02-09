@@ -15,11 +15,11 @@ public static class UserRoleHelper
     /// <param name="guild">Current guild</param>
     /// <returns>Socket role object</returns>
     public static SocketRole? GetKookRole(this UserRole role, SocketGuild guild) =>
-    (
-        from guildRole in guild.Roles
-        where guildRole.Id == role.KookId
-        select guildRole
-    ).FirstOrDefault();
+        (
+            from guildRole in guild.Roles
+            where guildRole.Id == role.KookId
+            select guildRole
+        ).FirstOrDefault();
 
     /// <summary>
     ///     Get role name using cache from the Kook client
@@ -37,9 +37,5 @@ public static class UserRoleHelper
     /// <param name="name">Role name</param>
     /// <returns>Role id or null</returns>
     public static uint? GetRoleIdByName(this SocketGuild guild, string name) =>
-    (
-        from role in guild.Roles
-        where role.Name == name
-        select role.Id
-    ).FirstOrDefault();
+        (from role in guild.Roles where role.Name == name select role.Id).FirstOrDefault();
 }

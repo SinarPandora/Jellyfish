@@ -16,10 +16,12 @@ public class GuildCustomFeatureCommand : GuildMessageCommand
 {
     private readonly DbContextProvider _dbProvider;
 
-    public GuildCustomFeatureCommand(DbContextProvider dbProvider) : base(true)
+    public GuildCustomFeatureCommand(DbContextProvider dbProvider)
+        : base(true)
     {
         _dbProvider = dbProvider;
-        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(
+            this,
             """
             为当前服务器开启/关闭附加功能。
             附加功能指的是针对「特殊游戏」或「场景」专门开发的功能，目前支持下列功能：
@@ -42,8 +44,13 @@ public class GuildCustomFeatureCommand : GuildMessageCommand
 
     public override IEnumerable<string> Keywords() => ["!附加功能", "！附加功能"];
 
-    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    protected override async Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {
@@ -71,7 +78,9 @@ public class GuildCustomFeatureCommand : GuildMessageCommand
     ///     List enabled features
     /// </summary>
     /// <param name="channel">Current guild channel</param>
-    private static Task<Cacheable<IUserMessage, Guid>?> ListEnabledFeatures(SocketTextChannel channel)
+    private static Task<Cacheable<IUserMessage, Guid>?> ListEnabledFeatures(
+        SocketTextChannel channel
+    )
     {
         var setting = AppCaches.GuildSettings[channel.Guild.Id];
         if (setting.EnabledFeatures.IsEmpty())
@@ -79,8 +88,7 @@ public class GuildCustomFeatureCommand : GuildMessageCommand
             return channel.SendInfoCardAsync($"{channel.Guild.Name} 还没有启用任何附加功能", false);
         }
 
-        var featureList = setting.EnabledFeatures
-            .Select(f => $"- {f.ToName()}").StringJoin("\n");
+        var featureList = setting.EnabledFeatures.Select(f => $"- {f.ToName()}").StringJoin("\n");
         return channel.SendSuccessCardAsync("当前启用的功能如下\n" + featureList, false);
     }
 
@@ -97,13 +105,17 @@ public class GuildCustomFeatureCommand : GuildMessageCommand
 
         if (!feature.HasValue)
         {
-            await channel.SendErrorCardAsync("该功能不存在！请使用：`！附加功能 帮助` 指令查看现有附加功能", true);
+            await channel.SendErrorCardAsync(
+                "该功能不存在！请使用：`！附加功能 帮助` 指令查看现有附加功能",
+                true
+            );
             return false;
         }
 
         await using var dbCtx = _dbProvider.Provide();
 
-        var setting = dbCtx.GuildSettings.Include(guildSetting => guildSetting.Setting)
+        var setting = dbCtx
+            .GuildSettings.Include(guildSetting => guildSetting.Setting)
             .First(s => s.GuildId == channel.Guild.Id);
 
         if (enable)

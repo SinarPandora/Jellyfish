@@ -26,48 +26,51 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
 
         IPage? page = null;
         return await new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                ShouldHandle = new PredicateBuilder().Handle<PuppeteerException>(),
-                MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
-                OnRetry = async retry =>
+            .AddRetry(
+                new RetryStrategyOptions
                 {
-                    if (retry.Outcome.Exception is NavigationException)
+                    ShouldHandle = new PredicateBuilder().Handle<PuppeteerException>(),
+                    MaxRetryAttempts = 2,
+                    DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
+                    OnRetry = async retry =>
                     {
-                        log.LogWarning("访问超时，正在重试（地址：{Url}，第 {Times} 次)", url, retry.AttemptNumber);
-                        if (page is { IsClosed: false })
+                        if (retry.Outcome.Exception is NavigationException)
                         {
-                            try
+                            log.LogWarning(
+                                "访问超时，正在重试（地址：{Url}，第 {Times} 次)",
+                                url,
+                                retry.AttemptNumber
+                            );
+                            if (page is { IsClosed: false })
                             {
-                                await page.CloseAsync();
-                            }
-                            catch (Exception)
-                            {
-                                // Ignore all errors
+                                try
+                                {
+                                    await page.CloseAsync();
+                                }
+                                catch (Exception)
+                                {
+                                    // Ignore all errors
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        log.LogWarning("浏览器已崩溃，正在重启进程（错误：{Err}，第 {Times} 次)",
-                            retry.Outcome.Exception?.GetType().Name ?? "未知错误",
-                            retry.AttemptNumber
-                        );
-                        _browser = await GetBrowserProcess();
-                        log.LogWarning("浏览器进程已重启");
-                    }
+                        else
+                        {
+                            log.LogWarning(
+                                "浏览器已崩溃，正在重启进程（错误：{Err}，第 {Times} 次)",
+                                retry.Outcome.Exception?.GetType().Name ?? "未知错误",
+                                retry.AttemptNumber
+                            );
+                            _browser = await GetBrowserProcess();
+                            log.LogWarning("浏览器进程已重启");
+                        }
+                    },
                 }
-            })
+            )
             .Build()
             .ExecuteAsync(async _ =>
             {
                 page = await _browser.NewPageAsync();
-                await page.SetViewportAsync(new ViewPortOptions
-                {
-                    Width = 1920,
-                    Height = 1080
-                });
+                await page.SetViewportAsync(new ViewPortOptions { Width = 1920, Height = 1080 });
                 if (ua is not null)
                 {
                     await page.SetUserAgentAsync(ua);
@@ -100,14 +103,16 @@ public class BrowserPageFactory(AppConfig config, ILogger<BrowserPageFactory> lo
             }
         }
 
-        var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(new LaunchOptions
-        {
-            ExecutablePath = config.ChromiumPath,
-            // Hide the Chromium window
-            Headless = true,
-            Browser = SupportedBrowser.Chromium,
-            Args = config.ChromiumArgs
-        });
+        var browser = await PuppeteerSharp.Puppeteer.LaunchAsync(
+            new LaunchOptions
+            {
+                ExecutablePath = config.ChromiumPath,
+                // Hide the Chromium window
+                Headless = true,
+                Browser = SupportedBrowser.Chromium,
+                Args = config.ChromiumArgs,
+            }
+        );
         log.LogInformation("浏览器进程已启动，PID：{Pid}", browser.Process.Id);
         return browser;
     }

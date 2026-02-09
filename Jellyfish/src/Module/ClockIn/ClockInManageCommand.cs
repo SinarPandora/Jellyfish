@@ -12,10 +12,12 @@ public class ClockInManageCommand : GuildMessageCommand
 {
     private readonly ClockInManageService _service;
 
-    public ClockInManageCommand(ClockInManageService service) : base(true)
+    public ClockInManageCommand(ClockInManageService service)
+        : base(true)
     {
         _service = service;
-        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(
+            this,
             """
             配置打卡功能
             ---
@@ -56,8 +58,13 @@ public class ClockInManageCommand : GuildMessageCommand
 
     public override IEnumerable<string> Keywords() => ["!打卡管理", "！打卡管理"];
 
-    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    protected override async Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {

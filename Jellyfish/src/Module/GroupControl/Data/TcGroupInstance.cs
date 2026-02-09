@@ -10,8 +10,8 @@ public class TcGroupInstance(
     string name,
     ulong textChannelId,
     string? description = null,
-    Guid? descriptionMessageId = null)
-    : TrackableEntity
+    Guid? descriptionMessageId = null
+) : TrackableEntity
 {
     public long Id { get; set; }
     public long TcGroupId { get; init; } = tcGroupId;

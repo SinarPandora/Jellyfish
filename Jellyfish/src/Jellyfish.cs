@@ -40,21 +40,29 @@ public static class JellyFish
             // Init database context
             builder.Host.ConfigureContainer<ContainerBuilder>(container =>
             {
-                container.Register<DbContextProvider>(_ =>
-                {
-                    var dataSourceBuilder = new NpgsqlDataSourceBuilder(
-                        builder.Configuration.GetValue<string>("DatabaseConnection")
-                    );
+                container
+                    .Register<DbContextProvider>(_ =>
+                    {
+                        var dataSourceBuilder = new NpgsqlDataSourceBuilder(
+                            builder.Configuration.GetValue<string>("DatabaseConnection")
+                        );
 
-                    return new DbContextProvider(new DbContextOptionsBuilder<DatabaseContext>()
-                        .UseNpgsql(dataSourceBuilder.Build(), options => options
-                            .MapEnum<ChannelType>()
-                            .MapEnum<TimeUnit>()
-                            .MapEnum<ExtendTargetType>()
-                            .MapEnum<GuildCustomFeature>())
-                        .UseSnakeCaseNamingConvention()
-                        .Options);
-                }).SingleInstance();
+                        return new DbContextProvider(
+                            new DbContextOptionsBuilder<DatabaseContext>()
+                                .UseNpgsql(
+                                    dataSourceBuilder.Build(),
+                                    options =>
+                                        options
+                                            .MapEnum<ChannelType>()
+                                            .MapEnum<TimeUnit>()
+                                            .MapEnum<ExtendTargetType>()
+                                            .MapEnum<GuildCustomFeature>()
+                                )
+                                .UseSnakeCaseNamingConvention()
+                                .Options
+                        );
+                    })
+                    .SingleInstance();
 
                 InjectDbContextForMigration(container);
 
@@ -88,7 +96,8 @@ public static class JellyFish
     [Conditional("DEBUG")]
     private static void InjectDbContextForMigration(ContainerBuilder container)
     {
-        container.Register<DatabaseContext>(provider => provider.Resolve<DbContextProvider>().Provide())
+        container
+            .Register<DatabaseContext>(provider => provider.Resolve<DbContextProvider>().Provide())
             .InstancePerDependency()
             .ExternallyOwned();
     }

@@ -32,10 +32,15 @@ public abstract class GuildMessageCommand(bool isManagerCommand) : Command
     /// <param name="user">Sender</param>
     /// <param name="channel">Current Channel</param>
     /// <returns>Command result, Done will finish the execution chains</returns>
-    public async Task<CommandResult> MatchAndExecute(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel)
+    public async Task<CommandResult> MatchAndExecute(
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         var keyword = Keywords().FirstOrDefault(k => msg.Content.StartsWith(k));
-        if (keyword is null) return CommandResult.Continue;
+        if (keyword is null)
+            return CommandResult.Continue;
         await Execute(msg.Content[keyword.Length..].Trim(), keyword, msg, user, channel);
         return CommandResult.Done;
     }
@@ -48,6 +53,11 @@ public abstract class GuildMessageCommand(bool isManagerCommand) : Command
     /// <param name="msg">User message object</param>
     /// <param name="user">Sender</param>
     /// <param name="channel">Current Channel</param>
-    protected abstract Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel);
+    protected abstract Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    );
 }

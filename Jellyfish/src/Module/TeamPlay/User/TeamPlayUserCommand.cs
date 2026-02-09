@@ -12,8 +12,7 @@ namespace Jellyfish.Module.TeamPlay.User;
 /// </summary>
 public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageCommand(false)
 {
-    private const string HelpTemplate =
-        """
+    private const string HelpTemplate = """
         创建组队房间，包括一个文字房间和一个语音房间
 
         **可选参数：**
@@ -56,8 +55,13 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
 
     public override IEnumerable<string> Keywords() => ["/组队"];
 
-    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    protected override async Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {
@@ -66,7 +70,8 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
                 _ = channel.DeleteMessageWithTimeoutAsync(msg.Id);
             }
         }
-        else await CreateRoom(msg, user, channel, args);
+        else
+            await CreateRoom(msg, user, channel, args);
     }
 
     /// <summary>
@@ -76,18 +81,20 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
     /// <returns>Is command success or not</returns>
     private async Task<bool> Help(SocketTextChannel channel)
     {
-        var tpConfig = (from config in AppCaches.TeamPlayConfigs.Values
+        var tpConfig = (
+            from config in AppCaches.TeamPlayConfigs.Values
             where config.GuildId == channel.Guild.Id && config.TextChannelId == channel.Id
-            select config).FirstOrDefault();
+            select config
+        ).FirstOrDefault();
         if (tpConfig is null)
         {
-            var configs =
-                (from config in AppCaches.TeamPlayConfigs.Values
-                    where config.GuildId == channel.Guild.Id && config.TextChannelId.HasValue
-                    select config.TextChannelId.HasValue
-                        ? MentionUtils.KMarkdownMentionChannel(config.TextChannelId.Value)
-                        : string.Empty
-                ).ToArray();
+            var configs = (
+                from config in AppCaches.TeamPlayConfigs.Values
+                where config.GuildId == channel.Guild.Id && config.TextChannelId.HasValue
+                select config.TextChannelId.HasValue
+                    ? MentionUtils.KMarkdownMentionChannel(config.TextChannelId.Value)
+                    : string.Empty
+            ).ToArray();
 
             if (configs.IsEmpty())
             {
@@ -97,17 +104,19 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
             {
                 await channel.SendInfoCardAsync(
                     $"""
-                     当前频道没有配置组队功能，请前往以下频道使用该功能：
-                     {string.Join('\n', configs)}
-                     """, true);
+                    当前频道没有配置组队功能，请前往以下频道使用该功能：
+                    {string.Join('\n', configs)}
+                    """,
+                    true
+                );
             }
 
             return false;
         }
 
-        var help = HelpTemplate.Format(tpConfig.DefaultMemberLimit == 0
-            ? "无限制"
-            : tpConfig.DefaultMemberLimit.ToString());
+        var help = HelpTemplate.Format(
+            tpConfig.DefaultMemberLimit == 0 ? "无限制" : tpConfig.DefaultMemberLimit.ToString()
+        );
         await channel.SendCardSafeAsync(
             HelpMessageHelper.ForMessageCommand(this, "欢迎使用组队指令！", help)
         );
@@ -121,26 +130,41 @@ public class TeamPlayUserCommand(TeamPlayRoomService service) : GuildMessageComm
     /// <param name="user">Current user</param>
     /// <param name="channel">Current text channel</param>
     /// <param name="rawArgs">Raw create room args in string</param>
-    private async Task CreateRoom(SocketMessage msg, SocketGuildUser user, SocketTextChannel channel, string rawArgs)
+    private async Task CreateRoom(
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel,
+        string rawArgs
+    )
     {
         var argsBuilder = CreateRoomCommandParser.Parse(rawArgs);
-        var tpConfig = (from config in AppCaches.TeamPlayConfigs.Values
+        var tpConfig = (
+            from config in AppCaches.TeamPlayConfigs.Values
             where config.GuildId == channel.Guild.Id && config.TextChannelId == channel.Id
-            select config).FirstOrDefault();
-        if (tpConfig is null) return;
+            select config
+        ).FirstOrDefault();
+        if (tpConfig is null)
+            return;
 
-        var isSuccess = await service.CreateAndMoveToRoomAsync(argsBuilder(tpConfig), user, channel,
+        var isSuccess = await service.CreateAndMoveToRoomAsync(
+            argsBuilder(tpConfig),
+            user,
+            channel,
             async (_, voiceChannel, textChannel) =>
             {
-                await channel.SendCardSafeAsync(await TeamPlayRoomService.CreateInviteCardAsync(voiceChannel));
+                await channel.SendCardSafeAsync(
+                    await TeamPlayRoomService.CreateInviteCardAsync(voiceChannel)
+                );
                 await channel.SendTextSafeAsync(
                     $"👍🏻想一起玩？点击上方按钮加入语音房间！{
                         (!voiceChannel.HasPassword && textChannel is not null
                             ? $"不方便语音也可以加入同名文字房间 {MentionUtils.KMarkdownMentionChannel(textChannel.Id)} 哦"
                             : string.Empty
                         )
-                    }");
-            });
+                    }"
+                );
+            }
+        );
 
         if (!isSuccess)
         {

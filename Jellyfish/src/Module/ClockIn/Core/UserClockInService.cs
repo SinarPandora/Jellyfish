@@ -15,8 +15,8 @@ public class UserClockInService(
     KookSocketClient kook,
     DbContextProvider dbProvider,
     ILogger<UserClockInService> log,
-    RecallMessageService
-        recallMessageService)
+    RecallMessageService recallMessageService
+)
 {
     /// <summary>
     ///     User clock-in
@@ -31,11 +31,13 @@ public class UserClockInService(
         var guild = kook.GetGuild(guildId);
         var channel = guild?.GetTextChannel(channelId);
         var user = guild?.GetUser(userId);
-        if (channel is null || user is null) return;
+        if (channel is null || user is null)
+            return;
 
         await using var dbCtx = dbProvider.Provide();
         // Check clock-in enabled
-        if (!AppCaches.ClockInConfigs.TryGetValue(guildId, out var config)) return;
+        if (!AppCaches.ClockInConfigs.TryGetValue(guildId, out var config))
+            return;
 
         // Init user status
         var firstTimeClockIn = false;
@@ -47,9 +49,14 @@ public class UserClockInService(
         if (userStatus is null)
         {
             firstTimeClockIn = true;
-            userStatus = new UserClockInStatus(config.Id, userId, user.DisplayName(), user.IdentifyNumber)
+            userStatus = new UserClockInStatus(
+                config.Id,
+                userId,
+                user.DisplayName(),
+                user.IdentifyNumber
+            )
             {
-                AllClockInCount = 1
+                AllClockInCount = 1,
             };
             dbCtx.UserClockInStatuses.Add(userStatus);
             dbCtx.SaveChanges();
@@ -66,12 +73,19 @@ public class UserClockInService(
             ).ToArray();
             if (exists.FirstOrDefault(i => i.CreateTime >= today) is not null)
             {
-                await channel.SendInfoCardAsync($"{MentionUtils.KMarkdownMentionUser(userId)} 您今天已经打卡成功👍🏻，请明天再来",
-                    fromButton);
+                await channel.SendInfoCardAsync(
+                    $"{MentionUtils.KMarkdownMentionUser(userId)} 您今天已经打卡成功👍🏻，请明天再来",
+                    fromButton
+                );
                 return;
             }
 
-            if (exists.FirstOrDefault(i => i.CreateTime < today && i.CreateTime >= today.AddDays(-1)) is null)
+            if (
+                exists.FirstOrDefault(i =>
+                    i.CreateTime < today && i.CreateTime >= today.AddDays(-1)
+                )
+                is null
+            )
             {
                 userStatus.StartDate = DateOnly.FromDateTime(today);
             }
@@ -86,19 +100,27 @@ public class UserClockInService(
         dbCtx.ClockInHistories.Add(new ClockInHistory(config.Id, userStatus.Id, channelId));
         dbCtx.SaveChanges();
 
-        var ongoingDays = (today - userStatus.StartDate.ToDateTime(TimeOnly.MinValue)).Days.ToUInt32() + 1;
-        var dayText = ongoingDays == 1
-            ? $"您已累积打卡 {userStatus.AllClockInCount} 天"
-            : $"您已连续打卡 {ongoingDays} 天，累积打卡 {userStatus.AllClockInCount} 天";
+        var ongoingDays =
+            (today - userStatus.StartDate.ToDateTime(TimeOnly.MinValue)).Days.ToUInt32() + 1;
+        var dayText =
+            ongoingDays == 1
+                ? $"您已累积打卡 {userStatus.AllClockInCount} 天"
+                : $"您已连续打卡 {ongoingDays} 天，累积打卡 {userStatus.AllClockInCount} 天";
 
-        var message = await channel.SendSuccessCardAsync($"{MentionUtils.KMarkdownMentionUser(userId)} 打卡成功！{dayText}",
-            fromButton);
+        var message = await channel.SendSuccessCardAsync(
+            $"{MentionUtils.KMarkdownMentionUser(userId)} 打卡成功！{dayText}",
+            fromButton
+        );
         if (fromButton && message is { HasValue: true } && message.Value is { HasValue: true })
         {
             await recallMessageService.WatchMessage(message.Value.Value.Id, channel);
         }
 
-        log.LogInformation("用户打卡成功，用户名：{UserName}#{UserId}，服务器：{GuildName}",
-            userStatus.Username, userStatus.IdNumber, guild!.Name);
+        log.LogInformation(
+            "用户打卡成功，用户名：{UserName}#{UserId}，服务器：{GuildName}",
+            userStatus.Username,
+            userStatus.IdNumber,
+            guild!.Name
+        );
     }
 }

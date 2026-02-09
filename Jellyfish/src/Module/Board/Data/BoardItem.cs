@@ -7,13 +7,14 @@ namespace Jellyfish.Module.Board.Data;
 ///     Board item
 /// </summary>
 [Obsolete("This feature has been removed, keep this class for data migration only")]
-public class BoardItem(long configId, string name, string color, string buttonId)
-    : TrackableEntity
+public class BoardItem(long configId, string name, string color, string buttonId) : TrackableEntity
 {
     public long Id { get; set; }
     public long ConfigId { get; init; } = configId;
     public string Name { get; set; } = name;
-    [MaxLength(6)] public string Color { get; set; } = color;
+
+    [MaxLength(6)]
+    public string Color { get; set; } = color;
     public string ButtonId { get; set; } = buttonId;
     public uint CountCache { get; set; }
 

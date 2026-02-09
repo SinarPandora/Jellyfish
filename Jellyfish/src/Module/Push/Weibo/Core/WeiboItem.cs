@@ -11,9 +11,9 @@ public record WeiboItem(string Username, string Content, string[] Images, string
     public virtual bool Equals(WeiboItem? other)
     {
         return other is not null
-               && Content == other.Content
-               && Images.Length == other.Images.Length
-               && !Images.Where((t, i) => t != other.Images[i]).Any();
+            && Content == other.Content
+            && Images.Length == other.Images.Length
+            && !Images.Where((t, i) => t != other.Images[i]).Any();
     }
 
     public override int GetHashCode()
@@ -54,7 +54,10 @@ public record WeiboItem(string Username, string Content, string[] Images, string
 
         return cardBuilder
             .AddModule<ContextModuleBuilder>(c =>
-                c.AddElement(new KMarkdownElementBuilder($"[原帖地址]({Constants.WeiboPostUrl + Mid})")))
+                c.AddElement(
+                    new KMarkdownElementBuilder($"[原帖地址]({Constants.WeiboPostUrl + Mid})")
+                )
+            )
             .WithSize(CardSize.Large)
             .Build();
     }

@@ -1,5 +1,5 @@
-using Jellyfish.Core.Job;
 using Jellyfish.Core.Data;
+using Jellyfish.Core.Job;
 using Jellyfish.Module.ClockIn.Data;
 using Jellyfish.Util;
 using Kook;
@@ -13,8 +13,11 @@ namespace Jellyfish.Module.ClockIn.Job;
 ///     Clock-in stage scan job
 ///     Scan all users who clocked-in today to check if they meet any of the stage requirements
 /// </summary>
-public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient kook, ILogger<ClockInStageScanJob> log)
-    : IAsyncJob
+public class ClockInStageScanJob(
+    DbContextProvider dbProvider,
+    KookSocketClient kook,
+    ILogger<ClockInStageScanJob> log
+) : IAsyncJob
 {
     private const int WindowSize = 2;
 
@@ -28,29 +31,37 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
             var today = DateTime.Today;
             var todayDate = DateOnly.FromDateTime(today);
 
-            var scope = dbCtx.ClockInStages
-                .Include(s => s.Config)
-                .Where(s => s.Config.Enabled && s.Enabled && s.StartDate <= todayDate &&
-                            (!s.EndDate.HasValue || s.EndDate.Value.AddDays(1) >= todayDate))
+            var scope = dbCtx
+                .ClockInStages.Include(s => s.Config)
+                .Where(s =>
+                    s.Config.Enabled
+                    && s.Enabled
+                    && s.StartDate <= todayDate
+                    && (!s.EndDate.HasValue || s.EndDate.Value.AddDays(1) >= todayDate)
+                )
                 .GroupBy(s => s.Config.GuildId)
                 .ToArray();
 
             foreach (var group in scope)
             {
                 var guild = kook.GetGuild(group.Key);
-                if (guild is null) continue;
+                if (guild is null)
+                    continue;
 
                 foreach (var stage in group)
                 {
-                    var userNeedScan = dbCtx.UserClockInStatuses
-                        .Include(u => u.ClockInHistories)
+                    var userNeedScan = dbCtx
+                        .UserClockInStatuses.Include(u => u.ClockInHistories)
                         .Include(u => u.QualifiedHistories)
                         .Where(u =>
                             u.ConfigId == stage.ConfigId
                             // User has not been qualified
-                            && u.QualifiedHistories.FirstOrDefault(h => h.StageId == stage.Id) == null
+                            && u.QualifiedHistories.FirstOrDefault(h => h.StageId == stage.Id)
+                                == null
                             // User has clocked after stage scanned
-                            && u.ClockInHistories.FirstOrDefault(h => h.CreateTime > stage.LastScanTime) != null
+                            && u.ClockInHistories.FirstOrDefault(h =>
+                                h.CreateTime > stage.LastScanTime
+                            ) != null
                         )
                         .ToArray();
 
@@ -74,14 +85,21 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
     /// <param name="user">User to scan</param>
     /// <param name="stage">Current stage</param>
     /// <param name="guild">Current guild</param>
-    private async Task ScanStageForUser(UserClockInStatus user, ClockInStage stage, SocketGuild guild)
+    private async Task ScanStageForUser(
+        UserClockInStatus user,
+        ClockInStage stage,
+        SocketGuild guild
+    )
     {
         await using var dbCtx = dbProvider.Provide();
-        var histories = dbCtx.ClockInHistories
-            .Where(h =>
+        var histories = dbCtx
+            .ClockInHistories.Where(h =>
                 h.UserStatusId == user.Id
                 && h.CreateTime >= stage.StartDate.ToDateTime(TimeOnly.MinValue)
-                && (stage.EndDate == null || h.CreateTime <= ((DateOnly)stage.EndDate).ToDateTime(TimeOnly.MaxValue))
+                && (
+                    stage.EndDate == null
+                    || h.CreateTime <= ((DateOnly)stage.EndDate).ToDateTime(TimeOnly.MaxValue)
+                )
             )
             .OrderBy(h => h.CreateTime)
             .ToArray();
@@ -94,16 +112,22 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
         {
             var history = histories[i];
             window.Enqueue(history);
-            if (window.Count > WindowSize) window.Dequeue();
-            if (window.Count != WindowSize) continue;
-            if ((window.Last().CreateTime.Date - window.First().CreateTime.Date).Days > allowBreakDuration)
+            if (window.Count > WindowSize)
+                window.Dequeue();
+            if (window.Count != WindowSize)
+                continue;
+            if (
+                (window.Last().CreateTime.Date - window.First().CreateTime.Date).Days
+                > allowBreakDuration
+            )
             {
                 lastContinuousIndex = i;
             }
         }
 
         var qualifiedDays = histories.Length - lastContinuousIndex;
-        if (qualifiedDays < stage.Days) return;
+        if (qualifiedDays < stage.Days)
+            return;
 
         // User is qualified
         dbCtx.ClockInStageQualifiedHistories.Add(
@@ -111,11 +135,18 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
         );
 
         dbCtx.SaveChanges();
-        log.LogInformation("用户已合格，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
-            user.Username, user.IdNumber, stage.Name, stage.Id, guild.Name);
+        log.LogInformation(
+            "用户已合格，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
+            user.Username,
+            user.IdNumber,
+            stage.Name,
+            stage.Id,
+            guild.Name
+        );
 
         var guildUser = guild.GetUser(user.UserId);
-        if (guildUser is null) return;
+        if (guildUser is null)
+            return;
 
         if (stage.Config.ResultChannelId.HasValue)
         {
@@ -135,14 +166,25 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
             try
             {
                 await guildUser.SendTextAsync(stage.QualifiedMessage!);
-                log.LogInformation("用户合格，已发送合格消息，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
-                    user.Username, user.IdNumber, stage.Name, stage.Id, guild.Name);
+                log.LogInformation(
+                    "用户合格，已发送合格消息，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
+                    user.Username,
+                    user.IdNumber,
+                    stage.Name,
+                    stage.Id,
+                    guild.Name
+                );
             }
             catch (HttpException e)
             {
-                if (e.Reason.IsNotNullOrEmpty() && e.Reason!.Contains(KookCoreApiHelper.HasBeenBlockedByUser))
+                if (
+                    e.Reason.IsNotNullOrEmpty()
+                    && e.Reason!.Contains(KookCoreApiHelper.HasBeenBlockedByUser)
+                )
                 {
-                    log.LogWarning("消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
+                    log.LogWarning(
+                        "消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息"
+                    );
                 }
             }
         }
@@ -154,8 +196,14 @@ public class ClockInStageScanJob(DbContextProvider dbProvider, KookSocketClient 
             if (role is not null && guildUser.Roles.FirstOrDefault(r => r.Id == role.Id) == null)
             {
                 await guildUser.AddRoleAsync(role);
-                log.LogInformation("用户合格，已赋予指定角色，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
-                    user.Username, user.IdNumber, stage.Name, stage.Id, guild.Name);
+                log.LogInformation(
+                    "用户合格，已赋予指定角色，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
+                    user.Username,
+                    user.IdNumber,
+                    stage.Name,
+                    stage.Id,
+                    guild.Name
+                );
             }
         }
     }

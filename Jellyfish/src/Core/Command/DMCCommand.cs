@@ -20,10 +20,15 @@ public abstract class DmcCommand : Command
     /// <param name="user">Sender</param>
     /// <param name="channel">Current Channel</param>
     /// <returns>Command result, Done will finished the execution chains</returns>
-    public async Task<CommandResult> MatchAndExecute(SocketMessage msg, SocketUser user, SocketDMChannel channel)
+    public async Task<CommandResult> MatchAndExecute(
+        SocketMessage msg,
+        SocketUser user,
+        SocketDMChannel channel
+    )
     {
         var keyword = Keywords().FirstOrDefault(k => msg.Content.StartsWith(k));
-        if (keyword is null) return CommandResult.Continue;
+        if (keyword is null)
+            return CommandResult.Continue;
         await Execute(msg.Content[keyword.Length..].Trim(), keyword, msg, user, channel);
         return CommandResult.Done;
     }
@@ -36,6 +41,11 @@ public abstract class DmcCommand : Command
     /// <param name="msg">User message object</param>
     /// <param name="user">Sender</param>
     /// <param name="channel">Current Channel</param>
-    protected abstract Task Execute(string args, string keyword, SocketMessage msg, SocketUser user,
-        SocketDMChannel channel);
+    protected abstract Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketUser user,
+        SocketDMChannel channel
+    );
 }

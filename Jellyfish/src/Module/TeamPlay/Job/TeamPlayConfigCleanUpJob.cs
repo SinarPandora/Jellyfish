@@ -1,5 +1,5 @@
-using Jellyfish.Core.Job;
 using Jellyfish.Core.Data;
+using Jellyfish.Core.Job;
 using Microsoft.EntityFrameworkCore;
 
 namespace Jellyfish.Module.TeamPlay.Job;
@@ -7,8 +7,10 @@ namespace Jellyfish.Module.TeamPlay.Job;
 /// <summary>
 ///     Cleanup outdated team play config
 /// </summary>
-public class TeamPlayConfigCleanUpJob(DbContextProvider dbProvider, ILogger<TeamPlayConfigCleanUpJob> log)
-    : IAsyncJob
+public class TeamPlayConfigCleanUpJob(
+    DbContextProvider dbProvider,
+    ILogger<TeamPlayConfigCleanUpJob> log
+) : IAsyncJob
 {
     /// <summary>
     ///     Entrypoint of the job
@@ -19,10 +21,11 @@ public class TeamPlayConfigCleanUpJob(DbContextProvider dbProvider, ILogger<Team
         try
         {
             var dbCtx = dbProvider.Provide();
-            var outdatedConfigs = (from config in dbCtx.TpConfigs.Include(c => c.RoomInstances)
-                    where !config.Enabled && config.RoomInstances.Count > 0
-                    select config)
-                .ToArray();
+            var outdatedConfigs = (
+                from config in dbCtx.TpConfigs.Include(c => c.RoomInstances)
+                where !config.Enabled && config.RoomInstances.Count > 0
+                select config
+            ).ToArray();
 
             foreach (var outdatedConfig in outdatedConfigs)
             {

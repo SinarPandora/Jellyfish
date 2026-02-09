@@ -12,10 +12,12 @@ public class ClockInStageManageCommand : GuildMessageCommand
 {
     private readonly ClockInStageManageService _service;
 
-    public ClockInStageManageCommand(ClockInStageManageService service) : base(true)
+    public ClockInStageManageCommand(ClockInStageManageService service)
+        : base(true)
     {
         _service = service;
-        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(
+            this,
             """
             管理打卡阶段
             ---
@@ -48,15 +50,21 @@ public class ClockInStageManageCommand : GuildMessageCommand
             8. `[阶段ID] 禁用`：禁用该阶段
             9. `[阶段ID] 启用`：启用该阶段
             10. `[阶段ID] 满足条件的用户`：列出全部满足条件的用户（由于消息长度限制，当超过 50 名用户时只列出最多前 50 名，您可以设置合格身份，并在 Kook 的管理页面中使用身份进行过滤）
-            """);
+            """
+        );
     }
 
     public override string Name() => "打卡阶段管理指令";
 
     public override IEnumerable<string> Keywords() => ["!打卡阶段", "！打卡阶段"];
 
-    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    protected override async Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {

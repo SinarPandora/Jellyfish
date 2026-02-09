@@ -1,8 +1,8 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Jellyfish.Core.Job;
 using Jellyfish.Core.Data;
+using Jellyfish.Core.Job;
 using Jellyfish.Module.ClockIn.Data;
 using Kook.WebSocket;
 using Microsoft.EntityFrameworkCore;
@@ -16,14 +16,17 @@ namespace Jellyfish.Module.ClockIn.Job;
 public class ClockInStageQualifiedRoleSyncJob : IAsyncJob
 {
     // Buffer queues to avoid frequent calls to the Kook API
-    private readonly Subject<(ClockInStageQualifiedHistory, SocketGuild, ClockInStage)> _buffer = new();
+    private readonly Subject<(ClockInStageQualifiedHistory, SocketGuild, ClockInStage)> _buffer =
+        new();
     private readonly DbContextProvider _dbProvider;
     private readonly KookSocketClient _kook;
     private readonly ILogger<ClockInStageQualifiedRoleSyncJob> _log;
 
-    public ClockInStageQualifiedRoleSyncJob(DbContextProvider dbProvider,
+    public ClockInStageQualifiedRoleSyncJob(
+        DbContextProvider dbProvider,
         KookSocketClient kook,
-        ILogger<ClockInStageQualifiedRoleSyncJob> log)
+        ILogger<ClockInStageQualifiedRoleSyncJob> log
+    )
     {
         _dbProvider = dbProvider;
         _kook = kook;
@@ -47,27 +50,34 @@ public class ClockInStageQualifiedRoleSyncJob : IAsyncJob
         {
             _log.LogInformation("打卡阶段合格身份同步任务开始");
             await using var dbCtx = _dbProvider.Provide();
-            var scope = dbCtx.ClockInStages.Include(s => s.Config)
+            var scope = dbCtx
+                .ClockInStages.Include(s => s.Config)
                 // Scan multiple times after stage updated in half an hour
-                .Where(s => s.QualifiedRoleId != null && s.UpdateTime > DateTime.Now.AddMinutes(-30))
+                .Where(s =>
+                    s.QualifiedRoleId != null && s.UpdateTime > DateTime.Now.AddMinutes(-30)
+                )
                 .GroupBy(s => s.Config.GuildId)
                 .ToArray();
 
             foreach (var group in scope)
             {
                 var guild = _kook.GetGuild(group.Key);
-                if (guild is null) continue;
+                if (guild is null)
+                    continue;
 
                 foreach (var stage in group)
                 {
-                    var histories = dbCtx.ClockInStageQualifiedHistories
-                        .AsNoTracking()
-                        .Where(h => h.StageId == stage.Id
-                                    && h.CreateTime < stage.UpdateTime
-                                    && h.GivenRoleId != stage.QualifiedRoleId)
+                    var histories = dbCtx
+                        .ClockInStageQualifiedHistories.AsNoTracking()
+                        .Where(h =>
+                            h.StageId == stage.Id
+                            && h.CreateTime < stage.UpdateTime
+                            && h.GivenRoleId != stage.QualifiedRoleId
+                        )
                         .ToArray();
 
-                    if (histories.IsEmpty()) continue;
+                    if (histories.IsEmpty())
+                        continue;
                     foreach (var history in histories)
                     {
                         _buffer.OnNext((history, guild, stage));
@@ -89,25 +99,39 @@ public class ClockInStageQualifiedRoleSyncJob : IAsyncJob
     /// <param name="histories">Some history (a buffer)</param>
     /// <param name="guild">Current guild</param>
     /// <param name="stage">Current stage</param>
-    private async Task UpdateQualifiedRole(ClockInStageQualifiedHistory[] histories, SocketGuild guild,
-        ClockInStage stage)
+    private async Task UpdateQualifiedRole(
+        ClockInStageQualifiedHistory[] histories,
+        SocketGuild guild,
+        ClockInStage stage
+    )
     {
         await using var dbCtx = _dbProvider.Provide();
         foreach (var history in histories)
         {
             var kookUser = guild.GetUser(history.UserStatus.UserId);
-            if (kookUser is null) return;
-            if (!stage.QualifiedRoleId.HasValue &&
-                kookUser.Roles.FirstOrDefault(r => r.Id == history.GivenRoleId) != null)
+            if (kookUser is null)
+                return;
+            if (
+                !stage.QualifiedRoleId.HasValue
+                && kookUser.Roles.FirstOrDefault(r => r.Id == history.GivenRoleId) != null
+            )
             {
                 await kookUser.RemoveRoleAsync(history.GivenRoleId!.Value);
-                _log.LogInformation("已删除旧用户合格角色，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
-                    kookUser.Username, kookUser.Id, stage.Name, stage.Id, guild.Name);
+                _log.LogInformation(
+                    "已删除旧用户合格角色，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，服务器：{GuildName}",
+                    kookUser.Username,
+                    kookUser.Id,
+                    stage.Name,
+                    stage.Id,
+                    guild.Name
+                );
             }
             else if (stage.QualifiedRoleId.HasValue)
             {
-                if (history.GivenRoleId.HasValue &&
-                    kookUser.Roles.FirstOrDefault(r => r.Id == history.GivenRoleId) != null)
+                if (
+                    history.GivenRoleId.HasValue
+                    && kookUser.Roles.FirstOrDefault(r => r.Id == history.GivenRoleId) != null
+                )
                 {
                     await kookUser.RemoveRoleAsync(history.GivenRoleId!.Value);
                 }
@@ -120,7 +144,14 @@ public class ClockInStageQualifiedRoleSyncJob : IAsyncJob
                         await kookUser.AddRoleAsync(role.Id);
                         _log.LogInformation(
                             "用户合格角色已更新，用户名：{Username}#{UserId}，阶段：{StageName}#{StageId}，角色：{RoleName}#{RoleId}，服务器：{GuildName}",
-                            kookUser.Username, kookUser.Id, stage.Name, stage.Id, role.Name, role.Id, guild.Name);
+                            kookUser.Username,
+                            kookUser.Id,
+                            stage.Name,
+                            stage.Id,
+                            role.Name,
+                            role.Id,
+                            guild.Name
+                        );
                     }
                 }
             }

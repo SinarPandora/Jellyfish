@@ -24,7 +24,9 @@ public class ClockInManageService(DbContextProvider dbProvider)
     public async Task<bool> Enable(SocketTextChannel channel)
     {
         await using var dbCtx = dbProvider.Provide();
-        var config = await dbCtx.ClockInConfigs.FirstOrDefaultAsync(c => c.GuildId == channel.Guild.Id);
+        var config = await dbCtx.ClockInConfigs.FirstOrDefaultAsync(c =>
+            c.GuildId == channel.Guild.Id
+        );
         if (config is null)
         {
             config = new ClockInConfig(channel.Guild.Id);
@@ -50,7 +52,9 @@ public class ClockInManageService(DbContextProvider dbProvider)
             打卡阶段指的是连续/非连续的持续打卡次数，使用 `！打卡阶段` 指令配置。
             您可以利用该功能设置持续 N 天的打卡活动，例如：用户在本月内打卡 25 天即可满足条件参与抽奖。
             请使用 `！打卡阶段 帮助` 指令查看详细信息。
-            """, false);
+            """,
+            false
+        );
         return true;
     }
 
@@ -62,7 +66,9 @@ public class ClockInManageService(DbContextProvider dbProvider)
     public async Task<bool> Disable(SocketTextChannel channel)
     {
         await using var dbCtx = dbProvider.Provide();
-        var config = await dbCtx.ClockInConfigs.FirstOrDefaultAsync(c => c.GuildId == channel.Guild.Id);
+        var config = await dbCtx.ClockInConfigs.FirstOrDefaultAsync(c =>
+            c.GuildId == channel.Guild.Id
+        );
         if (config is null)
         {
             await channel.SendWarningCardAsync("当前服务器未开启打卡功能", true);
@@ -94,16 +100,23 @@ public class ClockInManageService(DbContextProvider dbProvider)
         var config = await GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
+            await channel.SendWarningCardAsync(
+                "当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启",
+                true
+            );
             return false;
         }
 
-        var exist = dbCtx.ClockInCardInstances
-            .FirstOrDefault(e => e.ConfigId == config.Id && e.ChannelId == channel.Id);
+        var exist = dbCtx.ClockInCardInstances.FirstOrDefault(e =>
+            e.ConfigId == config.Id && e.ChannelId == channel.Id
+        );
 
         if (exist is not null)
         {
-            await channel.SendWarningCardAsync("当前频道已存在打卡消息，若需重新发送，请先使用 `！打卡管理 撤回消息` 指令删除", true);
+            await channel.SendWarningCardAsync(
+                "当前频道已存在打卡消息，若需重新发送，请先使用 `！打卡管理 撤回消息` 指令删除",
+                true
+            );
             return false;
         }
 
@@ -113,7 +126,6 @@ public class ClockInManageService(DbContextProvider dbProvider)
         dbCtx.SaveChanges();
         return false; // Return false to delete user message
     }
-
 
     /// <summary>
     ///     Recall clock-in card in the current channel
@@ -126,12 +138,16 @@ public class ClockInManageService(DbContextProvider dbProvider)
         var config = await GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
+            await channel.SendWarningCardAsync(
+                "当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启",
+                true
+            );
             return false;
         }
 
-        var exist = dbCtx.ClockInCardInstances
-            .FirstOrDefault(e => e.ConfigId == config.Id && e.ChannelId == channel.Id);
+        var exist = dbCtx.ClockInCardInstances.FirstOrDefault(e =>
+            e.ConfigId == config.Id && e.ChannelId == channel.Id
+        );
 
         if (exist is null)
         {
@@ -154,35 +170,48 @@ public class ClockInManageService(DbContextProvider dbProvider)
     /// <param name="config">Clock-in config</param>
     /// <param name="appendData">Extra append data for clock-in card</param>
     /// <returns>Card message id</returns>
-    public static async Task<Guid> SendCardToCurrentChannel(IMessageChannel channel, ClockInConfig config,
-        ClockInCardAppendData? appendData = null)
+    public static async Task<Guid> SendCardToCurrentChannel(
+        IMessageChannel channel,
+        ClockInConfig config,
+        ClockInCardAppendData? appendData = null
+    )
     {
-        var cardBuilder = new CardBuilder()
-            .AddModule<HeaderModuleBuilder>(e => e.WithText(config.Title));
+        var cardBuilder = new CardBuilder().AddModule<HeaderModuleBuilder>(e =>
+            e.WithText(config.Title)
+        );
 
         if (config.Description.IsNotNullOrEmpty())
             cardBuilder.AddModule<SectionModuleBuilder>(e => e.WithText(config.Description, true));
 
         if (appendData is not null)
         {
-            cardBuilder.AddModule<DividerModuleBuilder>()
+            cardBuilder
+                .AddModule<DividerModuleBuilder>()
                 .AddModule<SectionModuleBuilder>(b =>
-                    b.WithText($"""
-                                今日已有{appendData.TodayClockInCount}人打卡
-                                前{appendData.Top3Usernames.Length}名用户：
-                                {appendData.Top3Usernames.StringJoin("\n")}
-                                """));
+                    b.WithText(
+                        $"""
+                        今日已有{appendData.TodayClockInCount}人打卡
+                        前{appendData.Top3Usernames.Length}名用户：
+                        {appendData.Top3Usernames.StringJoin("\n")}
+                        """
+                    )
+                );
         }
 
-        cardBuilder.AddModule<DividerModuleBuilder>()
-            .AddModule<ActionGroupModuleBuilder>(e => e.AddElement(b =>
-            {
-                b.WithText(config.ButtonText)
-                    .WithClick(ButtonClickEventType.ReturnValue)
-                    // Add time-based suffix to make sure the button is always new for the Kook server
-                    .WithValue($"{ClockInCardAction.CardActionValue}_{DateTime.Now.ToString(TimeSuffixFormat)}")
-                    .WithTheme(ButtonTheme.Primary);
-            }));
+        cardBuilder
+            .AddModule<DividerModuleBuilder>()
+            .AddModule<ActionGroupModuleBuilder>(e =>
+                e.AddElement(b =>
+                {
+                    b.WithText(config.ButtonText)
+                        .WithClick(ButtonClickEventType.ReturnValue)
+                        // Add time-based suffix to make sure the button is always new for the Kook server
+                        .WithValue(
+                            $"{ClockInCardAction.CardActionValue}_{DateTime.Now.ToString(TimeSuffixFormat)}"
+                        )
+                        .WithTheme(ButtonTheme.Primary);
+                })
+            );
 
         return (await channel.SendCardAsync(cardBuilder.Build())).Id;
     }
@@ -193,13 +222,19 @@ public class ClockInManageService(DbContextProvider dbProvider)
     /// <param name="channel">Current channel</param>
     /// <param name="update">Update action</param>
     /// <returns>Should keep the user message or not</returns>
-    private async Task<bool> UpdateClockInCardConfig(SocketTextChannel channel, Action<ClockInConfig> update)
+    private async Task<bool> UpdateClockInCardConfig(
+        SocketTextChannel channel,
+        Action<ClockInConfig> update
+    )
     {
         await using var dbCtx = dbProvider.Provide();
         var config = await GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
+            await channel.SendWarningCardAsync(
+                "当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启",
+                true
+            );
             return false;
         }
 
@@ -249,7 +284,10 @@ public class ClockInManageService(DbContextProvider dbProvider)
         var config = await GetIfEnable(channel.Guild.Id, dbCtx);
         if (config is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
+            await channel.SendWarningCardAsync(
+                "当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启",
+                true
+            );
             return false;
         }
 
@@ -259,23 +297,30 @@ public class ClockInManageService(DbContextProvider dbProvider)
             return false;
         }
 
-        var topUsers = dbCtx.UserClockInStatuses
-            .Where(e => e.ConfigId == config.Id)
+        var topUsers = dbCtx
+            .UserClockInStatuses.Where(e => e.ConfigId == config.Id)
             .GroupBy(e => e.AllClockInCount)
             .OrderByDescending(e => e.Key)
             .Take(topCount)
-            .Select((g, i) => new
-            {
-                Rank = i + 1,
-                Users = g.OrderBy(e => e.UpdateTime).Take(MaxTopUserCountEachRank + 1).ToList()
-            })
-            .Select(g => $"第 {
+            .Select(
+                (g, i) =>
+                    new
+                    {
+                        Rank = i + 1,
+                        Users = g.OrderBy(e => e.UpdateTime)
+                            .Take(MaxTopUserCountEachRank + 1)
+                            .ToList(),
+                    }
+            )
+            .Select(g =>
+                $"第 {
                 g.Rank
             } 名：{
                 g.Users.Select(u => $"{u.Username}#{u.IdNumber}").StringJoin("\n")
             }{
                 (g.Users.Count > MaxTopUserCountEachRank ? "（按时间列出前 20 名）" : "")
-            }")
+            }"
+            )
             .AsEnumerable()
             .StringJoin("\n---\n");
 
@@ -285,7 +330,10 @@ public class ClockInManageService(DbContextProvider dbProvider)
             return true;
         }
 
-        await channel.SendSuccessCardAsync($"当前服务器打卡排行榜（前 {topCount} 名，包含并列）：\n---\n" + topUsers, false);
+        await channel.SendSuccessCardAsync(
+            $"当前服务器打卡排行榜（前 {topCount} 名，包含并列）：\n---\n" + topUsers,
+            false
+        );
         return true;
     }
 
@@ -312,7 +360,10 @@ public class ClockInManageService(DbContextProvider dbProvider)
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 2);
         if (args.Length < 1)
         {
-            await channel.SendWarningCardAsync("参数错误，请指定月份（支持数字和数字范围，如：9-10）", true);
+            await channel.SendWarningCardAsync(
+                "参数错误，请指定月份（支持数字和数字范围，如：9-10）",
+                true
+            );
             return false;
         }
 
@@ -323,7 +374,8 @@ public class ClockInManageService(DbContextProvider dbProvider)
             return false;
         }
 
-        int startMonth, endMonth;
+        int startMonth,
+            endMonth;
         var monthParts = args[0].Split('-');
         switch (monthParts.Length)
         {
@@ -332,13 +384,17 @@ public class ClockInManageService(DbContextProvider dbProvider)
                 break;
             case 2
                 when int.TryParse(monthParts[0], out startMonth)
-                     && startMonth is >= 1 and <= 12
-                     && int.TryParse(monthParts[1], out endMonth) && endMonth is >= 1 and <= 12
-                     && startMonth <= endMonth:
+                    && startMonth is >= 1 and <= 12
+                    && int.TryParse(monthParts[1], out endMonth)
+                    && endMonth is >= 1 and <= 12
+                    && startMonth <= endMonth:
                 // Valid range
                 break;
             default:
-                await channel.SendWarningCardAsync("月份参数错误，支持数字和数字范围（如：9-10）", true);
+                await channel.SendWarningCardAsync(
+                    "月份参数错误，支持数字和数字范围（如：9-10）",
+                    true
+                );
                 return false;
         }
 
@@ -361,26 +417,24 @@ public class ClockInManageService(DbContextProvider dbProvider)
 
         if (clockInConfig is null)
         {
-            await channel.SendWarningCardAsync("当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启", true);
+            await channel.SendWarningCardAsync(
+                "当前服务器未开启打卡功能，请先使用 `！打卡管理 启用` 开启",
+                true
+            );
             return false;
         }
 
         var qualifiedUsers = await (
             from his in dbCtx.ClockInHistories.AsNoTracking()
-            join usr in dbCtx.UserClockInStatuses.AsNoTracking()
-                on his.UserStatusId equals usr.Id
-            where his.CreateTime >= new DateTime(startYear, startMonth, 1)
-                  && his.CreateTime < new DateTime(endYear, endMonth, 1)
-                  && usr.ConfigId == clockInConfig.Id
-            group his by new { usr.Username, usr.IdNumber }
-            into g
+            join usr in dbCtx.UserClockInStatuses.AsNoTracking() on his.UserStatusId equals usr.Id
+            where
+                his.CreateTime >= new DateTime(startYear, startMonth, 1)
+                && his.CreateTime < new DateTime(endYear, endMonth, 1)
+                && usr.ConfigId == clockInConfig.Id
+            group his by new { usr.Username, usr.IdNumber } into g
             where g.Count() >= days
             orderby g.Count() descending
-            select new
-            {
-                Name = $"{g.Key.Username}#{g.Key.IdNumber}",
-                Days = g.Count()
-            }
+            select new { Name = $"{g.Key.Username}#{g.Key.IdNumber}", Days = g.Count() }
         ).ToListAsync();
 
         if (qualifiedUsers.Count == 0)
@@ -390,8 +444,10 @@ public class ClockInManageService(DbContextProvider dbProvider)
         }
 
         await channel.SendSuccessCardAsync(
-            $"符合 {startMonth} 月初至 {(endMonth == 1 ? "去年12" : endMonth - 1)} 月末打卡达标（≥ {days} 天）要求的用户列表：\n---\n" +
-            qualifiedUsers.Select(u => $"{u.Name}：{u.Days} 天").StringJoin("\n"), false);
+            $"符合 {startMonth} 月初至 {(endMonth == 1 ? "去年12" : endMonth - 1)} 月末打卡达标（≥ {days} 天）要求的用户列表：\n---\n"
+                + qualifiedUsers.Select(u => $"{u.Name}：{u.Days} 天").StringJoin("\n"),
+            false
+        );
         return true;
     }
 }

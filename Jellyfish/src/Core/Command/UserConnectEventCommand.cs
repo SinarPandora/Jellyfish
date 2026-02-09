@@ -15,6 +15,9 @@ public abstract class UserConnectEventCommand : Command
     /// <param name="channel">Target channel</param>
     /// <param name="joinAt">Join at</param>
     /// <returns>Command result, Done will finished the execution chains</returns>
-    public abstract Task<CommandResult> Execute(Cacheable<SocketGuildUser, ulong> user, SocketVoiceChannel channel,
-        DateTimeOffset joinAt);
+    public abstract Task<CommandResult> Execute(
+        Cacheable<SocketGuildUser, ulong> user,
+        SocketVoiceChannel channel,
+        DateTimeOffset joinAt
+    );
 }

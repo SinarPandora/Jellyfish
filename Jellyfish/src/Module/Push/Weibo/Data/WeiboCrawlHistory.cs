@@ -7,7 +7,14 @@ namespace Jellyfish.Module.Push.Weibo.Data;
 /// <summary>
 ///     Crawl history for Weibo
 /// </summary>
-public class WeiboCrawlHistory(string uid, string hash, string username, string content, string images, string mid)
+public class WeiboCrawlHistory(
+    string uid,
+    string hash,
+    string username,
+    string content,
+    string images,
+    string mid
+)
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Uid { get; set; } = uid;
@@ -16,7 +23,9 @@ public class WeiboCrawlHistory(string uid, string hash, string username, string 
     public string Content { get; set; } = content;
     public string Images { get; set; } = images;
     public string Mid { get; set; } = mid;
-    [Column(TypeName = "timestamp")] public DateTime CreateTime { get; init; } = DateTime.Now;
+
+    [Column(TypeName = "timestamp")]
+    public DateTime CreateTime { get; init; } = DateTime.Now;
 
     /// <summary>
     ///     Convert to kook Markdown card
@@ -42,7 +51,10 @@ public class WeiboCrawlHistory(string uid, string hash, string username, string 
 
         return cardBuilder
             .AddModule<ContextModuleBuilder>(c =>
-                c.AddElement(new KMarkdownElementBuilder($"[原帖地址]({Constants.WeiboPostUrl + Mid})")))
+                c.AddElement(
+                    new KMarkdownElementBuilder($"[原帖地址]({Constants.WeiboPostUrl + Mid})")
+                )
+            )
             .WithSize(CardSize.Large)
             .Build();
     }

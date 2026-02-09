@@ -23,7 +23,11 @@ public static class TimeUnitHelper
             TimeUnit.Day => TimeSpan.FromDays(value),
             TimeUnit.Week => TimeSpan.FromDays(value * 7),
             TimeUnit.Month => TimeSpan.FromDays(value * 30),
-            _ => throw new ArgumentOutOfRangeException(nameof(unit), unit, $"不支持的时间单位：{unit}")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(unit),
+                unit,
+                $"不支持的时间单位：{unit}"
+            ),
         };
     }
 }

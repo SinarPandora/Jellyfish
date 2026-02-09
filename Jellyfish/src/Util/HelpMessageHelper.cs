@@ -17,19 +17,25 @@ public static class HelpMessageHelper
     /// <param name="description">Command description without title</param>
     /// <param name="options">Command options</param>
     /// <returns>Help message</returns>
-    public static Card ForMessageCommand(GuildMessageCommand command, string description, string options) =>
+    public static Card ForMessageCommand(
+        GuildMessageCommand command,
+        string description,
+        string options
+    ) =>
         new CardBuilder()
             .AddModule<HeaderModuleBuilder>(m => m.WithText(command.Name()))
             .AddModule<SectionModuleBuilder>(m => m.WithText(description, true))
             .AddModule<DividerModuleBuilder>()
-            .AddModule<SectionModuleBuilder>(
-                m => m.WithText(
+            .AddModule<SectionModuleBuilder>(m =>
+                m.WithText(
                     $"""
-                     指令名称：{string.Join(" 或 ", command.Keywords())}
-                     ---
-                     **选项：**
-                     {options}
-                     """, true)
+                    指令名称：{string.Join(" 或 ", command.Keywords())}
+                    ---
+                    **选项：**
+                    {options}
+                    """,
+                    true
+                )
             )
             .WithSize(CardSize.Large)
             .Build();

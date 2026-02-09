@@ -16,8 +16,11 @@ public static class AutoRecallMessageHelper
     /// <param name="card">Card message</param>
     /// <param name="timeout">Recall timeout</param>
     /// <returns>The card message</returns>
-    public static async Task<Cacheable<IUserMessage, Guid>?> SendAutoRecallCardAsync(this IMessageChannel channel,
-        Card card, TimeSpan? timeout = null)
+    public static async Task<Cacheable<IUserMessage, Guid>?> SendAutoRecallCardAsync(
+        this IMessageChannel channel,
+        Card card,
+        TimeSpan? timeout = null
+    )
     {
         var result = await channel.SendCardSafeAsync(card);
         if (result.HasValue)
@@ -34,8 +37,11 @@ public static class AutoRecallMessageHelper
     /// <param name="channel">Text channel</param>
     /// <param name="message">Text message</param>
     /// <param name="timeout">Recall timeout</param>
-    public static async Task SendAutoRecallTextAsync(this IMessageChannel channel, string message,
-        TimeSpan? timeout = null)
+    public static async Task SendAutoRecallTextAsync(
+        this IMessageChannel channel,
+        string message,
+        TimeSpan? timeout = null
+    )
     {
         var result = await channel.SendTextSafeAsync(message);
         if (result.HasValue)
@@ -50,8 +56,11 @@ public static class AutoRecallMessageHelper
     /// <param name="channel">Text channel</param>
     /// <param name="messageId">Message Id</param>
     /// <param name="timeout">Recall timeout</param>
-    public static async Task DeleteMessageWithTimeoutAsync(this IMessageChannel channel, Guid messageId,
-        TimeSpan? timeout = null)
+    public static async Task DeleteMessageWithTimeoutAsync(
+        this IMessageChannel channel,
+        Guid messageId,
+        TimeSpan? timeout = null
+    )
     {
         await Task.Delay(timeout ?? DefaultRecallTimeout);
         await channel.DeleteMessageAsync(messageId);

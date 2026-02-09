@@ -24,7 +24,10 @@ public static class KookCoreApiHelper
 
     #endregion
 
-    private static readonly Logger Log = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+    private static readonly Logger Log = LogManager
+        .Setup()
+        .LoadConfigurationFromAppSettings()
+        .GetCurrentClassLogger();
 
     /// <summary>
     ///     Do not modify the value of the instance, as it is assigned during the initialization period
@@ -41,7 +44,8 @@ public static class KookCoreApiHelper
         ICard card,
         IQuote? quote = null,
         IUser? ephemeralUser = null,
-        RequestOptions? options = null)
+        RequestOptions? options = null
+    )
     {
         try
         {
@@ -51,7 +55,9 @@ public static class KookCoreApiHelper
         {
             if (e.Reason.IsNotNullOrEmpty() && e.Reason!.Contains(HasBeenBlockedByUser))
             {
-                Log.Warn("消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
+                Log.Warn(
+                    "消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息"
+                );
             }
             else
             {
@@ -72,7 +78,8 @@ public static class KookCoreApiHelper
         string text,
         IQuote? quote = null,
         IUser? ephemeralUser = null,
-        RequestOptions? options = null)
+        RequestOptions? options = null
+    )
     {
         try
         {
@@ -82,7 +89,9 @@ public static class KookCoreApiHelper
         {
             if (e.Reason.IsNotNullOrEmpty() && e.Reason!.Contains(HasBeenBlockedByUser))
             {
-                Log.Warn("消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息");
+                Log.Warn(
+                    "消息发送失败，Bot 已被对方屏蔽；该问题已被忽略，您可以从上下文中查找对应用户信息"
+                );
             }
 
             return null;
@@ -97,29 +106,39 @@ public static class KookCoreApiHelper
     /// <param name="channelId">Channel id</param>
     /// <param name="type">Channel type</param>
     /// <exception cref="InvalidEnumArgumentException">Throws when the channel type is unsupported</exception>
-    public static async Task DeleteSingleChannelAsync(this IGuild guild, ulong channelId, ChannelType type)
+    public static async Task DeleteSingleChannelAsync(
+        this IGuild guild,
+        ulong channelId,
+        ChannelType type
+    )
     {
         if (type != ChannelType.Text && type != ChannelType.Voice)
             throw new InvalidEnumArgumentException($"删除频道 API 不支持该类型的频道：{type}");
         var restGuild = await Kook.Rest.GetGuildAsync(guild.Id);
-        RestGuildChannel? channel = type == ChannelType.Text
-            ? await restGuild.GetTextChannelAsync(channelId)
-            : await restGuild.GetVoiceChannelAsync(channelId);
+        RestGuildChannel? channel =
+            type == ChannelType.Text
+                ? await restGuild.GetTextChannelAsync(channelId)
+                : await restGuild.GetVoiceChannelAsync(channelId);
         await new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
-                MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
-                OnRetry = async args =>
+            .AddRetry(
+                new RetryStrategyOptions
                 {
-                    Log.Warn(args.Outcome.Exception,
-                        $"删除频道 API 调用失败一次，房间名：{channel?.Name ?? "已删除"}，重试次数：{args.AttemptNumber}");
-                    channel = type == ChannelType.Text
-                        ? await restGuild.GetTextChannelAsync(channelId)
-                        : await restGuild.GetVoiceChannelAsync(channelId);
+                    ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                    MaxRetryAttempts = 2,
+                    DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
+                    OnRetry = async args =>
+                    {
+                        Log.Warn(
+                            args.Outcome.Exception,
+                            $"删除频道 API 调用失败一次，房间名：{channel?.Name ?? "已删除"}，重试次数：{args.AttemptNumber}"
+                        );
+                        channel =
+                            type == ChannelType.Text
+                                ? await restGuild.GetTextChannelAsync(channelId)
+                                : await restGuild.GetVoiceChannelAsync(channelId);
+                    },
                 }
-            })
+            )
             .Build()
             .ExecuteAsync(async _ =>
             {
@@ -136,39 +155,54 @@ public static class KookCoreApiHelper
     /// <param name="guild">Current guild</param>
     /// <param name="userId">Target user id</param>
     /// <param name="toChannel">To channel</param>
-    public static async Task MoveToRoomAsync(this IGuild guild, ulong userId, IVoiceChannel toChannel)
+    public static async Task MoveToRoomAsync(
+        this IGuild guild,
+        ulong userId,
+        IVoiceChannel toChannel
+    )
     {
         var restGuild = await Kook.Rest.GetGuildAsync(guild.Id);
         var restUser = await restGuild.GetUserAsync(userId);
         var currentChannel = (await restUser.GetConnectedVoiceChannelsAsync()).FirstOrDefault();
         var guildUsers = new List<IGuildUser> { restUser };
         await new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
-                MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
-                OnRetry = async args =>
+            .AddRetry(
+                new RetryStrategyOptions
                 {
-                    Log.Warn(args.Outcome.Exception,
-                        $"移动频道 API 调用失败一次，用户名：{restUser.DisplayName()}，房间名：{toChannel.Name}，重试次数：{args.AttemptNumber}");
-                    restUser = await restGuild.GetUserAsync(userId);
-                    currentChannel = (await restUser.GetConnectedVoiceChannelsAsync()).FirstOrDefault();
+                    ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                    MaxRetryAttempts = 2,
+                    DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
+                    OnRetry = async args =>
+                    {
+                        Log.Warn(
+                            args.Outcome.Exception,
+                            $"移动频道 API 调用失败一次，用户名：{restUser.DisplayName()}，房间名：{toChannel.Name}，重试次数：{args.AttemptNumber}"
+                        );
+                        restUser = await restGuild.GetUserAsync(userId);
+                        currentChannel = (
+                            await restUser.GetConnectedVoiceChannelsAsync()
+                        ).FirstOrDefault();
+                    },
                 }
-            })
+            )
             .Build()
             .ExecuteAsync(async token =>
             {
-                if (currentChannel is null) return;
+                if (currentChannel is null)
+                    return;
                 if (currentChannel.Id != toChannel.Id)
                 {
                     await guild.MoveUsersAsync(guildUsers, toChannel);
                     // Delay 5s for desktop or mobile app to let user join
                     await Task.Delay(TimeSpan.FromSeconds(MoveUserChannelTimeout), token);
-                    currentChannel = (await restUser.GetConnectedVoiceChannelsAsync()).FirstOrDefault();
+                    currentChannel = (
+                        await restUser.GetConnectedVoiceChannelsAsync()
+                    ).FirstOrDefault();
                     if (currentChannel is null || currentChannel.Id != toChannel.Id)
                     {
-                        throw new ApplicationException("当前用户可能未成功移动至语音频道，尝试重新移动用户");
+                        throw new ApplicationException(
+                            "当前用户可能未成功移动至语音频道，尝试重新移动用户"
+                        );
                     }
                 }
             });
@@ -180,24 +214,31 @@ public static class KookCoreApiHelper
     /// <param name="channel">Target channel</param>
     /// <param name="role">Target role</param>
     /// <param name="overrideFn">Override function</param>
-    public static async Task OverrideRolePermissionAsync(this IGuildChannel channel, IRole role,
-        Func<OverwritePermissions, OverwritePermissions> overrideFn)
+    public static async Task OverrideRolePermissionAsync(
+        this IGuildChannel channel,
+        IRole role,
+        Func<OverwritePermissions, OverwritePermissions> overrideFn
+    )
     {
         var restGuild = await Kook.Rest.GetGuildAsync(role.Guild.Id);
         var restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
         await new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
-                MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
-                OnRetry = async args =>
+            .AddRetry(
+                new RetryStrategyOptions
                 {
-                    Log.Warn(args.Outcome.Exception,
-                        $"覆写频道角色权限 API 调用失败一次，角色名：{role.Name}，频道名：{restGuildChannel.Name}，重试次数：{args.AttemptNumber}");
-                    restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+                    ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                    MaxRetryAttempts = 2,
+                    DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
+                    OnRetry = async args =>
+                    {
+                        Log.Warn(
+                            args.Outcome.Exception,
+                            $"覆写频道角色权限 API 调用失败一次，角色名：{role.Name}，频道名：{restGuildChannel.Name}，重试次数：{args.AttemptNumber}"
+                        );
+                        restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+                    },
                 }
-            })
+            )
             .Build()
             .ExecuteAsync(async _ =>
             {
@@ -216,24 +257,31 @@ public static class KookCoreApiHelper
     /// <param name="channel">Target channel</param>
     /// <param name="user">Target user</param>
     /// <param name="overrideFn">Override function</param>
-    public static async Task OverrideUserPermissionAsync(this IGuildChannel channel, IGuildUser user,
-        Func<OverwritePermissions, OverwritePermissions> overrideFn)
+    public static async Task OverrideUserPermissionAsync(
+        this IGuildChannel channel,
+        IGuildUser user,
+        Func<OverwritePermissions, OverwritePermissions> overrideFn
+    )
     {
         var restGuild = await Kook.Rest.GetGuildAsync(user.Guild.Id);
         var restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
         await new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
-                MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
-                OnRetry = async args =>
+            .AddRetry(
+                new RetryStrategyOptions
                 {
-                    Log.Warn(args.Outcome.Exception,
-                        $"覆写频道角色权限 API 调用失败一次，用户名：{user.DisplayName}，频道名：{restGuildChannel.Name}，重试次数：{args.AttemptNumber}");
-                    restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+                    ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                    MaxRetryAttempts = 2,
+                    DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
+                    OnRetry = async args =>
+                    {
+                        Log.Warn(
+                            args.Outcome.Exception,
+                            $"覆写频道角色权限 API 调用失败一次，用户名：{user.DisplayName}，频道名：{restGuildChannel.Name}，重试次数：{args.AttemptNumber}"
+                        );
+                        restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+                    },
                 }
-            })
+            )
             .Build()
             .ExecuteAsync(async _ =>
             {
@@ -251,23 +299,30 @@ public static class KookCoreApiHelper
     /// </summary>
     /// <param name="channel">Target channel</param>
     /// <param name="user">Target user</param>
-    public static async Task RemoveUserPermissionOverrideAsync(this IGuildChannel channel, IGuildUser user)
+    public static async Task RemoveUserPermissionOverrideAsync(
+        this IGuildChannel channel,
+        IGuildUser user
+    )
     {
         var restGuild = await Kook.Rest.GetGuildAsync(user.Guild.Id);
         var restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
         await new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
-                MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
-                OnRetry = async args =>
+            .AddRetry(
+                new RetryStrategyOptions
                 {
-                    Log.Warn(args.Outcome.Exception,
-                        $"删除覆盖的频道角色权限 API 调用失败一次，用户名：{user.DisplayName}，频道名：{restGuildChannel.Name}，重试次数：{args.AttemptNumber}");
-                    restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+                    ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                    MaxRetryAttempts = 2,
+                    DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
+                    OnRetry = async args =>
+                    {
+                        Log.Warn(
+                            args.Outcome.Exception,
+                            $"删除覆盖的频道角色权限 API 调用失败一次，用户名：{user.DisplayName}，频道名：{restGuildChannel.Name}，重试次数：{args.AttemptNumber}"
+                        );
+                        restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+                    },
                 }
-            })
+            )
             .Build()
             .ExecuteAsync(async _ =>
             {
@@ -283,23 +338,30 @@ public static class KookCoreApiHelper
     /// </summary>
     /// <param name="channel">Target channel</param>
     /// <param name="role">Target user</param>
-    public static async Task RemoveRolePermissionOverrideAsync(this IGuildChannel channel, IRole role)
+    public static async Task RemoveRolePermissionOverrideAsync(
+        this IGuildChannel channel,
+        IRole role
+    )
     {
         var restGuild = await Kook.Rest.GetGuildAsync(role.Guild.Id);
         var restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
         await new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(),
-                MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
-                OnRetry = async args =>
+            .AddRetry(
+                new RetryStrategyOptions
                 {
-                    Log.Warn(args.Outcome.Exception,
-                        $"删除覆盖的频道角色权限 API 调用失败一次，权限名：{role.Name}，频道名：{restGuildChannel.Name}，重试次数：{args.AttemptNumber}");
-                    restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+                    ShouldHandle = new PredicateBuilder().Handle<Exception>(),
+                    MaxRetryAttempts = 2,
+                    DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
+                    OnRetry = async args =>
+                    {
+                        Log.Warn(
+                            args.Outcome.Exception,
+                            $"删除覆盖的频道角色权限 API 调用失败一次，权限名：{role.Name}，频道名：{restGuildChannel.Name}，重试次数：{args.AttemptNumber}"
+                        );
+                        restGuildChannel = await restGuild.GetChannelAsync(channel.Id);
+                    },
                 }
-            })
+            )
             .Build()
             .ExecuteAsync(async _ =>
             {
@@ -318,27 +380,32 @@ public static class KookCoreApiHelper
     public static async Task DeleteMessageSafeAsync(this RestTextChannel channel, Guid messageId)
     {
         await new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions
-            {
-                ShouldHandle =
-                    new PredicateBuilder().Handle<Exception>(ex =>
-                        ex is not HttpException || !ex.Message.Contains("40012")),
-                MaxRetryAttempts = 2,
-                DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
-                OnRetry = args =>
+            .AddRetry(
+                new RetryStrategyOptions
                 {
-                    Log.Warn(args.Outcome.Exception,
-                        $"删除消息 API 调用失败一次，频道：{channel.Guild.Name}，房间名：{channel.Name}，消息 ID：{messageId}，重试次数：{args.AttemptNumber}");
-                    return ValueTask.CompletedTask;
+                    ShouldHandle = new PredicateBuilder().Handle<Exception>(ex =>
+                        ex is not HttpException || !ex.Message.Contains("40012")
+                    ),
+                    MaxRetryAttempts = 2,
+                    DelayGenerator = PollyHelper.DefaultProgressiveDelayGenerator,
+                    OnRetry = args =>
+                    {
+                        Log.Warn(
+                            args.Outcome.Exception,
+                            $"删除消息 API 调用失败一次，频道：{channel.Guild.Name}，房间名：{channel.Name}，消息 ID：{messageId}，重试次数：{args.AttemptNumber}"
+                        );
+                        return ValueTask.CompletedTask;
+                    },
                 }
-            })
+            )
             .Build()
             .ExecuteAsync(async _ =>
             {
                 try
                 {
                     var message = (RestMessage?)await channel.GetMessageAsync(messageId);
-                    if (message is null) return;
+                    if (message is null)
+                        return;
 
                     await message.DeleteAsync();
 
@@ -346,7 +413,8 @@ public static class KookCoreApiHelper
                     if (message is not null)
                     {
                         throw new Exception(
-                            $"本应删除的消息依然存在，频道：{channel.Guild.Name}，房间名：{channel.Name}，消息 ID：{messageId}");
+                            $"本应删除的消息依然存在，频道：{channel.Guild.Name}，房间名：{channel.Name}，消息 ID：{messageId}"
+                        );
                     }
                 }
                 catch (HttpException e)

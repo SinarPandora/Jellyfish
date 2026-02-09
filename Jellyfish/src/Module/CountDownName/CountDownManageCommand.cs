@@ -12,10 +12,12 @@ public class CountDownManageCommand : GuildMessageCommand
 {
     private readonly CountDownChannelService _service;
 
-    public CountDownManageCommand(CountDownChannelService service) : base(true)
+    public CountDownManageCommand(CountDownChannelService service)
+        : base(true)
     {
         _service = service;
-        HelpMessage = HelpMessageHelper.ForMessageCommand(this,
+        HelpMessage = HelpMessageHelper.ForMessageCommand(
+            this,
             """
             配置频道名称倒/正计时
             ---
@@ -37,15 +39,22 @@ public class CountDownManageCommand : GuildMessageCommand
             举例：
             使用 `！频道倒计时 创建 #频道 2024-05-01 距离劳动节还有{COUNT}天`
             将设置频道名称为：距离劳动节还有1️⃣2️⃣天
-            """);
+            """
+        );
     }
 
     public override string Name() => "频道名称倒计时配置指令";
 
-    public override IEnumerable<string> Keywords() => ["！频道倒计时", "!频道倒计时", "！倒计时频道", "!倒计时频道"];
+    public override IEnumerable<string> Keywords() =>
+        ["！频道倒计时", "!频道倒计时", "！倒计时频道", "!倒计时频道"];
 
-    protected override async Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    protected override async Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         if (args.StartsWith(HelpMessageHelper.HelpCommand))
         {

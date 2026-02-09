@@ -14,7 +14,8 @@ namespace Jellyfish.Module.RecallMessageMonitor.Job;
 public class EnsureMessageRecalledJob(
     DbContextProvider dbProvider,
     KookSocketClient kook,
-    ILogger<EnsureMessageRecalledJob> log) : IAsyncJob
+    ILogger<EnsureMessageRecalledJob> log
+) : IAsyncJob
 {
     public async Task ExecuteAsync()
     {
@@ -22,7 +23,8 @@ public class EnsureMessageRecalledJob(
         {
             log.LogInformation("确保消息撤回任务开始");
             await using var dbCtx = dbProvider.Provide();
-            var messageGroups = dbCtx.RecallMessages.AsNoTracking()
+            var messageGroups = dbCtx
+                .RecallMessages.AsNoTracking()
                 .ToArray()
                 .GroupBy(it => (it.GuildId, it.ChannelId));
 
@@ -53,16 +55,25 @@ public class EnsureMessageRecalledJob(
                     }
                     catch (Exception e)
                     {
-                        log.LogWarning(e, "删除消息时出错，房间名：{ChannelName}，消息 ID：{MessageMessageId}", channel.Name,
-                            message.MessageId);
+                        log.LogWarning(
+                            e,
+                            "删除消息时出错，房间名：{ChannelName}，消息 ID：{MessageMessageId}",
+                            channel.Name,
+                            message.MessageId
+                        );
                     }
                 }
             }
 
-            dbCtx.RecallMessages.RemoveRange(dbCtx.RecallMessages.Where(it => needDelete.Contains(it)));
+            dbCtx.RecallMessages.RemoveRange(
+                dbCtx.RecallMessages.Where(it => needDelete.Contains(it))
+            );
             dbCtx.SaveChanges();
 
-            log.LogInformation("确保消息撤回任务结束，已清理：{NeedDeleteCount}条顽固消息", needDelete.Count);
+            log.LogInformation(
+                "确保消息撤回任务结束，已清理：{NeedDeleteCount}条顽固消息",
+                needDelete.Count
+            );
         }
         catch (Exception e)
         {

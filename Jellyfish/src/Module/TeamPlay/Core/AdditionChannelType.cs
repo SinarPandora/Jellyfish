@@ -7,5 +7,5 @@ public enum AdditionChannelType
 {
     TmpTextCategoryInto,
     TmpVoiceCategoryInto,
-    CreationNotify
+    CreationNotify,
 }

@@ -13,15 +13,17 @@ public class BoardConfig(
     string title,
     string details,
     DateTime due,
-    BoardType boardType)
-    : TrackableEntity
+    BoardType boardType
+) : TrackableEntity
 {
     public long Id { get; set; }
     public ulong GuildId { get; init; } = guildId;
     public bool IsTemplate { get; init; } = isTemplate;
     public string Title { get; set; } = title;
     public string Details { get; set; } = details;
-    [Column(TypeName = "timestamp")] public DateTime Due { get; set; } = due;
+
+    [Column(TypeName = "timestamp")]
+    public DateTime Due { get; set; } = due;
     public BoardType BoardType { get; init; } = boardType;
     public bool Finished { get; set; }
 

@@ -6,5 +6,5 @@ namespace Jellyfish.Module.GuildSetting.Enum;
 public enum GuildCustomFeature
 {
     SplatoonGame,
-    BotSplatoon3
+    BotSplatoon3,
 }

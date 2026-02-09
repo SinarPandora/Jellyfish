@@ -6,7 +6,8 @@ namespace Jellyfish.Module.ClockIn.Data;
 ///     The cumulative clock-in status of a user
 ///     which is used as a cache to speed up the generation of leaderboards
 /// </summary>
-public class UserClockInStatus(long configId, ulong userId, string username, string idNumber) : TrackableEntity
+public class UserClockInStatus(long configId, ulong userId, string username, string idNumber)
+    : TrackableEntity
 {
     public long Id { get; set; }
     public long ConfigId { get; init; } = configId;

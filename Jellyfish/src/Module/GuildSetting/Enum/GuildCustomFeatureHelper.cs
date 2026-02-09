@@ -16,7 +16,11 @@ public static class GuildCustomFeatureHelper
         {
             GuildCustomFeature.SplatoonGame => "斯普拉遁游戏",
             GuildCustomFeature.BotSplatoon3 => "斯普拉遁3Bot联动",
-            _ => throw new ArgumentOutOfRangeException(nameof(feature), feature, $"不支持的附加功能：{feature}")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(feature),
+                feature,
+                $"不支持的附加功能：{feature}"
+            ),
         };
 
     /// <summary>
@@ -29,6 +33,6 @@ public static class GuildCustomFeatureHelper
         {
             "斯普拉遁游戏" => GuildCustomFeature.SplatoonGame,
             "斯普拉遁3Bot联动" => GuildCustomFeature.BotSplatoon3,
-            _ => null
+            _ => null,
         };
 }

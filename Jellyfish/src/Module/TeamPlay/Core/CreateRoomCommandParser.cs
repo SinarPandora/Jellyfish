@@ -21,7 +21,8 @@ public static partial class CreateRoomCommandParser
     /// <returns>Create room argument builder with parsed args</returns>
     public static Func<TpConfig, Args.CreateRoomArgs> Parse(string rawCommand)
     {
-        if (rawCommand.IsEmpty()) return config => new Args.CreateRoomArgs(config, string.Empty);
+        if (rawCommand.IsEmpty())
+            return config => new Args.CreateRoomArgs(config, string.Empty);
         return rawCommand.ContainsAny("人数", "密码")
             ? ParseSimpleCommand(rawCommand)
             : ParseAllInOneCommand(rawCommand);
@@ -44,7 +45,13 @@ public static partial class CreateRoomCommandParser
             }
         }
 
-        return config => new Args.CreateRoomArgs(config, rawCommand, null, memberLimit, password ?? string.Empty);
+        return config => new Args.CreateRoomArgs(
+            config,
+            rawCommand,
+            null,
+            memberLimit,
+            password ?? string.Empty
+        );
     }
 
     private static Func<TpConfig, Args.CreateRoomArgs> ParseAllInOneCommand(string rawCommand)

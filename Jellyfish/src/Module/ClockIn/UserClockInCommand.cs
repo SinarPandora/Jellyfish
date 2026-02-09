@@ -13,8 +13,13 @@ public class UserClockInCommand(ClockInBuffer buffer) : GuildMessageCommand(fals
 
     public override IEnumerable<string> Keywords() => ["/打卡"];
 
-    protected override Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    protected override Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         buffer.Instance.OnNext((channel.Guild.Id, channel.Id, user.Id, false));
         return Task.CompletedTask;

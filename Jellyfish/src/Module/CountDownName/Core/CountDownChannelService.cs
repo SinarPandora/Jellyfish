@@ -24,7 +24,7 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         { '6', "6️⃣" },
         { '7', "7️⃣" },
         { '8', "8️⃣" },
-        { '9', "9️⃣" }
+        { '9', "9️⃣" },
     };
 
     /// <summary>
@@ -37,7 +37,8 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         await using var dbCtx = dbProvider.Provide();
 
         var today = DateTime.Today;
-        var cdChannels = (from cdChannel in dbCtx.CountDownChannels
+        var cdChannels = (
+            from cdChannel in dbCtx.CountDownChannels
             where cdChannel.GuildId == channel.Guild.Id
             select $"{cdChannel.Id}：{
                 MentionUtils.KMarkdownMentionChannel(cdChannel.ChannelId)
@@ -45,7 +46,8 @@ public class CountDownChannelService(DbContextProvider dbProvider)
                 (cdChannel.Positive ? "（正计时" : "（倒计时")
             }{
                 Math.Abs((cdChannel.DueDate.ToDateTime(TimeOnly.MinValue) - today).Days)
-            }天），到期名称：{cdChannel.DueText ?? "未设置"}").ToArray();
+            }天），到期名称：{cdChannel.DueText ?? "未设置"}"
+        ).ToArray();
 
         if (cdChannels.IsEmpty())
         {
@@ -68,7 +70,10 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         var args = Regexs.MatchWhiteChars().Split(rawArgs, 3);
         if (args.Length < 3)
         {
-            await channel.SendErrorCardAsync($"参数不足！举例：`！倒计时频道 #频道 2024-05-01 距离劳动节还有{CountPlaceHolder}天`", true);
+            await channel.SendErrorCardAsync(
+                $"参数不足！举例：`！倒计时频道 #频道 2024-05-01 距离劳动节还有{CountPlaceHolder}天`",
+                true
+            );
             return false;
         }
 
@@ -76,20 +81,29 @@ public class CountDownChannelService(DbContextProvider dbProvider)
 
         if (!rawMention.StartsWith(KookConstants.ChannelMention))
         {
-            await channel.SendErrorCardAsync("请在指令中引用现有频道，具体内容请参考：`!倒计时频道 帮助`", true);
+            await channel.SendErrorCardAsync(
+                "请在指令中引用现有频道，具体内容请参考：`!倒计时频道 帮助`",
+                true
+            );
             return false;
         }
 
         if (!MentionUtils.TryParseChannel(rawMention, out var targetChannelId, TagMode.KMarkdown))
         {
-            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
+            await channel.SendErrorCardAsync(
+                "频道引用应是一个蓝色文本，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道",
+                true
+            );
             return false;
         }
 
         var pattern = args[2];
         if (!pattern.Contains(CountPlaceHolder))
         {
-            await channel.SendErrorCardAsync($"频道名模板应包含{CountPlaceHolder}，以显示倒计时，具体内容请参考：`!倒计时频道 帮助`", true);
+            await channel.SendErrorCardAsync(
+                $"频道名模板应包含{CountPlaceHolder}，以显示倒计时，具体内容请参考：`!倒计时频道 帮助`",
+                true
+            );
             return false;
         }
 
@@ -105,14 +119,24 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         await using var dbCtx = dbProvider.Provide();
 
         var exists = dbCtx.CountDownChannels.FirstOrDefault(item =>
-            item.ChannelId == targetChannelId && item.GuildId == channel.Guild.Id);
+            item.ChannelId == targetChannelId && item.GuildId == channel.Guild.Id
+        );
         if (exists is not null)
         {
-            await channel.SendErrorCardAsync("该频道已设置过倒计时，请选择其他频道（或删除倒计时重新创建）", true);
+            await channel.SendErrorCardAsync(
+                "该频道已设置过倒计时，请选择其他频道（或删除倒计时重新创建）",
+                true
+            );
             return false;
         }
 
-        var cdChannel = new CountDownChannel(channel.Guild.Id, targetChannelId, pattern, dueDate, delta <= 0);
+        var cdChannel = new CountDownChannel(
+            channel.Guild.Id,
+            targetChannelId,
+            pattern,
+            dueDate,
+            delta <= 0
+        );
         dbCtx.CountDownChannels.Add(cdChannel);
 
         dbCtx.SaveChanges();
@@ -120,11 +144,13 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         await UpdateChannelText(channel.Guild.GetChannel(targetChannelId)!, cdChannel);
         await channel.SendSuccessCardAsync(
             $"""
-             创建成功！{MentionUtils.KMarkdownMentionChannel(channel.Id)} 的频道名称已设置为{(delta <= 0 ? "正计时" : "倒计时")}，距离天数：{Math.Abs(delta)}
-             ---
-             您可以进一步设置到达指定日期时显示的频道标题，如：
-             `!倒计时频道 到期名称 {cdChannel.Id} XXX就是今天！`
-             """,
+            创建成功！{MentionUtils.KMarkdownMentionChannel(channel.Id)} 的频道名称已设置为{(
+                delta <= 0 ? "正计时" : "倒计时"
+            )}，距离天数：{Math.Abs(delta)}
+            ---
+            您可以进一步设置到达指定日期时显示的频道标题，如：
+            `!倒计时频道 到期名称 {cdChannel.Id} XXX就是今天！`
+            """,
             false
         );
         return true;
@@ -148,7 +174,8 @@ public class CountDownChannelService(DbContextProvider dbProvider)
         var rawMention = args[0];
         await using var dbCtx = dbProvider.Provide();
         var cdChannel = await ExtractMentionOrId(rawMention, channel, dbCtx);
-        if (cdChannel is null) return false;
+        if (cdChannel is null)
+            return false;
 
         cdChannel.DueText = args[1];
         dbCtx.SaveChanges();
@@ -168,18 +195,27 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     /// <param name="channel">Current channel</param>
     /// <param name="dbCtx">Database context</param>
     /// <returns>CountDown-Name channel if extracted</returns>
-    private static async Task<CountDownChannel?> ExtractMentionOrId(string rawMention, SocketTextChannel channel,
-        DatabaseContext dbCtx)
+    private static async Task<CountDownChannel?> ExtractMentionOrId(
+        string rawMention,
+        SocketTextChannel channel,
+        DatabaseContext dbCtx
+    )
     {
         if (rawMention.StartsWith(KookConstants.ChannelMention))
         {
-            if (MentionUtils.TryParseChannel(rawMention, out var targetChannelId, TagMode.KMarkdown))
+            if (
+                MentionUtils.TryParseChannel(rawMention, out var targetChannelId, TagMode.KMarkdown)
+            )
             {
                 return dbCtx.CountDownChannels.FirstOrDefault(item =>
-                    item.ChannelId == targetChannelId && item.GuildId == channel.Guild.Id);
+                    item.ChannelId == targetChannelId && item.GuildId == channel.Guild.Id
+                );
             }
 
-            await channel.SendErrorCardAsync("频道引用应是一个蓝色文本，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道", true);
+            await channel.SendErrorCardAsync(
+                "频道引用应是一个蓝色文本，请在消息框中输入#（井号）并在弹出的菜单中选择指定频道",
+                true
+            );
             return null;
         }
 
@@ -188,7 +224,10 @@ public class CountDownChannelService(DbContextProvider dbProvider)
             return dbCtx.CountDownChannels.FirstOrDefault(item => item.Id == cdChannelId);
         }
 
-        await channel.SendErrorCardAsync("请艾特对应频道或输入倒计时编号，具体内容请参考：`!倒计时频道 帮助`", true);
+        await channel.SendErrorCardAsync(
+            "请艾特对应频道或输入倒计时编号，具体内容请参考：`!倒计时频道 帮助`",
+            true
+        );
         return null;
     }
 
@@ -202,7 +241,8 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     {
         await using var dbCtx = dbProvider.Provide();
         var cdChannel = await ExtractMentionOrId(rawArgs, channel, dbCtx);
-        if (cdChannel is null) return false;
+        if (cdChannel is null)
+            return false;
 
         cdChannel.DueText = null;
         dbCtx.SaveChanges();
@@ -221,7 +261,8 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     {
         await using var dbCtx = dbProvider.Provide();
         var cdChannel = await ExtractMentionOrId(rawArgs, channel, dbCtx);
-        if (cdChannel is null) return false;
+        if (cdChannel is null)
+            return false;
 
         dbCtx.CountDownChannels.Remove(cdChannel);
         dbCtx.SaveChanges();
@@ -237,7 +278,9 @@ public class CountDownChannelService(DbContextProvider dbProvider)
     /// <param name="cdChannel">CountDown-Name channel object as a pattern</param>
     public static async Task UpdateChannelText(IGuildChannel target, CountDownChannel cdChannel)
     {
-        var delta = Math.Abs((cdChannel.DueDate.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days);
+        var delta = Math.Abs(
+            (cdChannel.DueDate.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days
+        );
         string name;
         if (delta == 0)
         {
@@ -245,11 +288,13 @@ public class CountDownChannelService(DbContextProvider dbProvider)
             {
                 name = cdChannel.DueText;
             }
-            else return;
+            else
+                return;
         }
         else
         {
-            name = cdChannel.Pattern.Replace(CountPlaceHolder,
+            name = cdChannel.Pattern.Replace(
+                CountPlaceHolder,
                 delta
                     .ToString()
                     .ToCharArray()

@@ -16,6 +16,10 @@ public abstract class ButtonActionCommand : Command
     /// <param name="message">Cached message object</param>
     /// <param name="channel">Current channel</param>
     /// <returns>Command result, Done will finished the execution chains</returns>
-    public abstract Task<CommandResult> Execute(string value, Cacheable<SocketGuildUser, ulong> user,
-        Cacheable<IMessage, Guid> message, SocketTextChannel channel);
+    public abstract Task<CommandResult> Execute(
+        string value,
+        Cacheable<SocketGuildUser, ulong> user,
+        Cacheable<IMessage, Guid> message,
+        SocketTextChannel channel
+    );
 }

@@ -17,13 +17,20 @@ public class SynergyBotConflictResolveCommand() : GuildMessageCommand(false)
     public override IEnumerable<string> Keywords() => [];
 
     [UsedImplicitly]
-    public new async Task<CommandResult> MatchAndExecute(SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    public new async Task<CommandResult> MatchAndExecute(
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         var bots = AppCaches.GuildSettings[channel.Guild.Id].SynergyBotAccounts;
         var messages = AppCaches.GuildSettings[channel.Guild.Id].SynergyBotConflictMessage;
-        if (!(user.IsBot ?? false) || !bots.Contains(user.Id) || messages.IsEmpty() ||
-            !messages.Any(m => msg.Content.Contains(m)))
+        if (
+            !(user.IsBot ?? false)
+            || !bots.Contains(user.Id)
+            || messages.IsEmpty()
+            || !messages.Any(m => msg.Content.Contains(m))
+        )
         {
             return CommandResult.Continue;
         }
@@ -32,8 +39,13 @@ public class SynergyBotConflictResolveCommand() : GuildMessageCommand(false)
         return CommandResult.Done;
     }
 
-    protected override Task Execute(string args, string keyword, SocketMessage msg, SocketGuildUser user,
-        SocketTextChannel channel)
+    protected override Task Execute(
+        string args,
+        string keyword,
+        SocketMessage msg,
+        SocketGuildUser user,
+        SocketTextChannel channel
+    )
     {
         throw new NotSupportedException("Please use MatchAndExecute method instead");
     }

@@ -19,5 +19,5 @@ public enum BoardType
     /// <summary>
     ///     Match board: after the referee sets the score, it enters the two-way confirmation process (default confirmation, CD can be interrupted)
     /// </summary>
-    Match
+    Match,
 }

@@ -17,8 +17,12 @@ public class InitSettingOnConnectUnregisteredGuildCommand(
 
     public override async Task<CommandResult> Execute(SocketGuild guild)
     {
-        if (AppCaches.GuildSettings.ContainsKey(guild.Id)) return CommandResult.Continue;
-        log.LogInformation("发现频道 {Name} 尚未被注册到系统中，开始注册并添加初始配置", guild.Name);
+        if (AppCaches.GuildSettings.ContainsKey(guild.Id))
+            return CommandResult.Continue;
+        log.LogInformation(
+            "发现频道 {Name} 尚未被注册到系统中，开始注册并添加初始配置",
+            guild.Name
+        );
 
         await using var dbCtx = dbProvider.Provide();
         var setting = new Data.GuildSetting(guild.Id);

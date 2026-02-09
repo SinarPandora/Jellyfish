@@ -25,8 +25,8 @@ public class CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
     /// <param name="dbCtx">Database Context</param>
     private static async Task LoadPermissions(DatabaseContext dbCtx)
     {
-        var roles = await dbCtx.UserRoles
-            .Include(e => e.CommandPermissions)
+        var roles = await dbCtx
+            .UserRoles.Include(e => e.CommandPermissions)
             .AsNoTracking()
             .ToListAsync();
 
@@ -34,13 +34,15 @@ public class CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
         {
             foreach (var permission in role.CommandPermissions)
             {
-                AppCaches.Permissions.AddOrUpdate($"{role.GuildId}_{permission.CommandName}",
+                AppCaches.Permissions.AddOrUpdate(
+                    $"{role.GuildId}_{permission.CommandName}",
                     [role.KookId],
                     (_, v) =>
                     {
                         v.Add(role.KookId);
                         return v;
-                    });
+                    }
+                );
             }
         }
     }
@@ -51,8 +53,8 @@ public class CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
     /// <param name="dbCtx">Database Context</param>
     private static void LoadTeamPlayConfigs(DatabaseContext dbCtx)
     {
-        dbCtx.TpConfigs
-            .Where(e => e.Enabled)
+        dbCtx
+            .TpConfigs.Where(e => e.Enabled)
             .AsNoTracking()
             .AsEnumerable()
             .ForEach(c => AppCaches.TeamPlayConfigs.AddOrUpdate($"{c.GuildId}_{c.Name}", c));
@@ -64,8 +66,8 @@ public class CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
     /// <param name="dbCtx">Database context</param>
     private static void LoadGuildSettings(DatabaseContext dbCtx)
     {
-        dbCtx.GuildSettings
-            .AsNoTracking()
+        dbCtx
+            .GuildSettings.AsNoTracking()
             .AsEnumerable()
             .ForEach(s => AppCaches.GuildSettings.AddOrUpdate(s.GuildId, s.Setting));
     }
@@ -76,7 +78,8 @@ public class CacheLoader(ILogger<CacheLoader> log, DbContextProvider dbProvider)
     /// <param name="dbCtx">Database context</param>
     private static void LoadClockInConfig(DatabaseContext dbCtx)
     {
-        dbCtx.ClockInConfigs.Include(c => c.Stages)
+        dbCtx
+            .ClockInConfigs.Include(c => c.Stages)
             .AsNoTracking()
             .AsEnumerable()
             .ForEach(c => AppCaches.ClockInConfigs.AddOrUpdate(c.GuildId, c));
